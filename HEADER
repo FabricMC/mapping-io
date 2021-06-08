@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 FabricMC
+ * Copyright (c) $YEAR FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,3 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio;
-
-public enum MappedElementKind {
-	CLASS(0),
-	FIELD(1),
-	METHOD(1),
-	METHOD_ARG(2),
-	METHOD_VAR(2);
-
-	MappedElementKind(int level) {
-		this.level = level;
-	}
-
-	public final int level;
-}

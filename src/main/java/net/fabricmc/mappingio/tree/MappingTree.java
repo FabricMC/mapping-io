@@ -39,7 +39,7 @@ public interface MappingTree {
 	}
 
 	/**
-	 * Determine the maximum available namespace ID (exclusive)
+	 * Determine the maximum available namespace ID (exclusive).
 	 */
 	default int getMaxNamespaceId() {
 		return getDstNamespaces().size();

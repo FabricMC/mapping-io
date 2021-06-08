@@ -156,7 +156,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition,  int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
 		assert classMapReady;
 		if (passThrough) return next.visitMethodArg(argPosition, lvIndex, srcName);
 

@@ -29,7 +29,7 @@ public interface MappingVisitor {
 	}
 
 	/**
-	 * Determine whether the header (namespaces, metadata if part of the header) should be visited
+	 * Determine whether the header (namespaces, metadata if part of the header) should be visited.
 	 *
 	 * @return true if the header is to be visited, false otherwise
 	 */
@@ -42,7 +42,7 @@ public interface MappingVisitor {
 	default void visitMetadata(String key, String value) { }
 
 	/**
-	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited
+	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
 	 *
 	 * @return true if content is to be visited, false otherwise
 	 */

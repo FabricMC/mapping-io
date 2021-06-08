@@ -458,7 +458,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		entry.setComment(comment);
 	}
 
-	static abstract class Entry implements ElementMapping {
+	abstract static class Entry implements ElementMapping {
 		protected Entry(MemoryMappingTree tree, String srcName) {
 			this.srcName = srcName;
 			this.dstNames = new String[tree.dstNamespaces.size()];
@@ -746,7 +746,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private byte flags;
 	}
 
-	static abstract class MemberEntry extends Entry implements MemberMapping {
+	abstract static class MemberEntry extends Entry implements MemberMapping {
 		protected MemberEntry(ClassEntry owner, String srcName, String srcDesc) {
 			super(owner.tree, srcName);
 
@@ -1133,7 +1133,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MemberKey {
-		public MemberKey(String name, String desc) {
+		MemberKey(String name, String desc) {
 			this.name = name;
 			this.desc = desc;
 

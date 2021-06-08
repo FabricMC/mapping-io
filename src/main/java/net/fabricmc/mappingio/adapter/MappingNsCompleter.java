@@ -97,7 +97,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition,  int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
 		this.srcName = srcName;
 
 		return next.visitMethodArg(argPosition, lvIndex, srcName);

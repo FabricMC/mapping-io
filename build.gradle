@@ -1,0 +1,66 @@
+plugins {
+	id "java"
+	id "java-library"
+	id "checkstyle"
+	id "maven-publish"
+	id "com.diffplug.spotless" version "5.8.2"
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+group "net.fabricmc"
+archivesBaseName = "mapping-io"
+
+def ENV = System.getenv()
+version = "0.1.0"
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
+
+checkstyle {
+	configFile = project.file("checkstyle.xml")
+	toolVersion = "8.31"
+}
+
+repositories {
+	mavenCentral()
+}
+
+spotless {
+	java {
+		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+	}
+}
+
+java {
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+
+	repositories {
+		mavenLocal()
+
+		if (ENV.MAVEN_URL) {
+			repositories.maven {
+				name "fabric"
+				url ENV.MAVEN_URL
+				credentials {
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
+				}
+			}
+		}
+	}
+}

@@ -22,7 +22,7 @@ import java.io.Reader;
 import java.util.Arrays;
 
 final class ColumnFileReader implements Closeable {
-	public ColumnFileReader(Reader reader, char columnSeparator) {
+	ColumnFileReader(Reader reader, char columnSeparator) {
 		this.reader = reader;
 		this.columnSeparator = columnSeparator;
 	}
@@ -161,7 +161,6 @@ final class ColumnFileReader implements Closeable {
 			throw new IOException("invalid number in line "+lineNumber+": "+str);
 		}
 	}
-
 
 	public boolean nextLine(int indent) throws IOException {
 		fillLopo: do {
