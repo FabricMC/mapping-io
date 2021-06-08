@@ -18,8 +18,6 @@ package net.fabricmc.mappingio.format;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,19 +27,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class TsrgReader {
-	public static void main(String[] args) throws IOException {
-		MemoryMappingTree tree = new MemoryMappingTree();
-
-		try (Reader reader = Files.newBufferedReader(Paths.get("/home/m/git/MCPConfig/versions/release/1.15.2/joined.tsrg"))) {
-			read(reader, tree);
-		}
-
-		System.out.println(tree);
-	}
-
 	public static List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, ' '));
 	}

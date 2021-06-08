@@ -18,11 +18,8 @@ package net.fabricmc.mappingio.format;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -33,14 +30,6 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class Tiny2Writer implements Closeable, MappingVisitor {
-	public static void main(String[] args) throws IOException {
-		try (Tiny2Writer writer = new Tiny2Writer(Files.newBufferedWriter(Paths.get("/home/m/tmp5/mappings_out.tiny")), false)) {
-			try (Reader reader = Files.newBufferedReader(Paths.get("/home/m/tmp5/mappings.tiny"))) {
-				Tiny2Reader.read(reader, writer);
-			}
-		}
-	}
-
 	public Tiny2Writer(Writer writer, boolean escapeNames) {
 		this.writer = writer;
 		this.escapeNames = escapeNames;
