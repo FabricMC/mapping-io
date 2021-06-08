@@ -536,7 +536,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		protected String comment;
 	}
 
-	public static final class ClassEntry extends Entry implements ClassMapping {
+	static final class ClassEntry extends Entry implements ClassMapping {
 		ClassEntry(MemoryMappingTree tree, String srcName) {
 			super(tree, srcName);
 
@@ -800,7 +800,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		final MemberKey key;
 	}
 
-	public static final class FieldEntry extends MemberEntry implements FieldMapping {
+	static final class FieldEntry extends MemberEntry implements FieldMapping {
 		FieldEntry(ClassEntry owner, String srcName, String srcDesc) {
 			super(owner, srcName, srcDesc);
 		}
@@ -826,7 +826,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 	}
 
-	public static final class MethodEntry extends MemberEntry implements MethodMapping {
+	static final class MethodEntry extends MemberEntry implements MethodMapping {
 		MethodEntry(ClassEntry owner, String srcName, String srcDesc) {
 			super(owner, srcName, srcDesc);
 		}
@@ -1008,7 +1008,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private List<MethodVarEntry> vars = null;
 	}
 
-	public static final class MethodArgEntry extends Entry implements MethodArgMapping {
+	static final class MethodArgEntry extends Entry implements MethodArgMapping {
 		MethodArgEntry(MethodEntry method, int argPosition, int lvIndex, String srcName) {
 			super(method.owner.tree, srcName);
 
@@ -1066,7 +1066,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private final int lvIndex;
 	}
 
-	public static final class MethodVarEntry extends Entry implements MethodVarMapping {
+	static final class MethodVarEntry extends Entry implements MethodVarMapping {
 		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
 			super(method.owner.tree, srcName);
 
