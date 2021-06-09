@@ -42,6 +42,12 @@ java {
 	withSourcesJar()
 }
 
+jar {
+	manifest {
+		attributes("Automatic-Module-Name": "net.fabricmc.mappingio")
+	}
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {

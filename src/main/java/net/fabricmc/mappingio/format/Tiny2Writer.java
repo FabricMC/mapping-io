@@ -16,7 +16,6 @@
 
 package net.fabricmc.mappingio.format;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
@@ -27,9 +26,9 @@ import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
-import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.MappingWriter;
 
-public final class Tiny2Writer implements Closeable, MappingVisitor {
+public final class Tiny2Writer implements MappingWriter {
 	public Tiny2Writer(Writer writer, boolean escapeNames) {
 		this.writer = writer;
 		this.escapeNames = escapeNames;

@@ -150,6 +150,54 @@ final class ColumnFileReader implements Closeable {
 	}
 
 	/**
+	 * Read and consume all column until eol and unescape if requested.
+	 */
+	public String nextCols(boolean unescape) throws IOException {
+		if (eol) return null;
+
+		int end = bufferPos;
+		int firstEscaped = -1;
+		boolean filled;
+
+		readLoop: do {
+			while (end < bufferLimit) {
+				char c = buffer[end];
+
+				if (c == '\n' || c == '\r') { // end of the current column
+					break readLoop;
+				} else if (unescape && c == '\\' && firstEscaped < 0) {
+					firstEscaped = bufferPos;
+				}
+
+				end++;
+			}
+
+			// buffer ran out, refill
+
+			int oldStart = bufferPos;
+			filled = fillBuffer(end - bufferPos + 1);
+			int posShift = bufferPos - oldStart; // fillBuffer may compact the data, shifting it to the buffer start
+			assert posShift <= 0;
+			end += posShift;
+			if (firstEscaped >= 0) firstEscaped += posShift;
+		} while (filled);
+
+		int start = bufferPos;
+		bufferPos = end;
+		eol = true;
+
+		int len = end - start;
+
+		if (len == 0) {
+			return "";
+		} else if (firstEscaped >= 0) {
+			return Tiny2Util.unescape(String.valueOf(buffer, start, len));
+		} else {
+			return String.valueOf(buffer, start, len);
+		}
+	}
+
+	/**
 	 * Read and consume a column and convert it to integer.
 	 */
 	public int nextIntCol() throws IOException {
