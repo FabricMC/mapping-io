@@ -30,10 +30,14 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class SrgReader {
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), visitor);
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	}
+
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -48,7 +52,7 @@ public final class SrgReader {
 			boolean visitHeader = visitor.visitHeader();
 
 			if (visitHeader) {
-				visitor.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Collections.singletonList(MappingUtil.NS_TARGET_FALLBACK));
+				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 			}
 
 			if (visitor.visitContent()) {

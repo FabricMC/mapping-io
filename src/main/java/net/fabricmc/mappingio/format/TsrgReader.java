@@ -51,10 +51,14 @@ public final class TsrgReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), visitor);
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	}
+
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		boolean isTsrg2 = reader.nextCol("tsrg2");
 		String srcNamespace;
 		List<String> dstNamespaces;
@@ -71,8 +75,8 @@ public final class TsrgReader {
 			if (dstNamespaces.isEmpty()) throw new IOException("invalid tsrg2 file: less than 2 namespaces");
 			reader.nextLine(0);
 		} else {
-			srcNamespace = MappingUtil.NS_SOURCE_FALLBACK;
-			dstNamespaces = Collections.singletonList(MappingUtil.NS_TARGET_FALLBACK);
+			srcNamespace = sourceNs;
+			dstNamespaces = Collections.singletonList(targetNs);
 		}
 
 		int dstNsCount = dstNamespaces.size();

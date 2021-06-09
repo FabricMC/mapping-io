@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
@@ -30,10 +29,6 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class ProGuardReader {
-	public static List<String> getNamespaces() {
-		return Arrays.asList(MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK);
-	}
-
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}

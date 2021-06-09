@@ -34,6 +34,10 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class EnigmaReader {
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {
+		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	}
+
+	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -45,7 +49,7 @@ public final class EnigmaReader {
 		boolean visitHeader = visitor.visitHeader();
 
 		if (visitHeader) {
-			visitor.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Collections.singletonList(MappingUtil.NS_TARGET_FALLBACK));
+			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 		}
 
 		if (visitor.visitContent()) {
