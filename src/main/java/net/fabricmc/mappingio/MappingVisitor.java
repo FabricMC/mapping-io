@@ -19,11 +19,40 @@ package net.fabricmc.mappingio;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Visitor with order implied context and consecutive dst name visits.
+ *
+ * <p>The visitation order is as follows (omitting visit prefixes for brevity, lowercase for cross references):
+ * <ul><li>overall: header -> content -> End -> overall
+ * <li>header: Header -> Namespaces [-> Metadata]*
+ * <li>content: Content [-> class]*
+ * <li>class: Class [-> DstName]* -> ElementContent [-> field|method|Comment]*
+ * <li>field: Field [-> DstName|DstDesc]* -> ElementContent [-> Comment]
+ * <li>method: Method [-> DstName|DstDesc]* -> ElementContent [-> arg|var|Comment]*
+ * <li>arg: Arg [-> DstName]* -> ElementContent [-> Comment]
+ * <li>var: Var [-> DstName]* -> ElementContent [-> Comment]
+ * </ul>
+ *
+ * <p>The elements with a skip-return (Header/Content/Class/Field/Method/Arg/Var/ElementContent) abort processing the
+ * remainder of their associated item in the above listing if requested by a {@code true} return value. For example
+ * skipping in Class does neither DstName nor ElementContent, but continues with another class or End.
+ *
+ * <p>Returning {@code false} in End requests another complete visitation pass if the flag
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} is provided, otherwise the behavior is unspecified. This is used for
+ * visitors that first have to acquire some overall mapping knowledge before being able to perform their task.
+ * Subsequent visitation passes need to use the same namespaces and data, only a new independent visitation may use
+ * something else after a {@link #reset()}.
+ *
+ * <p>The same element may be visited more than once unless the flags contain {@link MappingFlag#NEEDS_UNIQUENESS}.
+ */
 public interface MappingVisitor {
 	default Set<MappingFlag> getFlags() {
 		return MappingFlag.NONE;
 	}
 
+	/**
+	 * Reset the visitor including any chained visitors to allow for another independent visit (excluding visitEnd=false).
+	 */
 	default void reset() {
 		throw new UnsupportedOperationException();
 	}
@@ -76,6 +105,9 @@ public interface MappingVisitor {
 
 	/**
 	 * Determine whether the element content (comment, sub-elements) should be visited.
+	 *
+	 * <p>Called after visiting the target itself (e.g. visitClass for targetKind=class), its dst names and descs, but
+	 * before any child elements or the comment.
 	 *
 	 * <p>This is also a notification about all available dst names having been passed on.
 	 *
