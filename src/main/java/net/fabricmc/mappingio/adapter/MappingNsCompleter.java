@@ -116,7 +116,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) {
-		for (int i = 0; i < dstNames.length; i++) {
+		nsLoop: for (int i = 0; i < dstNames.length; i++) {
 			String name = dstNames[i];
 
 			if (name == null) {
@@ -128,22 +128,22 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 
 					if (newSrc < 0) { // mapping to src name
 						name = srcName;
-						break;
+						break; // srcName must never be null
 					} else if (newSrc == src) { // no-op (identity) mapping, explicit in case src > 64
-						break;
+						continue nsLoop; // always null
 					} else if ((visited & 1L << newSrc) != 0) { // cyclic mapping
-						break;
+						continue nsLoop; // always null
 					} else {
 						src = newSrc;
 						name = dstNames[src];
 						visited |= 1L << src;
 					}
 				} while (name == null);
+
+				assert name != null;
 			}
 
-			if (name != null) {
-				next.visitDstName(targetKind, i, name);
-			}
+			next.visitDstName(targetKind, i, name);
 		}
 
 		Arrays.fill(dstNames, null);
