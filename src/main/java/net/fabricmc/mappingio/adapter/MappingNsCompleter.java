@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,9 +41,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
 		int count = dstNamespaces.size();
 		alternativesMapping = new int[count];
-		pendingNamespaces = new int[count];
-		pendingDstNames = new String[count];
-		pendingNameCount = 0;
+		dstNames = new String[count];
 
 		for (int i = 0; i < count; i++) {
 			String src = alternatives.get(dstNamespaces.get(i));
@@ -112,25 +111,16 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
-		if (name != null && pendingNameCount == 0) {
-			next.visitDstName(targetKind, namespace, name);
-		} else {
-			if (pendingNameCount > pendingNamespaces.length) throw new IllegalArgumentException("too many dst names");
-
-			pendingNamespaces[pendingNameCount] = namespace;
-			pendingDstNames[pendingNameCount] = name;
-			pendingNameCount++;
-		}
+		dstNames[namespace] = name;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) {
-		for (int i = 0; i < pendingNameCount; i++) {
-			int ns = pendingNamespaces[i];
-			String name = pendingDstNames[i];
+		for (int i = 0; i < dstNames.length; i++) {
+			String name = dstNames[i];
 
 			if (name == null) {
-				int src = ns;
+				int src = i;
 				long visited = 1L << src;
 
 				do {
@@ -145,16 +135,18 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 						break;
 					} else {
 						src = newSrc;
-						name = pendingDstNames[src];
+						name = dstNames[src];
 						visited |= 1L << src;
 					}
 				} while (name == null);
 			}
 
-			next.visitDstName(targetKind, ns, name);
+			if (name != null) {
+				next.visitDstName(targetKind, i, name);
+			}
 		}
 
-		pendingNameCount = 0;
+		Arrays.fill(dstNames, null);
 
 		return next.visitElementContent(targetKind);
 	}
@@ -163,9 +155,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	private int[] alternativesMapping;
 
 	private String srcName;
-	private int[] pendingNamespaces;
-	private String[] pendingDstNames;
-	private int pendingNameCount;
+	private String[] dstNames;
 
 	private boolean relayHeaderOrMetadata;
 }
