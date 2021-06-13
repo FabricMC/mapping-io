@@ -13,7 +13,7 @@ group "net.fabricmc"
 archivesBaseName = "mapping-io"
 
 def ENV = System.getenv()
-version = "0.1.1"
+version = "0.1.2"
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
