@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,14 @@ import net.fabricmc.mappingio.MappingVisitor;
 
 public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives) {
+		this(next, alternatives, false);
+	}
+
+	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives, boolean addMissing) {
 		super(next);
 
 		this.alternatives = alternatives;
+		this.addMissing = addMissing;
 	}
 
 	@Override
@@ -39,6 +45,23 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+		if (addMissing) {
+			boolean copied = false;
+
+			for (String ns : alternatives.keySet()) {
+				if (ns.equals(srcNamespace) || dstNamespaces.contains(ns)) {
+					continue;
+				}
+
+				if (!copied) {
+					dstNamespaces = new ArrayList<>(dstNamespaces);
+					copied = true;
+				}
+
+				dstNamespaces.add(ns);
+			}
+		}
+
 		int count = dstNamespaces.size();
 		alternativesMapping = new int[count];
 		dstNames = new String[count];
@@ -152,6 +175,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	private final Map<String, String> alternatives;
+	private final boolean addMissing;
 	private int[] alternativesMapping;
 
 	private String srcName;
