@@ -393,6 +393,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (arg == null) {
 			arg = new MethodArgEntry(currentMethod, argPosition, lvIndex, srcName);
 			currentMethod.addArg(arg);
+		} else if (srcName != null) {
+			arg.setSrcName(srcName);
 		}
 
 		currentEntry = arg;
@@ -409,6 +411,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (var == null) {
 			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, srcName);
 			currentMethod.addVar(var);
+		} else if (srcName != null) {
+			var.setSrcName(srcName);
 		}
 
 		currentEntry = var;
@@ -531,7 +535,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return true;
 		}
 
-		protected final String srcName;
+		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;
 	}
@@ -1050,6 +1054,10 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return lvIndex;
 		}
 
+		public void setSrcName(String name) {
+			this.srcName = name;
+		}
+
 		void accept(MappingVisitor visitor) {
 			if (visitor.visitMethodArg(argPosition, lvIndex, srcName)) {
 				acceptElement(visitor, null);
@@ -1113,6 +1121,10 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		@Override
 		public int getStartOpIdx() {
 			return startOpIdx;
+		}
+
+		public void setSrcName(String name) {
+			this.srcName = name;
 		}
 
 		void accept(MappingVisitor visitor) {
