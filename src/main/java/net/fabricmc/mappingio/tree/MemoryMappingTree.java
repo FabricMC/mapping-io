@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.tree;
 
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,7 +212,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public void accept(MappingVisitor visitor) {
+	public void accept(MappingVisitor visitor) throws IOException {
 		do {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
@@ -509,7 +510,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.comment = comment;
 		}
 
-		protected final boolean acceptElement(MappingVisitor visitor, String[] dstDescs) {
+		protected final boolean acceptElement(MappingVisitor visitor, String[] dstDescs) throws IOException {
 			MappedElementKind kind = getKind();
 
 			for (int i = 0; i < dstNames.length; i++) {
@@ -718,7 +719,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			}
 		}
 
-		void accept(MappingVisitor visitor, boolean supplyFieldDstDescs, boolean supplyMethodDstDescs) {
+		void accept(MappingVisitor visitor, boolean supplyFieldDstDescs, boolean supplyMethodDstDescs) throws IOException {
 			if (visitor.visitClass(srcName) && acceptElement(visitor, null)) {
 				if (fields != null) {
 					for (FieldEntry field : fields.values()) {
@@ -782,7 +783,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return srcDesc;
 		}
 
-		protected final boolean acceptMember(MappingVisitor visitor, boolean supplyDstDescs) {
+		protected final boolean acceptMember(MappingVisitor visitor, boolean supplyDstDescs) throws IOException {
 			String[] dstDescs;
 
 			if (!supplyDstDescs || srcDesc == null) {
@@ -818,7 +819,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return MappedElementKind.FIELD;
 		}
 
-		void accept(MappingVisitor visitor, boolean supplyDstDescs) {
+		void accept(MappingVisitor visitor, boolean supplyDstDescs) throws IOException {
 			if (visitor.visitField(srcName, srcDesc)) {
 				acceptMember(visitor, supplyDstDescs);
 			}
@@ -987,7 +988,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return ret;
 		}
 
-		void accept(MappingVisitor visitor, boolean supplyDstDescs) {
+		void accept(MappingVisitor visitor, boolean supplyDstDescs) throws IOException {
 			if (visitor.visitMethod(srcName, srcDesc) && acceptMember(visitor, supplyDstDescs)) {
 				if (args != null) {
 					for (MethodArgEntry arg : args) {
@@ -1058,7 +1059,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.srcName = name;
 		}
 
-		void accept(MappingVisitor visitor) {
+		void accept(MappingVisitor visitor) throws IOException {
 			if (visitor.visitMethodArg(argPosition, lvIndex, srcName)) {
 				acceptElement(visitor, null);
 			}
@@ -1127,7 +1128,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.srcName = name;
 		}
 
-		void accept(MappingVisitor visitor) {
+		void accept(MappingVisitor visitor) throws IOException {
 			if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName)) {
 				acceptElement(visitor, null);
 			}

@@ -17,7 +17,6 @@
 package net.fabricmc.mappingio.format;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -45,7 +44,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		dstNames = new String[dstNamespaces.size()];
 
 		write("tiny\t2\t0\t");
@@ -60,7 +59,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
+	public void visitMetadata(String key, String value) throws IOException {
 		if (key.equals(Tiny2Util.escapedNamesProperty)) {
 			escapeNames = true;
 			wroteEscapedNamesProperty = true;
@@ -78,7 +77,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitContent() {
+	public boolean visitContent() throws IOException {
 		if (escapeNames && !wroteEscapedNamesProperty) {
 			write("\t");
 			write(Tiny2Util.escapedNamesProperty);
@@ -89,7 +88,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitClass(String srcName) {
+	public boolean visitClass(String srcName) throws IOException {
 		write("c\t");
 		writeName(srcName);
 
@@ -97,7 +96,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		write("\tf\t");
 		writeName(srcDesc);
 		writeTab();
@@ -107,7 +106,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
 		write("\tm\t");
 		writeName(srcDesc);
 		writeTab();
@@ -117,7 +116,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
 		write("\t\tp\t");
 		write(lvIndex);
 		writeTab();
@@ -127,7 +126,7 @@ public final class Tiny2Writer implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
 		write("\t\tv\t");
 		write(lvIndex);
 		writeTab();
@@ -140,26 +139,13 @@ public final class Tiny2Writer implements MappingWriter {
 		return true;
 	}
 
-	/**
-	 * Destination name for the current element.
-	 *
-	 * @param namespace namespace index, index into the dstNamespaces List in {@link #visitNamespaces}
-	 * @param name destination name
-	 */
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
 		dstNames[namespace] = name;
 	}
 
-	/**
-	 * Determine whether the element content (comment, sub-elements) should be visited.
-	 *
-	 * <p>This is also a notification about all available dst names having been passed on.
-	 *
-	 * @return true if the contents are to be visited, false otherwise
-	 */
 	@Override
-	public boolean visitElementContent(MappedElementKind targetKind) {
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		for (String dstName : dstNames) {
 			writeTab();
 			if (dstName != null) writeName(dstName);
@@ -172,40 +158,27 @@ public final class Tiny2Writer implements MappingWriter {
 		return true;
 	}
 
-	/**
-	 * Comment for the specified element (last content-visited or any parent).
-	 *
-	 * @param comment comment as a potentially multi-line string
-	 */
 	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) {
+	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		writeTabs(targetKind.level);
 		write("\tc\t");
 		writeEscaped(comment);
 		writeLn();
 	}
 
-	private void write(String str) {
-		try {
-			writer.write(str);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+	private void write(String str) throws IOException {
+		writer.write(str);
 	}
 
-	private void write(int i) {
+	private void write(int i) throws IOException {
 		write(Integer.toString(i));
 	}
 
-	private void writeEscaped(String str) {
-		try {
-			Tiny2Util.writeEscaped(str, writer);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+	private void writeEscaped(String str) throws IOException {
+		Tiny2Util.writeEscaped(str, writer);
 	}
 
-	private void writeName(String str) {
+	private void writeName(String str) throws IOException {
 		if (escapeNames) {
 			writeEscaped(str);
 		} else {
@@ -213,17 +186,17 @@ public final class Tiny2Writer implements MappingWriter {
 		}
 	}
 
-	private void writeLn() {
-		write("\n");
+	private void writeLn() throws IOException {
+		writer.write('\n');
 	}
 
-	private void writeTab() {
-		write("\t");
+	private void writeTab() throws IOException {
+		writer.write('\t');
 	}
 
-	private void writeTabs(int count) {
+	private void writeTabs(int count) throws IOException {
 		for (int i = 0; i < count; i++) {
-			write("\t");
+			writer.write('\t');
 		}
 	}
 

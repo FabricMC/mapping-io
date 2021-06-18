@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +38,7 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		nsMap = new int[dstNamespaces.size()];
 
 		for (int i = 0; i < dstNamespaces.size(); i++) {
@@ -48,7 +49,7 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
+	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		namespace = nsMap[namespace];
 
 		if (namespace >= 0) {
@@ -57,7 +58,7 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) {
+	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		namespace = nsMap[namespace];
 
 		if (namespace >= 0) {

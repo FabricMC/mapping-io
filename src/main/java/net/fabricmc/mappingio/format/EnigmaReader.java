@@ -82,17 +82,22 @@ public final class EnigmaReader {
 	}
 
 	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
-		String srcName = reader.nextCol();
-		if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+		String srcInnerName = reader.nextCol();
+		if (srcInnerName == null || srcInnerName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-		if (outerSrcClass != null && srcName.indexOf('$') < 0) {
-			srcName = String.format("%s$%s", outerSrcClass, srcName);
+		String srcName = srcInnerName;
+
+		if (outerSrcClass != null && srcInnerName.indexOf('$') < 0) {
+			srcName = String.format("%s$%s", outerSrcClass, srcInnerName);
 		}
 
-		String dstName = reader.nextCol();
+		String dstInnerName = reader.nextCol();
+		String dstName = dstInnerName;
 
-		if (dstName != null && outerDstClass != null && dstName.indexOf('$') < 0) {
-			dstName = String.format("%s$%s", outerDstClass, dstName);
+		if (outerDstClass != null) {
+			if (dstInnerName == null) dstInnerName = srcInnerName;
+
+			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
 
 		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
@@ -106,7 +111,7 @@ public final class EnigmaReader {
 			boolean isMethod;
 
 			if (reader.nextCol("CLASS")) { // nested class: CLASS <name-a> [<name-b>]
-				if (commentSb.length() > 0) {
+				if (!visited || commentSb.length() > 0) {
 					visitClass(srcClass, dstClass, state, commentSb, visitor);
 					visited = true;
 				}
@@ -154,7 +159,7 @@ public final class EnigmaReader {
 	/**
 	 * Re-visit a class if necessary and visit its comment if available.
 	 */
-	private static int visitClass(String srcClass, String dstClass, int state, StringBuilder commentSb, MappingVisitor visitor) {
+	private static int visitClass(String srcClass, String dstClass, int state, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		// state: 0=invalid 1=visit -1=skip
 
 		if (state == 0) {
@@ -226,7 +231,7 @@ public final class EnigmaReader {
 		}
 	}
 
-	private static void submitComment(MappedElementKind kind, StringBuilder commentSb, MappingVisitor visitor) {
+	private static void submitComment(MappedElementKind kind, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		if (commentSb.length() == 0) return;
 
 		visitor.visitComment(kind, commentSb.toString());

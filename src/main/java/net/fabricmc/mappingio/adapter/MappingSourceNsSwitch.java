@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -69,14 +70,14 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitHeader() {
+	public boolean visitHeader() throws IOException {
 		if (!classMapReady) return true;
 
 		return next.visitHeader();
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		if (!classMapReady) {
 			if (srcNamespace.equals(newSourceNsName)) {
 				classMapReady = true;
@@ -111,12 +112,12 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
+	public void visitMetadata(String key, String value) throws IOException {
 		if (classMapReady && relayHeaderOrMetadata) next.visitMetadata(key, value);
 	}
 
 	@Override
-	public boolean visitContent() {
+	public boolean visitContent() throws IOException {
 		if (!classMapReady) return true;
 
 		relayHeaderOrMetadata = true; // for in-content metadata
@@ -125,7 +126,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitClass(String srcName) {
+	public boolean visitClass(String srcName) throws IOException {
 		if (passThrough) return next.visitClass(srcName);
 
 		this.srcName = srcName;
@@ -134,7 +135,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitField(srcName, srcDesc);
 
@@ -145,7 +146,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethod(srcName, srcDesc);
 
@@ -156,7 +157,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethodArg(argPosition, lvIndex, srcName);
 
@@ -168,7 +169,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
 
@@ -181,7 +182,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitEnd() {
+	public boolean visitEnd() throws IOException {
 		if (!classMapReady) {
 			classMapReady = true;
 			return false;
@@ -191,7 +192,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
+	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		if (!classMapReady) {
 			if (namespace == newSourceNs) classMap.put(srcName, name);
 			return;
@@ -208,7 +209,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) {
+	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		if (passThrough) {
 			next.visitDstDesc(targetKind, namespace, desc);
 		} else if (classMapReady && dstDescs != null) {
@@ -217,7 +218,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitElementContent(MappedElementKind targetKind) {
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		if (!classMapReady) return false;
 		if (passThrough) return next.visitElementContent(targetKind);
 

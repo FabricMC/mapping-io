@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -42,72 +43,72 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitHeader() {
+	public boolean visitHeader() throws IOException {
 		return next.visitHeader();
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		next.visitNamespaces(srcNamespace, dstNamespaces);
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
+	public void visitMetadata(String key, String value) throws IOException {
 		next.visitMetadata(key, value);
 	}
 
 	@Override
-	public boolean visitContent() {
+	public boolean visitContent() throws IOException {
 		return next.visitContent();
 	}
 
 	@Override
-	public boolean visitClass(String srcName) {
+	public boolean visitClass(String srcName) throws IOException {
 		return next.visitClass(srcName);
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		return next.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
 		return next.visitMethod(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
 		return next.visitMethodArg(argPosition, lvIndex, srcName);
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
 		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
 	}
 
 	@Override
-	public boolean visitEnd() {
+	public boolean visitEnd() throws IOException {
 		return next.visitEnd();
 	}
 
 	@Override
-	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
+	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		next.visitDstName(targetKind, namespace, name);
 	}
 
 	@Override
-	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) {
+	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		next.visitDstDesc(targetKind, namespace, desc);
 	}
 
 	@Override
-	public boolean visitElementContent(MappedElementKind targetKind) {
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		return next.visitElementContent(targetKind);
 	}
 
 	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) {
+	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		next.visitComment(targetKind, comment);
 	}
 

@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,14 +38,14 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitHeader() {
+	public boolean visitHeader() throws IOException {
 		relayHeaderOrMetadata = next.visitHeader();
 
 		return true;
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		if (addMissing) {
 			boolean copied = false;
 
@@ -86,47 +87,47 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
+	public void visitMetadata(String key, String value) throws IOException {
 		if (relayHeaderOrMetadata) next.visitMetadata(key, value);
 	}
 
 	@Override
-	public boolean visitContent() {
+	public boolean visitContent() throws IOException {
 		relayHeaderOrMetadata = true; // for in-content metadata
 
 		return next.visitContent();
 	}
 
 	@Override
-	public boolean visitClass(String srcName) {
+	public boolean visitClass(String srcName) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitClass(srcName);
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethod(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethodArg(argPosition, lvIndex, srcName);
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
@@ -138,7 +139,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitElementContent(MappedElementKind targetKind) {
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		nsLoop: for (int i = 0; i < dstNames.length; i++) {
 			String name = dstNames[i];
 

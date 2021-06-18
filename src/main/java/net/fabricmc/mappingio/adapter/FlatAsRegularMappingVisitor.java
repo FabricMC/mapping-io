@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -41,12 +42,12 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitHeader() {
+	public boolean visitHeader() throws IOException {
 		return next.visitHeader();
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		next.visitNamespaces(srcNamespace, dstNamespaces);
 
 		int count = dstNamespaces.size();
@@ -64,12 +65,12 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
+	public void visitMetadata(String key, String value) throws IOException {
 		next.visitMetadata(key, value);
 	}
 
 	@Override
-	public boolean visitContent() {
+	public boolean visitContent() throws IOException {
 		return next.visitContent();
 	}
 
@@ -131,7 +132,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitEnd() {
+	public boolean visitEnd() throws IOException {
 		return next.visitEnd();
 	}
 
@@ -146,7 +147,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitElementContent(MappedElementKind targetKind) {
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		boolean relay;
 
 		switch (targetKind) {
@@ -180,7 +181,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) {
+	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		switch (targetKind) {
 		case CLASS:
 			next.visitClassComment(srcClsName, dstClassNames, comment);

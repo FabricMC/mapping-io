@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -62,34 +63,34 @@ public interface MappingVisitor {
 	 *
 	 * @return true if the header is to be visited, false otherwise
 	 */
-	default boolean visitHeader() {
+	default boolean visitHeader() throws IOException {
 		return true;
 	}
 
-	void visitNamespaces(String srcNamespace, List<String> dstNamespaces);
+	void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException;
 
-	default void visitMetadata(String key, String value) { }
+	default void visitMetadata(String key, String value) throws IOException { }
 
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
 	 *
 	 * @return true if content is to be visited, false otherwise
 	 */
-	default boolean visitContent() {
+	default boolean visitContent() throws IOException {
 		return true;
 	}
 
-	boolean visitClass(String srcName);
-	boolean visitField(String srcName, String srcDesc);
-	boolean visitMethod(String srcName, String srcDesc);
-	boolean visitMethodArg(int argPosition, int lvIndex, String srcName);
-	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
+	boolean visitClass(String srcName) throws IOException;
+	boolean visitField(String srcName, String srcDesc) throws IOException;
+	boolean visitMethod(String srcName, String srcDesc) throws IOException;
+	boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException;
+	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException;
 
 	/**
 	 * Finish the visitation pass.
 	 * @return true if the visitation pass is final, false if it should be started over
 	 */
-	default boolean visitEnd() {
+	default boolean visitEnd() throws IOException {
 		return true;
 	}
 
@@ -99,9 +100,9 @@ public interface MappingVisitor {
 	 * @param namespace namespace index, index into the dstNamespaces List in {@link #visitNamespaces}
 	 * @param name destination name
 	 */
-	void visitDstName(MappedElementKind targetKind, int namespace, String name);
+	void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException;
 
-	default void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) { }
+	default void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException { }
 
 	/**
 	 * Determine whether the element content (comment, sub-elements) should be visited.
@@ -113,7 +114,7 @@ public interface MappingVisitor {
 	 *
 	 * @return true if the contents are to be visited, false otherwise
 	 */
-	default boolean visitElementContent(MappedElementKind targetKind) {
+	default boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		return true;
 	}
 
@@ -122,5 +123,5 @@ public interface MappingVisitor {
 	 *
 	 * @param comment comment as a potentially multi-line string
 	 */
-	void visitComment(MappedElementKind targetKind, String comment);
+	void visitComment(MappedElementKind targetKind, String comment) throws IOException;
 }

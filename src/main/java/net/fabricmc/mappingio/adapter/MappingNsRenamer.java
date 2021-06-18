@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ public final class MappingNsRenamer extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		String newSrcNamespace = nameMap.getOrDefault(srcNamespace, srcNamespace);
 		List<String> newDstNamespaces = new ArrayList<>(dstNamespaces.size());
 

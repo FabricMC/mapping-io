@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.tree;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,7 @@ public interface MappingTree {
 		return owner != null ? owner.getMethod(srcName, srcDesc) : null;
 	}
 
-	void accept(MappingVisitor visitor);
+	void accept(MappingVisitor visitor) throws IOException;
 
 	default String mapClassName(String name, int namespace) {
 		return mapClassName(name, SRC_NAMESPACE_ID, namespace);
