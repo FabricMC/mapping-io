@@ -22,6 +22,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import net.fabricmc.mappingio.format.EnigmaWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.Tiny2Writer;
 
@@ -30,11 +31,16 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		if (format.hasSingleFile()) {
 			return create(Files.newBufferedWriter(file), format);
 		} else {
-			throw new UnsupportedOperationException("format "+format+" is not implemented");
+			switch (format) {
+			case ENIGMA: return new EnigmaWriter(file, true);
+			default: throw new UnsupportedOperationException("format "+format+" is not implemented");
+			}
 		}
 	}
 
 	static MappingWriter create(Writer writer, MappingFormat format) throws IOException {
+		if (!format.hasSingleFile()) throw new IllegalArgumentException("format "+format+" is not applicable to a single writer");
+
 		switch (format) {
 		case TINY_2: return new Tiny2Writer(writer, false);
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
