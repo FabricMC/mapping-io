@@ -42,8 +42,6 @@ public final class TsrgReader {
 				ret.add(ns);
 			}
 
-			if (ret.size() < 2) throw new IOException("invalid tiny file: less than 2 namespaces");
-
 			return ret;
 		} else { // assume tsrg1
 			return Arrays.asList(MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK);
@@ -72,7 +70,6 @@ public final class TsrgReader {
 				dstNamespaces.add(dstNamespace);
 			}
 
-			if (dstNamespaces.isEmpty()) throw new IOException("invalid tsrg2 file: less than 2 namespaces");
 			reader.nextLine(0);
 		} else {
 			srcNamespace = sourceNs;

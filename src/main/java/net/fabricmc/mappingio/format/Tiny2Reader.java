@@ -44,8 +44,6 @@ public final class Tiny2Reader {
 			ret.add(ns);
 		}
 
-		if (ret.size() < 2) throw new IOException("invalid tiny file: less than 2 namespaces");
-
 		return ret;
 	}
 
@@ -67,8 +65,6 @@ public final class Tiny2Reader {
 		while ((dstNamespace = reader.nextCol()) != null) {
 			dstNamespaces.add(dstNamespace);
 		}
-
-		if (dstNamespaces.isEmpty()) throw new IOException("invalid tiny file: less than 2 namespaces");
 
 		int dstNsCount = dstNamespaces.size();
 
