@@ -142,10 +142,10 @@ public final class EnigmaReader {
 				}
 
 				if (isMethod && visitor.visitMethod(srcName, srcDesc)) {
-					if (dstName != null) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
 					readMethod(reader, indent, commentSb, visitor);
 				} else if (!isMethod && visitor.visitField(srcName, srcDesc)) {
-					if (dstName != null) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
 					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor);
 				}
 			}
@@ -166,7 +166,7 @@ public final class EnigmaReader {
 			boolean visitContent = visitor.visitClass(srcClass);
 
 			if (visitContent) {
-				if (dstClass != null) visitor.visitDstName(MappedElementKind.CLASS, 0, dstClass);
+				if (dstClass != null && !dstClass.isEmpty()) visitor.visitDstName(MappedElementKind.CLASS, 0, dstClass);
 				visitContent = visitor.visitElementContent(MappedElementKind.CLASS);
 			}
 
@@ -198,7 +198,7 @@ public final class EnigmaReader {
 					if (visitor.visitMethodArg(-1, lvIndex, null)) {
 						String dstName = reader.nextCol();
 						if (dstName == null) throw new IOException("missing var-name-b column in line "+reader.getLineNumber());
-						visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
+						if (!dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 
 						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor);
 					}

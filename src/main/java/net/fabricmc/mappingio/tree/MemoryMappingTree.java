@@ -395,6 +395,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			arg = new MethodArgEntry(currentMethod, argPosition, lvIndex, srcName);
 			currentMethod.addArg(arg);
 		} else if (srcName != null) {
+			assert !srcName.isEmpty();
 			arg.setSrcName(srcName);
 		}
 
@@ -413,6 +414,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, srcName);
 			currentMethod.addVar(var);
 		} else if (srcName != null) {
+			assert !srcName.isEmpty();
 			var.setSrcName(srcName);
 		}
 
@@ -875,7 +877,11 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (srcName != null) {
 				for (MethodArgEntry entry : args) {
-					if (entry.srcName == srcName) return entry;
+					if (srcName.equals(entry.srcName)
+							&& (argPosition < 0 || entry.argPosition < 0)
+							&& (lvIndex < 0 || entry.lvIndex < 0)) {
+						return entry;
+					}
 				}
 			}
 
@@ -962,7 +968,11 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (srcName != null) {
 				for (MethodVarEntry entry : vars) {
-					if (entry.srcName == srcName) return entry;
+					if (srcName.equals(entry.srcName)
+							&& (lvtRowIndex < 0 || entry.lvtRowIndex < 0)
+							&& (lvIndex < 0 || entry.lvIndex < 0)) {
+						return entry;
+					}
 				}
 			}
 
