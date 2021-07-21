@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.DirectoryNotEmptyException;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -155,31 +157,66 @@ public final class EnigmaWriter implements MappingWriter {
 				Path file = dir.resolve(name+".mapping").normalize();
 				if (!file.startsWith(dir)) throw new RuntimeException("invalid name: "+name);
 
-				Files.createDirectories(file.getParent());
-
 				if (writer != null) {
 					writer.close();
 				}
 
-				writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 				writerClass = name;
-				writtenClass = "";
+
+				if (Files.exists(file)) {
+					// initialize writtenClass with last CLASS entry
+
+					List<String> writtenClassParts = new ArrayList<>();
+
+					try (BufferedReader reader = Files.newBufferedReader(file)) {
+						String line;
+
+						while ((line = reader.readLine()) != null) {
+							int offset = 0;
+
+							while (offset < line.length() && line.charAt(offset) == '\t') {
+								offset++;
+							}
+
+							if (line.startsWith("CLASS ", offset)) {
+								int start = offset + 6;
+								int end = line.indexOf(' ', start);
+								if (end < 0) end = line.length();
+								String part = line.substring(start, end);
+
+								while (writtenClassParts.size() > offset) {
+									writtenClassParts.remove(writtenClassParts.size() - 1);
+								}
+
+								writtenClassParts.add(part);
+							}
+						}
+					}
+
+					writtenClass = String.join("$", writtenClassParts);
+				} else {
+					writtenClass = "";
+					Files.createDirectories(file.getParent());
+				}
+
+				writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			}
 
+			// write mismatched/missing class parts
+
 			indent = 0;
-			int startPos = 0;
-			int pos;
+			int srcStart = 0;
 
 			do {
-				pos = getNextOuterEnd(srcClassName, startPos);
-				int endPos = pos >= 0 ? pos : srcClassName.length();
+				int srcEnd = getNextOuterEnd(srcClassName, srcStart);
+				if (srcEnd < 0) srcEnd = srcClassName.length();
+				int srcLen = srcEnd - srcStart;
 
-				if (!writtenClass.regionMatches(startPos, srcClassName, startPos, endPos - pos + 1)) {
+				if (!writtenClass.regionMatches(srcStart, srcClassName, srcStart, srcLen) // writtenPart.startsWith(srcPart)
+						|| srcEnd < writtenClass.length() && writtenClass.charAt(srcEnd) != '$') { // no trailing characters in writtenPart -> startsWith = equals
 					writeIndent(0);
-
 					writer.write("CLASS ");
-					int srcLen = endPos - startPos;
-					writer.write(srcClassName, startPos, srcLen);
+					writer.write(srcClassName, srcStart, srcLen);
 
 					if (dstName != null) {
 						int dstStart = 0;
@@ -193,10 +230,9 @@ public final class EnigmaWriter implements MappingWriter {
 						if (dstStart >= 0) {
 							int dstEnd = getNextOuterEnd(dstName, dstStart);
 							if (dstEnd < 0) dstEnd = dstName.length();
-
 							int dstLen = dstEnd - dstStart;
 
-							if (dstLen != srcLen || !srcClassName.regionMatches(startPos, dstName, dstStart, dstLen)) { // src != dst
+							if (dstLen != srcLen || !srcClassName.regionMatches(srcStart, dstName, dstStart, srcLen)) { // src != dst
 								writer.write(' ');
 								writer.write(dstName, dstStart, dstLen);
 							}
@@ -207,8 +243,8 @@ public final class EnigmaWriter implements MappingWriter {
 				}
 
 				indent++;
-				startPos = pos + 1;
-			} while (pos >= 0);
+				srcStart = srcEnd + 1;
+			} while (srcStart < srcClassName.length());
 
 			writtenClass = srcClassName;
 			dstName = null;
