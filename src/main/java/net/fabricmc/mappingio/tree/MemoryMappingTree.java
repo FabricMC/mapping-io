@@ -63,7 +63,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	public void setIndexByDstNames(boolean indexByDstNames) {
 		if (indexByDstNames == this.indexByDstNames) return;
 
-		if (indexByDstNames) {
+		if (!indexByDstNames) {
 			classesByDstNames = null;
 		} else if (dstNamespaces != null) {
 			initClassesByDstNames();
