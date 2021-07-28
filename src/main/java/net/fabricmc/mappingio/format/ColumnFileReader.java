@@ -287,16 +287,18 @@ final class ColumnFileReader implements Closeable {
 		if (bufferPos + count > buffer.length) { // not enough remaining buffer space
 			if (mark >= 0) { // marked for rewind -> grow
 				buffer = Arrays.copyOf(buffer, Math.max(bufferPos + count, buffer.length * 2));
-			} else if (count > buffer.length) { // too small for compacting to suffice -> grow and compact
-				char[] newBuffer = new char[Math.max(count, buffer.length * 2)];
-				System.arraycopy(buffer, bufferPos, newBuffer, 0, available);
-				buffer = newBuffer;
-			} else { // compact
-				System.arraycopy(buffer, bufferPos, buffer, 0, available);
-			}
+			} else { // not marked, compact and grow as needed
+				if (count > buffer.length) { // too small for compacting to suffice -> grow and compact
+					char[] newBuffer = new char[Math.max(count, buffer.length * 2)];
+					System.arraycopy(buffer, bufferPos, newBuffer, 0, available);
+					buffer = newBuffer;
+				} else { // compact
+					System.arraycopy(buffer, bufferPos, buffer, 0, available);
+				}
 
-			bufferPos = 0;
-			bufferLimit = available;
+				bufferPos = 0;
+				bufferLimit = available;
+			}
 		}
 
 		int reqLimit = bufferLimit + req;
