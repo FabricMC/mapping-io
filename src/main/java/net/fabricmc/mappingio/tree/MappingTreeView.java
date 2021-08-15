@@ -27,7 +27,14 @@ public interface MappingTreeView {
 	String getSrcNamespace();
 	List<String> getDstNamespaces();
 
+	/**
+	 * Get the maximum available namespace ID (exclusive).
+	 */
 	int getMaxNamespaceId();
+
+	/**
+	 * Get the minimum available namespace ID (inclusive).
+	 */
 	int getMinNamespaceId();
 
 	int getNamespaceId(String name);
