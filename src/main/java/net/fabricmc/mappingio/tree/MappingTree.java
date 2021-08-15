@@ -166,7 +166,7 @@ public interface MappingTree extends MappingTreeView {
 		void setComment(String comment);
 	}
 
-	interface ClassMapping extends ClassMappingView {
+	interface ClassMapping extends ElementMapping, ClassMappingView {
 		Collection<? extends FieldMapping> getFields();
 		FieldMapping getField(String srcName, String srcDesc);
 
@@ -208,13 +208,13 @@ public interface MappingTree extends MappingTreeView {
 		MethodMapping removeMethod(String srcName, String srcDesc);
 	}
 
-	interface MemberMapping extends MemberMappingView {
+	interface MemberMapping extends ElementMapping, MemberMappingView {
 		ClassMapping getOwner();
 	}
 
-	interface FieldMapping extends FieldMappingView { }
+	interface FieldMapping extends MemberMapping, FieldMappingView { }
 
-	interface MethodMapping extends MethodMappingView {
+	interface MethodMapping extends MemberMapping, MethodMappingView {
 		Collection<? extends MethodArgMapping> getArgs();
 		MethodArgMapping getArg(int argPosition, int lvIndex, String srcName);
 		MethodArgMapping addArg(MethodArgMapping arg);
@@ -226,11 +226,11 @@ public interface MappingTree extends MappingTreeView {
 		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
 	}
 
-	interface MethodArgMapping extends MethodArgMappingView {
+	interface MethodArgMapping extends ElementMapping, MethodArgMappingView {
 		MethodMapping getMethod();
 	}
 
-	interface MethodVarMapping extends MethodVarMappingView {
+	interface MethodVarMapping extends ElementMapping, MethodVarMappingView {
 		MethodMapping getMethod();
 	}
 
