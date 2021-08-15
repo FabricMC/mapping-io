@@ -137,6 +137,7 @@ public interface MappingTreeView {
 		/**
 		 * @deprecated Please use {@link MemberMappingView#getDesc(int)}.
 		 */
+		@Deprecated
 		default String getDstDesc(int namespace) {
 			return getTree().mapDesc(getSrcDesc(), namespace);
 		}

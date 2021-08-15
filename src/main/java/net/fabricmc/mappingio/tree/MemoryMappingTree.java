@@ -551,7 +551,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		ClassEntry(MemoryMappingTree tree, ClassMapping src) {
-			super(tree, src);
+			super(tree, (ElementMapping) src);
 
 			this.tree = tree;
 
@@ -763,7 +763,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		protected MemberEntry(ClassEntry owner, MemberMapping src) {
-			super(owner.tree, src);
+			super(owner.tree, (ElementMapping) src);
 
 			this.owner = owner;
 			this.srcDesc = src.getSrcDesc();
@@ -813,7 +813,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		FieldEntry(ClassEntry owner, FieldMapping src) {
-			super(owner, src);
+			super(owner, (MemberMapping) src);
 		}
 
 		@Override
@@ -839,7 +839,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		MethodEntry(ClassEntry owner, MethodMapping src) {
-			super(owner, src);
+			super(owner, (MemberMapping) src);
 
 			for (MethodArgMapping arg : src.getArgs()) {
 				addArg(arg);
@@ -1033,7 +1033,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		MethodArgEntry(MethodEntry method, MethodArgMapping src) {
-			super(method.owner.tree, src);
+			super(method.owner.tree, (ElementMapping) src);
 
 			this.method = method;
 			this.argPosition = src.getArgPosition();
@@ -1096,7 +1096,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		MethodVarEntry(MethodEntry method, MethodVarMapping src) {
-			super(method.owner.tree, src);
+			super(method.owner.tree, (ElementMapping) src);
 
 			this.method = method;
 			this.lvtRowIndex = src.getLvtRowIndex();
