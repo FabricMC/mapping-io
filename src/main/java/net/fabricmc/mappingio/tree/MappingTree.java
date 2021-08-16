@@ -233,22 +233,4 @@ public interface MappingTree extends MappingTreeView {
 	interface MethodVarMapping extends ElementMapping, MethodVarMappingView {
 		MethodMapping getMethod();
 	}
-
-	/**
-	 * @deprecated Please use {@link MappingTreeView#SRC_NAMESPACE_ID}.
-	 */
-	@Deprecated
-	int SRC_NAMESPACE_ID = MappingTreeView.SRC_NAMESPACE_ID;
-
-	/**
-	 * @deprecated Please use {@link MappingTreeView#getMinNamespaceId()}.
-	 */
-	@Deprecated
-	int MIN_NAMESPACE_ID = SRC_NAMESPACE_ID;
-
-	/**
-	 * @deprecated Please use {@link MappingTreeView#NULL_NAMESPACE_ID}.
-	 */
-	@Deprecated
-	int NULL_NAMESPACE_ID = -2;
 }
