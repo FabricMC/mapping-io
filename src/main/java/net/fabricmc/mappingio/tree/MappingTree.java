@@ -23,29 +23,6 @@ public interface MappingTree extends MappingTreeView {
 	String setSrcNamespace(String namespace);
 	List<String> setDstNamespaces(List<String> namespaces);
 
-	default int getMaxNamespaceId() {
-		return getDstNamespaces().size();
-	}
-	default int getMinNamespaceId() {
-		return MappingTreeView.MIN_NAMESPACE_ID;
-	}
-
-	default int getNamespaceId(String namespace) {
-		if (namespace.equals(getSrcNamespace())) {
-			return SRC_NAMESPACE_ID;
-		}
-
-		int ret = getDstNamespaces().indexOf(namespace);
-
-		return ret >= 0 ? ret : NULL_NAMESPACE_ID;
-	}
-
-	default String getNamespaceName(int id) {
-		if (id < 0) return getSrcNamespace();
-
-		return getDstNamespaces().get(id);
-	}
-
 	void addMetadata(String key, String value);
 	String removeMetadata(String key);
 
@@ -53,110 +30,26 @@ public interface MappingTree extends MappingTreeView {
 	ClassMapping getClass(String srcName);
 
 	default ClassMapping getClass(String name, int namespace) {
-		if (namespace < 0) return getClass(name);
-
-		for (ClassMapping cls : getClasses()) {
-			if (name.equals(cls.getDstName(namespace))) return cls;
-		}
-
-		return null;
+		return (ClassMapping) MappingTreeView.super.getClass(name, namespace);
 	}
 
 	ClassMapping addClass(ClassMapping cls);
 	ClassMapping removeClass(String srcName);
 
 	default FieldMapping getField(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMapping owner = getClass(srcOwnerName);
-
-		return owner != null ? owner.getField(srcName, srcDesc) : null;
+		return (FieldMapping) MappingTreeView.super.getField(srcOwnerName, srcName, srcDesc);
 	}
 
 	default FieldMapping getField(String ownerName, String name, String desc, int namespace) {
-		ClassMapping owner = getClass(ownerName, namespace);
-
-		return owner != null ? owner.getField(name, desc, namespace) : null;
+		return (FieldMapping) MappingTreeView.super.getField(ownerName, name, desc, namespace);
 	}
 
 	default MethodMapping getMethod(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMapping owner = getClass(srcOwnerName);
-
-		return owner != null ? owner.getMethod(srcName, srcDesc) : null;
+		return (MethodMapping) MappingTreeView.super.getMethod(srcOwnerName, srcName, srcDesc);
 	}
 
 	default MethodMapping getMethod(String ownerName, String name, String desc, int namespace) {
-		ClassMapping owner = getClass(ownerName, namespace);
-
-		return owner != null ? owner.getMethod(name, desc, namespace) : null;
-	}
-
-	default String mapClassName(String name, int namespace) {
-		return mapClassName(name, SRC_NAMESPACE_ID, namespace);
-	}
-
-	default String mapClassName(String name, int srcNamespace, int dstNamespace) {
-		assert name.indexOf('.') < 0;
-
-		if (srcNamespace == dstNamespace) return name;
-
-		ClassMapping cls = getClass(name, srcNamespace);
-		if (cls == null) return name;
-
-		String ret = cls.getName(dstNamespace);
-
-		return ret != null ? ret : name;
-	}
-
-	default String mapDesc(CharSequence desc, int namespace) {
-		return mapDesc(desc, 0, desc.length(), SRC_NAMESPACE_ID, namespace);
-	}
-
-	default String mapDesc(CharSequence desc, int srcNamespace, int dstNamespace) {
-		return mapDesc(desc, 0, desc.length(), srcNamespace, dstNamespace);
-	}
-
-	default String mapDesc(CharSequence desc, int start, int end, int namespace) {
-		return mapDesc(desc, start, end, SRC_NAMESPACE_ID, namespace);
-	}
-
-	default String mapDesc(CharSequence desc, int start, int end, int srcNamespace, int dstNamespace) {
-		StringBuilder ret = null;
-		int copyOffset = start;
-		int offset = start;
-
-		while (offset < end) {
-			char c = desc.charAt(offset++);
-
-			if (c == 'L') {
-				int idEnd = offset; // current identifier end, exclusive
-
-				while (idEnd < end) {
-					c = desc.charAt(idEnd);
-					if (c == ';') break;
-					idEnd++;
-				}
-
-				if (idEnd >= end) throw new IllegalArgumentException("invalid descriptor: "+desc.subSequence(start, end));
-
-				String cls = desc.subSequence(offset, idEnd).toString();
-				String mappedCls = mapClassName(cls, srcNamespace, dstNamespace);
-
-				if (mappedCls != null && !mappedCls.equals(cls)) {
-					if (ret == null) ret = new StringBuilder(end - start);
-
-					ret.append(desc, copyOffset, offset);
-					ret.append(mappedCls);
-					copyOffset = idEnd;
-				}
-
-				offset = idEnd + 1;
-			}
-		}
-
-		if (ret == null) return desc.subSequence(start, end).toString();
-
-		ret.append(desc, copyOffset, end);
-
-		return ret.toString();
+		return (MethodMapping) MappingTreeView.super.getMethod(ownerName, name, desc, namespace);
 	}
 
 	interface ElementMapping extends ElementMappingView {
@@ -171,17 +64,7 @@ public interface MappingTree extends MappingTreeView {
 		FieldMapping getField(String srcName, String srcDesc);
 
 		default FieldMapping getField(String name, String desc, int namespace) {
-			if (namespace < 0) return getField(name, desc);
-
-			for (FieldMapping field : getFields()) {
-				if (!name.equals(field.getDstName(namespace))) continue;
-				String mDesc;
-				if (desc != null && (mDesc = field.getDesc(namespace)) != null && !desc.equals(mDesc)) continue;
-
-				return field;
-			}
-
-			return null;
+			return (FieldMapping) ClassMappingView.super.getField(name, desc, namespace);
 		}
 
 		FieldMapping addField(FieldMapping field);
@@ -191,17 +74,7 @@ public interface MappingTree extends MappingTreeView {
 		MethodMapping getMethod(String srcName, String srcDesc);
 
 		default MethodMapping getMethod(String name, String desc, int namespace) {
-			if (namespace < 0) return getMethod(name, desc);
-
-			for (MethodMapping method : getMethods()) {
-				if (!name.equals(method.getDstName(namespace))) continue;
-				String mDesc;
-				if (desc != null && (mDesc = method.getDesc(namespace)) != null && !desc.equals(mDesc)) continue;
-
-				return method;
-			}
-
-			return null;
+			return (MethodMapping) ClassMappingView.super.getMethod(name, desc, namespace);
 		}
 
 		MethodMapping addMethod(MethodMapping method);
