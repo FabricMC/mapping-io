@@ -813,7 +813,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		FieldEntry(ClassEntry owner, FieldMapping src) {
-			super(owner, (MemberMapping) src);
+			super(owner, src);
 		}
 
 		@Override
@@ -839,7 +839,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		MethodEntry(ClassEntry owner, MethodMapping src) {
-			super(owner, (MemberMapping) src);
+			super(owner, src);
 
 			for (MethodArgMapping arg : src.getArgs()) {
 				addArg(arg);
