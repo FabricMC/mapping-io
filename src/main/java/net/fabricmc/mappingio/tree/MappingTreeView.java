@@ -38,7 +38,7 @@ public interface MappingTreeView {
 	 * Get the minimum available namespace ID (inclusive).
 	 */
 	default int getMinNamespaceId() {
-		return MappingTreeView.MIN_NAMESPACE_ID;
+		return MIN_NAMESPACE_ID;
 	}
 
 	default int getNamespaceId(String namespace) {
