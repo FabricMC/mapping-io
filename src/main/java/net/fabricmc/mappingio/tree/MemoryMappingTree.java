@@ -677,16 +677,16 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			}
 
 			if (srcDesc != null) {
-				if (srcDesc.endsWith(")")) {	// parameter-only desc
+				if (srcDesc.endsWith(")")) { // parameter-only desc
 					for (T entry : map.values()) {
 						if (entry.srcName.equals(srcName) && entry.srcDesc.startsWith(srcDesc)) return entry;
 					}
 
 					return null;
-				} else {	// full desc
+				} else { // full desc
 					return map.get(new MemberKey(srcName, null));
 				}
-			} else {	// null desc
+			} else { // null desc
 				for (T entry : map.values()) {
 					if (entry.srcName.equals(srcName)) return entry;
 				}
