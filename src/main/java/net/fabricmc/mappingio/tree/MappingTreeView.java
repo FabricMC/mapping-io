@@ -243,8 +243,9 @@ public interface MappingTreeView {
 
 			for (MethodMappingView method : getMethods()) {
 				if (!name.equals(method.getDstName(namespace))) continue;
+
 				String mDesc;
-				if (desc != null && (mDesc = method.getDesc(namespace)) != null && !desc.equals(mDesc)) continue;
+				if (desc != null && (mDesc = method.getDesc(namespace)) != null && !desc.equals(mDesc) && !(desc.endsWith(")") && mDesc.startsWith(desc))) continue;
 
 				return method;
 			}
