@@ -26,9 +26,12 @@ public interface MappingTree extends MappingTreeView {
 	void addMetadata(String key, String value);
 	String removeMetadata(String key);
 
+	@Override
 	Collection<? extends ClassMapping> getClasses();
+	@Override
 	ClassMapping getClass(String srcName);
 
+	@Override
 	default ClassMapping getClass(String name, int namespace) {
 		return (ClassMapping) MappingTreeView.super.getClass(name, namespace);
 	}
@@ -36,33 +39,41 @@ public interface MappingTree extends MappingTreeView {
 	ClassMapping addClass(ClassMapping cls);
 	ClassMapping removeClass(String srcName);
 
+	@Override
 	default FieldMapping getField(String srcOwnerName, String srcName, String srcDesc) {
 		return (FieldMapping) MappingTreeView.super.getField(srcOwnerName, srcName, srcDesc);
 	}
 
+	@Override
 	default FieldMapping getField(String ownerName, String name, String desc, int namespace) {
 		return (FieldMapping) MappingTreeView.super.getField(ownerName, name, desc, namespace);
 	}
 
+	@Override
 	default MethodMapping getMethod(String srcOwnerName, String srcName, String srcDesc) {
 		return (MethodMapping) MappingTreeView.super.getMethod(srcOwnerName, srcName, srcDesc);
 	}
 
+	@Override
 	default MethodMapping getMethod(String ownerName, String name, String desc, int namespace) {
 		return (MethodMapping) MappingTreeView.super.getMethod(ownerName, name, desc, namespace);
 	}
 
 	interface ElementMapping extends ElementMappingView {
+		@Override
 		MappingTree getTree();
 
-		void setDstName(int namespace, String name);
+		void setDstName(String name, int namespace);
 		void setComment(String comment);
 	}
 
 	interface ClassMapping extends ElementMapping, ClassMappingView {
+		@Override
 		Collection<? extends FieldMapping> getFields();
+		@Override
 		FieldMapping getField(String srcName, String srcDesc);
 
+		@Override
 		default FieldMapping getField(String name, String desc, int namespace) {
 			return (FieldMapping) ClassMappingView.super.getField(name, desc, namespace);
 		}
@@ -70,9 +81,12 @@ public interface MappingTree extends MappingTreeView {
 		FieldMapping addField(FieldMapping field);
 		FieldMapping removeField(String srcName, String srcDesc);
 
+		@Override
 		Collection<? extends MethodMapping> getMethods();
+		@Override
 		MethodMapping getMethod(String srcName, String srcDesc);
 
+		@Override
 		default MethodMapping getMethod(String name, String desc, int namespace) {
 			return (MethodMapping) ClassMappingView.super.getMethod(name, desc, namespace);
 		}
@@ -82,28 +96,40 @@ public interface MappingTree extends MappingTreeView {
 	}
 
 	interface MemberMapping extends ElementMapping, MemberMappingView {
+		@Override
 		ClassMapping getOwner();
+		void setSrcDesc(String desc);
 	}
 
 	interface FieldMapping extends MemberMapping, FieldMappingView { }
 
 	interface MethodMapping extends MemberMapping, MethodMappingView {
+		@Override
 		Collection<? extends MethodArgMapping> getArgs();
+		@Override
 		MethodArgMapping getArg(int argPosition, int lvIndex, String srcName);
 		MethodArgMapping addArg(MethodArgMapping arg);
 		MethodArgMapping removeArg(int argPosition, int lvIndex, String srcName);
 
+		@Override
 		Collection<? extends MethodVarMapping> getVars();
+		@Override
 		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
 		MethodVarMapping addVar(MethodVarMapping var);
 		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
 	}
 
 	interface MethodArgMapping extends ElementMapping, MethodArgMappingView {
+		@Override
 		MethodMapping getMethod();
+		void setArgPosition(int position);
+		void setLvIndex(int index);
 	}
 
 	interface MethodVarMapping extends ElementMapping, MethodVarMappingView {
+		@Override
 		MethodMapping getMethod();
+		void setLvtRowIndex(int index);
+		void setLvIndex(int lvIndex, int startOpIdx);
 	}
 }

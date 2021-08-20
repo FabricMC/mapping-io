@@ -136,6 +136,8 @@ public interface MappingTreeView {
 	}
 
 	default String mapDesc(CharSequence desc, int start, int end, int srcNamespace, int dstNamespace) {
+		if (srcNamespace == dstNamespace) return desc.subSequence(start, end).toString();
+
 		StringBuilder ret = null;
 		int copyOffset = start;
 		int offset = start;
@@ -258,19 +260,19 @@ public interface MappingTreeView {
 		ClassMappingView getOwner();
 		String getSrcDesc();
 
-		/**
-		 * @deprecated Please use {@link MemberMappingView#getDesc(int)}.
-		 */
-		@Deprecated
 		default String getDstDesc(int namespace) {
-			return getTree().mapDesc(getSrcDesc(), namespace);
+			String srcDesc = getSrcDesc();
+
+			return srcDesc != null ? getTree().mapDesc(srcDesc, namespace) : null;
 		}
 
 		default String getDesc(int namespace) {
-			if (namespace < 0) {
-				return getSrcDesc();
+			String srcDesc = getSrcDesc();
+
+			if (namespace < 0 || srcDesc == null) {
+				return srcDesc;
 			} else {
-				return getTree().mapDesc(getSrcDesc(), namespace);
+				return getTree().mapDesc(srcDesc, namespace);
 			}
 		}
 
