@@ -668,7 +668,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 		@Override
 		public MethodEntry getMethod(String srcName, String srcDesc) {
-			return getMember(srcName, srcDesc, methods, flags >>> 2, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
+			return getMember(srcName, srcDesc, methods, flags, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
 		}
 
 		@Override
