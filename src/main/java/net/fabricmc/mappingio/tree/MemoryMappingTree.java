@@ -950,6 +950,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			srcDesc = desc;
 			key = newKey;
 			owner.fields.put(newKey, this);
+
+			if (desc != null) {
+				owner.flags |= ClassEntry.FLAG_HAS_ANY_FIELD_DESC;
+			} else {
+				owner.flags |= ClassEntry.FLAG_MISSES_ANY_FIELD_DESC;
+			}
 		}
 
 		void accept(MappingVisitor visitor, boolean supplyDstDescs) throws IOException {
@@ -997,6 +1003,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			srcDesc = desc;
 			key = newKey;
 			owner.methods.put(newKey, this);
+
+			if (desc != null && !desc.endsWith(")")) {
+				owner.flags |= ClassEntry.FLAG_HAS_ANY_METHOD_DESC;
+			} else {
+				owner.flags |= ClassEntry.FLAG_MISSES_ANY_METHOD_DESC;
+			}
 		}
 
 		@Override
