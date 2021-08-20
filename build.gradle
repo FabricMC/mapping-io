@@ -32,6 +32,10 @@ repositories {
 	mavenCentral()
 }
 
+dependencies {
+	implementation "org.ow2.asm:asm:9.1"
+}
+
 spotless {
 	java {
 		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
