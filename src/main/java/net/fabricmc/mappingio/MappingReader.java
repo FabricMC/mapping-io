@@ -82,6 +82,10 @@ public final class MappingReader {
 		return null; // unknown format or corrupted
 	}
 
+	public static List<String> getNamespaces(Path file) throws IOException {
+		return getNamespaces(file, null);
+	}
+
 	public static List<String> getNamespaces(Path file, MappingFormat format) throws IOException {
 		if (format == null) {
 			format = detectFormat(file);
@@ -95,6 +99,10 @@ public final class MappingReader {
 		} else {
 			return Arrays.asList(MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK);
 		}
+	}
+
+	public static List<String> getNamespaces(Reader reader) throws IOException {
+		return getNamespaces(reader, null);
 	}
 
 	public static List<String> getNamespaces(Reader reader, MappingFormat format) throws IOException {
@@ -122,6 +130,10 @@ public final class MappingReader {
 		}
 	}
 
+	public static void read(Path file, MappingVisitor visitor) throws IOException {
+		read(file, null, visitor);
+	}
+
 	public static void read(Path file, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
 			format = detectFormat(file);
@@ -143,6 +155,10 @@ public final class MappingReader {
 				throw new IllegalStateException();
 			}
 		}
+	}
+
+	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+		read(reader, null, visitor);
 	}
 
 	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
