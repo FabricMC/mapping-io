@@ -38,12 +38,27 @@ import net.fabricmc.mappingio.MappingVisitor;
  *
  * <p>After gathering the class map, the implementation delays src-named visit* invocations until the replacement dst
  * name is known, then replays it with the adjusted names.
+ *
+ * <p>By default elements without a name in newSourceNs will keep using the original srcName. This behavior can be
+ * changed by setting {@code dropMissingNewSrcName} to true in the constructor.
  */
 public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	public MappingSourceNsSwitch(MappingVisitor next, String newSourceNs) {
+		this(next, newSourceNs, false);
+	}
+
+	/**
+	 * Create a new MappingSourceNsSwitch instance.
+	 *
+	 * @param next MappingVisitor to pass the output to
+	 * @param newSourceNs namespace to use for the new source name
+	 * @param dropMissingNewSrcName whether to drop elements without a name in newSourceNs, will use original srcName otherwise
+	 */
+	public MappingSourceNsSwitch(MappingVisitor next, String newSourceNs, boolean dropMissingNewSrcName) {
 		super(next);
 
 		this.newSourceNsName = newSourceNs;
+		this.dropMissingNewSrcName = dropMissingNewSrcName;
 	}
 
 	@Override
@@ -223,7 +238,16 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 		if (passThrough) return next.visitElementContent(targetKind);
 
 		String dstName = dstNames[newSourceNs];
-		if (dstName == null) dstName = srcName;
+
+		if (dstName == null) {
+			if (dropMissingNewSrcName) {
+				Arrays.fill(dstNames, null);
+				if (dstDescs != null) Arrays.fill(dstDescs, null);
+				return false;
+			} else {
+				dstName = srcName;
+			}
+		}
 
 		boolean relay;
 
@@ -275,6 +299,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	private final String newSourceNsName;
+	private final boolean dropMissingNewSrcName;
 
 	private int newSourceNs;
 	private String oldSourceNsName;
