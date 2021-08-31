@@ -239,7 +239,8 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 
 		String dstName = dstNames[newSourceNs];
 
-		if (dstName == null) {
+		if (dstName == null
+				&& targetKind != MappedElementKind.METHOD_ARG && targetKind != MappedElementKind.METHOD_VAR) { // src name is optional for arg/var, leave as null
 			if (dropMissingNewSrcName) {
 				Arrays.fill(dstNames, null);
 				if (dstDescs != null) Arrays.fill(dstDescs, null);
