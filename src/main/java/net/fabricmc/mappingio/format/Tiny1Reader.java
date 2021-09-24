@@ -69,7 +69,7 @@ public final class Tiny1Reader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -128,6 +128,31 @@ public final class Tiny1Reader {
 								visitor.visitElementContent(kind);
 							}
 						}
+					} else {
+						String line = reader.nextCol();
+						final String prefix = "# INTERMEDIARY-COUNTER ";
+						String[] parts;
+
+						if (line.startsWith(prefix)
+								&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
+							String property = null;
+
+							switch (parts[0]) {
+							case "class":
+								property = nextIntermediaryClassProperty;
+								break;
+							case "field":
+								property = nextIntermediaryFieldProperty;
+								break;
+							case "method":
+								property = nextIntermediaryMethodProperty;
+								break;
+							}
+
+							if (property != null) {
+								visitor.visitMetadata(property, parts[1]);
+							}
+						}
 					}
 				}
 			}
@@ -150,4 +175,8 @@ public final class Tiny1Reader {
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
+
+	static final String nextIntermediaryClassProperty = "next-intermediary-class";
+	static final String nextIntermediaryFieldProperty = "next-intermediary-field";
+	static final String nextIntermediaryMethodProperty = "next-intermediary-method";
 }

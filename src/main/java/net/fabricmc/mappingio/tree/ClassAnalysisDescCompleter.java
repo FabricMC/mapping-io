@@ -140,7 +140,7 @@ public final class ClassAnalysisDescCompleter {
 
 	private static final class AnalyzingVisitor extends ClassVisitor {
 		AnalyzingVisitor(String namespace, MappingTree mappingTree) {
-			super(Opcodes.ASM6);
+			super(Integer.getInteger("mappingIo.asmApiVersion", Opcodes.ASM9));
 
 			this.namespace = namespace != null ? mappingTree.getNamespaceId(namespace) : MappingTreeView.SRC_NAMESPACE_ID;
 			if (this.namespace == MappingTreeView.NULL_NAMESPACE_ID) throw new IllegalArgumentException("Unknown namespace: "+namespace);

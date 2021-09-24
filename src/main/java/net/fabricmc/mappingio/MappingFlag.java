@@ -26,6 +26,10 @@ public enum MappingFlag {
 	 */
 	NEEDS_MULTIPLE_PASSES,
 	/**
+	 * Requirement that metadata has to be provided in the header.
+	 */
+	NEEDS_HEADER_METADATA,
+	/**
 	 * Requirement that an element has to be visited only once within a pass.
 	 *
 	 * <p>This means that e.g. all members and properties of a class have to be visited after the same single

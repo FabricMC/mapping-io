@@ -26,7 +26,7 @@ import java.util.Set;
  * <p>The visitation order is as follows (omitting visit prefixes for brevity, lowercase for cross references):
  * <ul><li>overall: header -> content -> End -> overall
  * <li>header: Header -> Namespaces [-> Metadata]*
- * <li>content: Content [-> class]*
+ * <li>content: Content [-> class|Metadata]*
  * <li>class: Class [-> DstName]* -> ElementContent [-> field|method|Comment]*
  * <li>field: Field [-> DstName|DstDesc]* -> ElementContent [-> Comment]
  * <li>method: Method [-> DstName|DstDesc]* -> ElementContent [-> arg|var|Comment]*

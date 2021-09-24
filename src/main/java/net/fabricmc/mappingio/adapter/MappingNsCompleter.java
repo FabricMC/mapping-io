@@ -30,11 +30,11 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 		this(next, alternatives, false);
 	}
 
-	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives, boolean addMissing) {
+	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives, boolean addMissingNs) {
 		super(next);
 
 		this.alternatives = alternatives;
-		this.addMissing = addMissing;
+		this.addMissingNs = addMissingNs;
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		if (addMissing) {
+		if (addMissingNs) {
 			boolean copied = false;
 
 			for (String ns : alternatives.keySet()) {
@@ -176,7 +176,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	private final Map<String, String> alternatives;
-	private final boolean addMissing;
+	private final boolean addMissingNs;
 	private int[] alternativesMapping;
 
 	private String srcName;
