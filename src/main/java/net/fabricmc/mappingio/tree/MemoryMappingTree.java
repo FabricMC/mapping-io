@@ -257,15 +257,21 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			for (int i = 0; i < dstNameMap.length; i++) {
 				String dstNs = dstNamespaces.get(i);
-				int idx = this.dstNamespaces.indexOf(dstNs);
+				int idx;
 
-				if (idx < 0) {
-					if (dstNs.equals(this.srcNamespace)) throw new UnsupportedOperationException("can't merge with existing src namespace in new dst namespaces");
-					if (newDstNamespaces == 0) this.dstNamespaces = new ArrayList<>(this.dstNamespaces);
+				if (dstNs.equals(srcNamespace)) {
+					idx = -1;
+				} else {
+					idx = this.dstNamespaces.indexOf(dstNs);
 
-					idx = this.dstNamespaces.size();
-					this.dstNamespaces.add(dstNs);
-					newDstNamespaces++;
+					if (idx < 0) {
+						if (dstNs.equals(this.srcNamespace)) throw new UnsupportedOperationException("can't merge with existing src namespace in new dst namespaces");
+						if (newDstNamespaces == 0) this.dstNamespaces = new ArrayList<>(this.dstNamespaces);
+
+						idx = this.dstNamespaces.size();
+						this.dstNamespaces.add(dstNs);
+						newDstNamespaces++;
+					}
 				}
 
 				dstNameMap[i] = idx;
@@ -307,7 +313,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.dstNamespaces = dstNamespaces;
 
 			for (int i = 0; i < dstNameMap.length; i++) {
-				dstNameMap[i] = i;
+				dstNameMap[i] = dstNamespaces.get(i).equals(srcNamespace) ? -1 : i;
 			}
 
 			if (indexByDstNames) {
@@ -452,11 +458,24 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		namespace = dstNameMap[namespace];
 
 		if (currentEntry == null) throw new UnsupportedOperationException("Tried to visit mapped name before owner");
-		currentEntry.setDstName(name, namespace);
 
-		if (indexByDstNames) {
-			if (targetKind == MappedElementKind.CLASS) {
-				classesByDstNames[namespace].put(name, currentClass);
+		if (namespace < 0) {
+			if (name.equals(currentEntry.getSrcName())) return;
+
+			if (currentEntry instanceof MethodArgEntry) {
+				((MethodArgEntry) currentEntry).setSrcName(name);
+			} else if (currentEntry instanceof MethodVarEntry) {
+				((MethodVarEntry) currentEntry).setSrcName(name);
+			} else {
+				throw new UnsupportedOperationException("can't change non-arg/var src name");
+			}
+		} else {
+			currentEntry.setDstName(name, namespace);
+
+			if (indexByDstNames) {
+				if (targetKind == MappedElementKind.CLASS) {
+					classesByDstNames[namespace].put(name, currentClass);
+				}
 			}
 		}
 	}
