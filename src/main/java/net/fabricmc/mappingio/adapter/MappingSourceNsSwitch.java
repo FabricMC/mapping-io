@@ -241,7 +241,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 
 		if (dstName == null
 				&& targetKind != MappedElementKind.METHOD_ARG && targetKind != MappedElementKind.METHOD_VAR) { // src name is optional for arg/var, leave as null
-			if (dropMissingNewSrcName) {
+			if (dropMissingNewSrcName && !srcName.startsWith("<")) { // always allow <clinit> and <init> since their name is fixed, < is reserved
 				Arrays.fill(dstNames, null);
 				if (dstDescs != null) Arrays.fill(dstDescs, null);
 				return false;
