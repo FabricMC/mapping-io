@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,6 +86,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				String dstName = cls.dstNames[i];
 				if (dstName != null) classesByDstNames[i].put(dstName, cls);
 			}
+		}
+	}
+
+	public void setHierarchyInfoProvider(HierarchyInfoProvider<?> provider) {
+		hierarchyInfo = provider;
+
+		if (provider != null) {
+			propagateNames(provider);
 		}
 	}
 
@@ -334,13 +343,13 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		ClassEntry cls = getClass(srcName, srcNsMap);
 
 		if (cls == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = currentClass = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown
+				cls = new ClassEntry(this, null);
+				cls.setDstName(srcName, srcNsMap);
+			} else {
+				cls = new ClassEntry(this, srcName);
+				classesBySrcName.put(srcName, cls);
 			}
-
-			cls = new ClassEntry(this, srcName);
-			classesBySrcName.put(srcName, cls);
 		}
 
 		currentEntry = currentClass = cls;
@@ -357,13 +366,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		FieldEntry field = currentClass.getField(srcName, srcDesc, srcNsMap);
 
 		if (field == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown, can't create new entry directly
+				field = (FieldEntry) queuePendingMember(srcName, srcDesc, true);
+			} else {
+				field = new FieldEntry(currentClass, srcName, srcDesc);
+				field = currentClass.addField(field);
 			}
-
-			field = new FieldEntry(currentClass, srcName, srcDesc);
-			field = currentClass.addField(field);
 		} else if (srcDesc != null && field.srcDesc == null) {
 			field.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
 		}
@@ -380,13 +388,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		MethodEntry method = currentClass.getMethod(srcName, srcDesc, srcNsMap);
 
 		if (method == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = currentMethod = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown, can't create new entry directly
+				method = (MethodEntry) queuePendingMember(srcName, srcDesc, false);
+			} else {
+				method = new MethodEntry(currentClass, srcName, srcDesc);
+				method = currentClass.addMethod(method);
 			}
-
-			method = new MethodEntry(currentClass, srcName, srcDesc);
-			method = currentClass.addMethod(method);
 		} else if (srcDesc != null && (method.srcDesc == null || method.srcDesc.endsWith(")") && !srcDesc.endsWith(")"))) {
 			method.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
 		}
@@ -394,6 +401,58 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		currentEntry = currentMethod = method;
 
 		return true;
+	}
+
+	private MemberEntry<?> queuePendingMember(String name, String desc, boolean isField) {
+		if (pendingMembers == null) pendingMembers = new HashMap<>();
+		GlobalMemberKey key = new GlobalMemberKey(currentClass, name, desc, isField);
+		MemberEntry<?> member = pendingMembers.get(key);
+
+		if (member == null) {
+			if (isField) {
+				member = new FieldEntry(currentClass, null, desc);
+			} else {
+				member = new MethodEntry(currentClass, null, desc);
+			}
+
+			pendingMembers.put(key, member);
+		}
+
+		if (srcNsMap >= 0) {
+			member.setDstName(name, srcNsMap);
+		}
+
+		return member;
+	}
+
+	private void addPendingMember(MemberEntry<?> member) {
+		String name = member.getName(srcNsMap);
+
+		if (name == null) {
+			return;
+		}
+
+		String desc = member.getDesc(srcNsMap);
+
+		if (member.getKind() == MappedElementKind.FIELD) {
+			FieldEntry field = member.getOwner().getField(name, desc);
+
+			if (field == null) {
+				member.srcName = name;
+				member.setSrcDesc(desc);
+			} else { // copy remaining data
+				field.copyFrom((FieldEntry) member, false);
+			}
+		} else {
+			MethodEntry method = member.getOwner().getMethod(name, desc);
+
+			if (method == null) {
+				member.srcName = name;
+				member.setSrcDesc(desc);
+			} else { // copy remaining data
+				method.copyFrom((MethodEntry) member, false);
+			}
+		}
 	}
 
 	@Override
@@ -450,7 +509,68 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		currentClass = null;
 		currentMethod = null;
 
+		if (pendingMembers != null) {
+			for (MemberEntry<?> member : pendingMembers.values()) {
+				addPendingMember(member);
+			}
+
+			pendingMembers = null;
+		}
+
+		if (hierarchyInfo != null) {
+			propagateNames(hierarchyInfo);
+		}
+
 		return true;
+	}
+
+	private <T> void propagateNames(HierarchyInfoProvider<T> provider) {
+		int nsId = getNamespaceId(provider.getNamespace());
+		if (nsId == NULL_NAMESPACE_ID) return;
+
+		Set<MethodEntry> processed = Collections.newSetFromMap(new IdentityHashMap<>());
+
+		for (ClassEntry cls : classesBySrcName.values()) {
+			for (MethodEntry method : cls.getMethods()) {
+				String name = method.getName(nsId);
+				if (name == null || name.startsWith("<")) continue; // missing name, <clinit> or <init>
+				if (!processed.add(method)) continue;
+
+				T hierarchy = provider.getMethodHierarchy(method);
+				if (provider.getHierarchySize(hierarchy) <= 1) continue;
+
+				Collection<? extends MethodMapping> hierarchyMethods = provider.getHierarchyMethods(hierarchy, this);
+				if (hierarchyMethods.size() <= 1) continue;
+
+				String[] dstNames = new String[dstNamespaces.size()];
+				int rem = dstNames.length;
+
+				nameGatherLoop: for (MethodMapping m : hierarchyMethods) {
+					for (int i = 0; i < dstNames.length; i++) {
+						if (dstNames[i] != null) continue;
+
+						String curName = m.getDstName(i);
+
+						if (curName != null) {
+							dstNames[i] = curName;
+							if (--rem == 0) break nameGatherLoop;
+						}
+					}
+				}
+
+				for (MethodMapping m : hierarchyMethods) {
+					processed.add((MethodEntry) m);
+
+					for (int i = 0; i < dstNames.length; i++) {
+						String curName = dstNames[i];
+
+						if (curName != null) {
+							m.setDstName(curName, i);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -462,22 +582,34 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (namespace < 0) {
 			if (name.equals(currentEntry.getSrcName())) return;
 
-			if (currentEntry instanceof MethodArgEntry) {
+			switch (currentEntry.getKind()) {
+			case CLASS:
+				assert currentClass == currentEntry;
+
+				if (currentClass.srcName == null) {
+					currentClass.srcName = name;
+				} else {
+					throw new UnsupportedOperationException("can't change src name for "+currentEntry.getKind());
+				}
+
+				break;
+			case METHOD_ARG:
 				((MethodArgEntry) currentEntry).setSrcName(name);
-			} else if (currentEntry instanceof MethodVarEntry) {
+				break;
+			case METHOD_VAR:
 				((MethodVarEntry) currentEntry).setSrcName(name);
-			} else {
-				throw new UnsupportedOperationException("can't change non-arg/var src name");
+				break;
+			default:
+				throw new UnsupportedOperationException("can't change src name for "+currentEntry.getKind());
 			}
 		} else {
 			currentEntry.setDstName(name, namespace);
-
-			if (indexByDstNames) {
-				if (targetKind == MappedElementKind.CLASS) {
-					classesByDstNames[namespace].put(name, currentClass);
-				}
-			}
 		}
+	}
+
+	@Override
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		return targetKind != MappedElementKind.CLASS || currentClass.getSrcName() != null; // reject classes that never received a src name
 	}
 
 	@Override
@@ -586,6 +718,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			if (o.comment != null && (replace || comment == null)) {
 				comment = o.comment;
 			}
+
+			// TODO: copy args+vars
 		}
 
 		protected String srcName;
@@ -1475,16 +1609,56 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private final int hash;
 	}
 
+	static final class GlobalMemberKey {
+		GlobalMemberKey(ClassEntry owner, String name, String desc, boolean isField) {
+			this.owner = owner;
+			this.name = name;
+			this.desc = desc;
+			this.isField = isField;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null || obj.getClass() != GlobalMemberKey.class) return false;
+
+			GlobalMemberKey o = (GlobalMemberKey) obj;
+
+			return owner == o.owner && name.equals(o.name) && Objects.equals(desc, o.desc) && isField == o.isField;
+		}
+
+		@Override
+		public int hashCode() {
+			int ret = owner.hashCode() * 31 + name.hashCode();
+			if (desc != null) ret |= desc.hashCode();
+			if (isField) ret++;
+
+			return ret;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s.%s.%s", owner, name, desc);
+		}
+
+		private final ClassEntry owner;
+		private final String name;
+		private final String desc;
+		private final boolean isField;
+	}
+
 	private boolean indexByDstNames;
 	private String srcNamespace;
-	private List<String> dstNamespaces;
+	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
+
+	private HierarchyInfoProvider<?> hierarchyInfo;
 
 	private int srcNsMap;
 	private int[] dstNameMap;
 	private Entry<?> currentEntry;
 	private ClassEntry currentClass;
 	private MethodEntry currentMethod;
+	private Map<GlobalMemberKey, MemberEntry<?>> pendingMembers;
 }

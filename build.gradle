@@ -30,11 +30,16 @@ checkstyle {
 }
 
 repositories {
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
 	mavenCentral()
 }
 
 dependencies {
 	implementation "org.ow2.asm:asm:9.5"
+	implementation "net.fabricmc:tiny-remapper:0.8.0"
 }
 
 spotless {
