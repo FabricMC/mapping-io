@@ -104,7 +104,11 @@ public interface MappingTreeView {
 		return owner != null ? owner.getMethod(name, desc, namespace) : null;
 	}
 
-	void accept(MappingVisitor visitor) throws IOException;
+	default void accept(MappingVisitor visitor) throws IOException {
+		accept(visitor, VisitOrder.createByInputOrder());
+	}
+
+	void accept(MappingVisitor visitor, VisitOrder order) throws IOException;
 
 	default String mapClassName(String name, int namespace) {
 		return mapClassName(name, SRC_NAMESPACE_ID, namespace);

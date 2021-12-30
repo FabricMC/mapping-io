@@ -213,7 +213,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public void accept(MappingVisitor visitor) throws IOException {
+	public void accept(MappingVisitor visitor, VisitOrder order) throws IOException {
 		do {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
@@ -228,8 +228,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				boolean supplyFieldDstDescs = flags.contains(MappingFlag.NEEDS_DST_FIELD_DESC);
 				boolean supplyMethodDstDescs = flags.contains(MappingFlag.NEEDS_DST_METHOD_DESC);
 
-				for (ClassEntry cls : classesBySrcName.values()) {
-					cls.accept(visitor, supplyFieldDstDescs, supplyMethodDstDescs);
+				for (ClassEntry cls : order.sortClasses(classesBySrcName.values())) {
+					cls.accept(visitor, order, supplyFieldDstDescs, supplyMethodDstDescs);
 				}
 			}
 		} while (!visitor.visitEnd());
@@ -811,17 +811,25 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			}
 		}
 
-		void accept(MappingVisitor visitor, boolean supplyFieldDstDescs, boolean supplyMethodDstDescs) throws IOException {
+		void accept(MappingVisitor visitor, VisitOrder order, boolean supplyFieldDstDescs, boolean supplyMethodDstDescs) throws IOException {
 			if (visitor.visitClass(srcName) && acceptElement(visitor, null)) {
-				if (fields != null) {
-					for (FieldEntry field : fields.values()) {
+				boolean methodsFirst = order.isMethodsFirst() && fields != null && methods != null;
+
+				if (!methodsFirst && fields != null) {
+					for (FieldEntry field : order.sortFields(fields.values())) {
 						field.accept(visitor, supplyFieldDstDescs);
 					}
 				}
 
 				if (methods != null) {
-					for (MethodEntry method : methods.values()) {
-						method.accept(visitor, supplyMethodDstDescs);
+					for (MethodEntry method : order.sortMethods(methods.values())) {
+						method.accept(visitor, order, supplyMethodDstDescs);
+					}
+				}
+
+				if (methodsFirst) {
+					for (FieldEntry field : order.sortFields(fields.values())) {
+						field.accept(visitor, supplyFieldDstDescs);
 					}
 				}
 			}
@@ -1198,17 +1206,25 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			return ret;
 		}
 
-		void accept(MappingVisitor visitor, boolean supplyDstDescs) throws IOException {
+		void accept(MappingVisitor visitor, VisitOrder order, boolean supplyDstDescs) throws IOException {
 			if (visitor.visitMethod(srcName, srcDesc) && acceptMember(visitor, supplyDstDescs)) {
-				if (args != null) {
-					for (MethodArgEntry arg : args) {
+				boolean varsFirst = order.isMethodVarsFirst() && args != null && vars != null;
+
+				if (!varsFirst && args != null) {
+					for (MethodArgEntry arg : order.sortMethodArgs(args)) {
 						arg.accept(visitor);
 					}
 				}
 
 				if (vars != null) {
-					for (MethodVarEntry var : vars) {
+					for (MethodVarEntry var : order.sortMethodVars(vars)) {
 						var.accept(visitor);
+					}
+				}
+
+				if (varsFirst) {
+					for (MethodArgEntry arg : order.sortMethodArgs(args)) {
+						arg.accept(visitor);
 					}
 				}
 			}
