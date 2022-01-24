@@ -132,7 +132,7 @@ public final class Tiny2Writer implements MappingWriter {
 		writeTab();
 		write(startOpIdx);
 		writeTab();
-		if (lvtRowIndex >= 0) write(lvtRowIndex);
+		write(Math.max(lvtRowIndex, -1));
 		writeTab();
 		if (srcName != null) writeName(srcName);
 
