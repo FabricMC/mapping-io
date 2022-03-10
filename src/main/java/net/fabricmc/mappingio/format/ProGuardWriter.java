@@ -36,8 +36,8 @@ import net.fabricmc.mappingio.MappingWriter;
  */
 public final class ProGuardWriter implements MappingWriter {
 	private final Writer writer;
-	private int namespace = -1;
-	private String namespaceString;
+	private int dstNamespace = -1;
+	private String dstNamespaceString;
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -52,27 +52,27 @@ public final class ProGuardWriter implements MappingWriter {
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer    the writer where the mappings will be written
-	 * @param namespace the namespace index to write as the destination namespace, must be at least 0
+	 * @param writer       the writer where the mappings will be written
+	 * @param dstNamespace the namespace index to write as the destination namespace, must be at least 0
 	 */
-	public ProGuardWriter(Writer writer, int namespace) {
+	public ProGuardWriter(Writer writer, int dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
-		this.namespace = namespace;
+		this.dstNamespace = dstNamespace;
 
-		if (namespace < 0) {
-			throw new IllegalArgumentException("Namespace must be non-negative, found " + namespace);
+		if (dstNamespace < 0) {
+			throw new IllegalArgumentException("Namespace must be non-negative, found " + dstNamespace);
 		}
 	}
 
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer    the writer where the mappings will be written
-	 * @param namespace the namespace name to write as the destination namespace
+	 * @param writer       the writer where the mappings will be written
+	 * @param dstNamespace the namespace name to write as the destination namespace
 	 */
-	public ProGuardWriter(Writer writer, String namespace) {
+	public ProGuardWriter(Writer writer, String dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
-		this.namespaceString = Objects.requireNonNull(namespace, "namespace cannot be null");
+		this.dstNamespaceString = Objects.requireNonNull(dstNamespace, "namespace cannot be null");
 	}
 
 	/**
@@ -87,16 +87,16 @@ public final class ProGuardWriter implements MappingWriter {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		if (namespaceString != null) {
-			namespace = dstNamespaces.indexOf(namespaceString);
+		if (dstNamespaceString != null) {
+			dstNamespace = dstNamespaces.indexOf(dstNamespaceString);
 
-			if (namespace == -1) {
-				throw new RuntimeException("Invalid destination namespace '" + namespaceString + "' not in [" + String.join(", ", dstNamespaces) + ']');
+			if (dstNamespace == -1) {
+				throw new RuntimeException("Invalid destination namespace '" + dstNamespaceString + "' not in [" + String.join(", ", dstNamespaces) + ']');
 			}
 		}
 
-		if (namespace >= dstNamespaces.size()) {
-			throw new IndexOutOfBoundsException("Namespace " + namespace + " doesn't exist in [" + String.join(", ", dstNamespaces) + ']');
+		if (dstNamespace >= dstNamespaces.size()) {
+			throw new IndexOutOfBoundsException("Namespace " + dstNamespace + " doesn't exist in [" + String.join(", ", dstNamespaces) + ']');
 		}
 	}
 
@@ -154,7 +154,7 @@ public final class ProGuardWriter implements MappingWriter {
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
-		if (this.namespace != namespace) {
+		if (this.dstNamespace != namespace) {
 			return;
 		}
 
