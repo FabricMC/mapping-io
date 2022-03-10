@@ -39,6 +39,16 @@ public final class ProGuardWriter implements MappingWriter {
 	private String namespaceString;
 
 	/**
+	 * Constructs a ProGuard mapping writer that uses
+	 * the first destination namespace (index 0).
+	 *
+	 * @param writer the writer where the mappings will be written
+	 */
+	public ProGuardWriter(Writer writer) {
+		this(writer, 0);
+	}
+
+	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
 	 * @param writer    the writer where the mappings will be written
@@ -58,16 +68,6 @@ public final class ProGuardWriter implements MappingWriter {
 	public ProGuardWriter(Writer writer, String namespace) {
 		this.writer = writer;
 		this.namespaceString = namespace;
-	}
-
-	/**
-	 * Constructs a ProGuard mapping writer that uses
-	 * the first destination namespace (index 0).
-	 *
-	 * @param writer the writer where the mappings will be written
-	 */
-	public ProGuardWriter(Writer writer) {
-		this(writer, 0);
 	}
 
 	/**
