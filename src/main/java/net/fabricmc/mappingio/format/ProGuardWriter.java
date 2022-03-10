@@ -37,7 +37,7 @@ import net.fabricmc.mappingio.MappingWriter;
 public final class ProGuardWriter implements MappingWriter {
 	private final Writer writer;
 	private int dstNamespace = -1;
-	private String dstNamespaceString;
+	private final String dstNamespaceString;
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -58,6 +58,7 @@ public final class ProGuardWriter implements MappingWriter {
 	public ProGuardWriter(Writer writer, int dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.dstNamespace = dstNamespace;
+		this.dstNamespaceString = null;
 
 		if (dstNamespace < 0) {
 			throw new IllegalArgumentException("Namespace must be non-negative, found " + dstNamespace);
