@@ -16,8 +16,8 @@
 
 package net.fabricmc.mappingio.format;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.List;
 
 import org.objectweb.asm.Type;
@@ -34,7 +34,7 @@ import net.fabricmc.mappingio.MappingWriter;
  * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
  */
 public final class ProGuardWriter implements MappingWriter {
-	private final BufferedWriter writer;
+	private final Writer writer;
 	private int namespace = -1;
 	private String namespaceString;
 
@@ -44,7 +44,7 @@ public final class ProGuardWriter implements MappingWriter {
 	 * @param writer    the writer where the mappings will be written
 	 * @param namespace the namespace index to write as the destination namespace
 	 */
-	public ProGuardWriter(BufferedWriter writer, int namespace) {
+	public ProGuardWriter(Writer writer, int namespace) {
 		this.writer = writer;
 		this.namespace = namespace;
 	}
@@ -55,7 +55,7 @@ public final class ProGuardWriter implements MappingWriter {
 	 * @param writer    the writer where the mappings will be written
 	 * @param namespace the namespace name to write as the destination namespace
 	 */
-	public ProGuardWriter(BufferedWriter writer, String namespace) {
+	public ProGuardWriter(Writer writer, String namespace) {
 		this.writer = writer;
 		this.namespaceString = namespace;
 	}
@@ -66,12 +66,12 @@ public final class ProGuardWriter implements MappingWriter {
 	 *
 	 * @param writer the writer where the mappings will be written
 	 */
-	public ProGuardWriter(BufferedWriter writer) {
+	public ProGuardWriter(Writer writer) {
 		this(writer, 0);
 	}
 
 	/**
-	 * Closes the internal {@link BufferedWriter}.
+	 * Closes the internal {@link Writer}.
 	 *
 	 * @throws IOException if an IO error occurs
 	 */
@@ -152,7 +152,7 @@ public final class ProGuardWriter implements MappingWriter {
 			writer.write(name);
 		}
 
-		writer.newLine();
+		writer.write('\n');
 	}
 
 	@Override
