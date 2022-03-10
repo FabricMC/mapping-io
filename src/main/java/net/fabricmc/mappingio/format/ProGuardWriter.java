@@ -19,6 +19,7 @@ package net.fabricmc.mappingio.format;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Objects;
 
 import org.objectweb.asm.Type;
 
@@ -52,11 +53,15 @@ public final class ProGuardWriter implements MappingWriter {
 	 * Constructs a ProGuard mapping writer.
 	 *
 	 * @param writer    the writer where the mappings will be written
-	 * @param namespace the namespace index to write as the destination namespace
+	 * @param namespace the namespace index to write as the destination namespace, must be at least 0
 	 */
 	public ProGuardWriter(Writer writer, int namespace) {
-		this.writer = writer;
+		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.namespace = namespace;
+
+		if (namespace < 0) {
+			throw new IllegalArgumentException("Namespace must be non-negative, found " + namespace);
+		}
 	}
 
 	/**
@@ -66,8 +71,8 @@ public final class ProGuardWriter implements MappingWriter {
 	 * @param namespace the namespace name to write as the destination namespace
 	 */
 	public ProGuardWriter(Writer writer, String namespace) {
-		this.writer = writer;
-		this.namespaceString = namespace;
+		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
+		this.namespaceString = Objects.requireNonNull(namespace, "namespace cannot be null");
 	}
 
 	/**
@@ -84,6 +89,14 @@ public final class ProGuardWriter implements MappingWriter {
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		if (namespaceString != null) {
 			namespace = dstNamespaces.indexOf(namespaceString);
+
+			if (namespace == -1) {
+				throw new RuntimeException("Invalid destination namespace '" + namespaceString + "' not in [" + String.join(", ", dstNamespaces) + ']');
+			}
+		}
+
+		if (namespace >= dstNamespaces.size()) {
+			throw new IndexOutOfBoundsException("Namespace " + namespace + " doesn't exist in [" + String.join(", ", dstNamespaces) + ']');
 		}
 	}
 
