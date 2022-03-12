@@ -4,6 +4,7 @@ plugins {
 	id "checkstyle"
 	id "maven-publish"
 	id "com.diffplug.spotless" version "5.8.2"
+	id "me.modmuss50.remotesign" version "0.1.0"
 }
 
 sourceCompatibility = 1.8
@@ -52,10 +53,72 @@ jar {
 	}
 }
 
+if (ENV.SIGNING_SERVER) {
+	remoteSign {
+		requestUrl ENV.SIGNING_SERVER
+		pgpAuthKey ENV.SIGNING_PGP_KEY
+		jarAuthKey ENV.SIGNING_JAR_KEY
+
+		sign (jar, sourcesJar)
+
+		afterEvaluate {
+			sign publishing.publications.mavenJava
+		}
+	}
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			from components.java
+			if (ENV.SIGNING_SERVER) {
+				artifact(signJar) {
+					classifier null
+				}
+
+				artifact(signSourcesJar) {
+					classifier "sources"
+				}
+			} else {
+				from components.java
+			}
+
+			pom {
+				name = 'mapping-io'
+				description = 'A library for working with mapping files.'
+				url = 'https://github.com/FabricMC/mapping-io'
+
+				scm {
+					connection = "scm:git:https://github.com/FabricMC/mapping-io.git"
+					developerConnection = "scm:git:git@github.com:FabricMC/mapping-io.git"
+					url = "https://github.com/FabricMC/mapping-io"
+				}
+
+				issueManagement {
+					system = "GitHub"
+					url = "https://github.com/FabricMC/mapping-io/issues"
+				}
+
+				licenses {
+					license {
+						name = 'The Apache License, Version 2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+
+				developers {
+					developer {
+						id = "modmuss50"
+						name = "modmuss50"
+						email = "modmuss50@fabricmc.net"
+					}
+
+					developer {
+						id = "sfPlayer"
+						name = "Player"
+						email = "player@fabricmc.net"
+					}
+				}
+			}
 		}
 	}
 
@@ -72,5 +135,30 @@ publishing {
 				}
 			}
 		}
+
+		if (ENV.MAVEN_CENTRAL_URL) {
+			repositories.maven {
+				name "central"
+				url ENV.MAVEN_CENTRAL_URL
+				credentials {
+					username ENV.MAVEN_CENTRAL_USERNAME
+					password ENV.MAVEN_CENTRAL_PASSWORD
+				}
+			}
+		}
 	}
 }
+
+// A task to ensure that the version being released has not already been released.
+task checkVersion {
+	doFirst {
+		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/mapping-io/maven-metadata.xml").text
+		def metadata = new XmlSlurper().parseText(xml)
+		def versions = metadata.versioning.versions.version*.text();
+		if (versions.contains(version)) {
+			throw new RuntimeException("${version} has already been released!")
+		}
+	}
+}
+
+publish.mustRunAfter checkVersion
