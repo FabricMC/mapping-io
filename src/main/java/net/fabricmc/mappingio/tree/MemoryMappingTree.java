@@ -117,6 +117,39 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 	@Override
 	public List<String> setDstNamespaces(List<String> namespaces) {
+		if (!classesBySrcName.isEmpty()) { // classes present, update existing dstNames
+			int newSize = namespaces.size();
+			int[] nameMap = new int[newSize];
+
+			for (int i = 0; i < newSize; i++) {
+				String newNs = namespaces.get(i);
+
+				if (newNs.equals(srcNamespace)) {
+					throw new IllegalArgumentException("can't use the same namespace for src and dst");
+				} else {
+					int oldNsIdx = dstNamespaces.indexOf(newNs);
+					nameMap[i] = oldNsIdx;
+				}
+			}
+
+			boolean useResize = true;
+
+			for (int i = 0; i < newSize; i++) {
+				int src = nameMap[i];
+
+				if (src != i && (src >= 0 || i >= dstNamespaces.size())) { // not a 1:1 copy with potential null extension
+					useResize = false;
+					break;
+				}
+			}
+
+			if (useResize) {
+				resizeDstNames(newSize);
+			} else {
+				updateDstNames(nameMap);
+			}
+		}
+
 		List<String> ret = dstNamespaces;
 		dstNamespaces = namespaces;
 
@@ -125,6 +158,50 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		return ret;
+	}
+
+	private void resizeDstNames(int newSize) {
+		for (ClassEntry cls : classesBySrcName.values()) {
+			cls.resizeDstNames(newSize);
+
+			for (FieldEntry field : cls.getFields()) {
+				field.resizeDstNames(newSize);
+			}
+
+			for (MethodEntry method : cls.getMethods()) {
+				method.resizeDstNames(newSize);
+
+				for (MethodArgEntry arg : method.getArgs()) {
+					arg.resizeDstNames(newSize);
+				}
+
+				for (MethodVarEntry var : method.getVars()) {
+					var.resizeDstNames(newSize);
+				}
+			}
+		}
+	}
+
+	private void updateDstNames(int[] nameMap) {
+		for (ClassEntry cls : classesBySrcName.values()) {
+			cls.updateDstNames(nameMap);
+
+			for (FieldEntry field : cls.getFields()) {
+				field.updateDstNames(nameMap);
+			}
+
+			for (MethodEntry method : cls.getMethods()) {
+				method.updateDstNames(nameMap);
+
+				for (MethodArgEntry arg : method.getArgs()) {
+					arg.updateDstNames(nameMap);
+				}
+
+				for (MethodVarEntry var : method.getVars()) {
+					var.updateDstNames(nameMap);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -162,26 +239,26 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public Collection<ClassEntry> getClasses() {
+	public Collection<? extends ClassMapping> getClasses() {
 		return classesBySrcName.values();
 	}
 
 	@Override
-	public ClassEntry getClass(String srcName) {
+	public ClassMapping getClass(String srcName) {
 		return classesBySrcName.get(srcName);
 	}
 
 	@Override
-	public ClassEntry getClass(String name, int namespace) {
+	public ClassMapping getClass(String name, int namespace) {
 		if (namespace < 0 || !indexByDstNames) {
-			return (ClassEntry) MappingTree.super.getClass(name, namespace);
+			return MappingTree.super.getClass(name, namespace);
 		} else {
 			return classesByDstNames[namespace].get(name);
 		}
 	}
 
 	@Override
-	public ClassEntry addClass(ClassMapping cls) {
+	public ClassMapping addClass(ClassMapping cls) {
 		ClassEntry entry = cls instanceof ClassEntry && cls.getTree() == this ? (ClassEntry) cls : new ClassEntry(this, cls, getSrcNsEquivalent(cls));
 		ClassEntry ret = classesBySrcName.putIfAbsent(cls.getSrcName(), entry);
 
@@ -208,7 +285,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public ClassEntry removeClass(String srcName) {
+	public ClassMapping removeClass(String srcName) {
 		ClassEntry ret = classesBySrcName.remove(srcName);
 
 		if (ret != null && indexByDstNames) {
@@ -288,26 +365,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (newDstNamespaces > 0) {
 				int newSize = this.dstNamespaces.size();
-
-				for (ClassEntry cls : getClasses()) {
-					cls.resizeDstNames(newSize);
-
-					for (FieldEntry field : cls.getFields()) {
-						field.resizeDstNames(newSize);
-					}
-
-					for (MethodEntry method : cls.getMethods()) {
-						method.resizeDstNames(newSize);
-
-						for (MethodArgEntry arg : method.getArgs()) {
-							arg.resizeDstNames(newSize);
-						}
-
-						for (MethodVarEntry var : method.getVars()) {
-							var.resizeDstNames(newSize);
-						}
-					}
-				}
+				resizeDstNames(newSize);
 
 				if (indexByDstNames) {
 					classesByDstNames = Arrays.copyOf(classesByDstNames, newSize);
@@ -340,7 +398,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	public boolean visitClass(String srcName) {
 		currentMethod = null;
 
-		ClassEntry cls = getClass(srcName, srcNsMap);
+		ClassEntry cls = (ClassEntry) getClass(srcName, srcNsMap);
 
 		if (cls == null) {
 			if (srcNsMap >= 0) { // tree-side srcName unknown
@@ -670,6 +728,20 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 		void resizeDstNames(int newSize) {
 			dstNames = Arrays.copyOf(dstNames, newSize);
+		}
+
+		void updateDstNames(int[] map) {
+			String[] newDstNames = new String[map.length];
+
+			for (int i = 0; i < map.length; i++) {
+				int src = map[i];
+
+				if (src >= 0) {
+					newDstNames[i] = dstNames[src];
+				}
+			}
+
+			dstNames = newDstNames;
 		}
 
 		@Override
