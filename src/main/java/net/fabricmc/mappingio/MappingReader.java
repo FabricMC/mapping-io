@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.fabricmc.mappingio.format.EnigmaReader;
+import net.fabricmc.mappingio.format.JarReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.ProGuardReader;
 import net.fabricmc.mappingio.format.SrgReader;
@@ -69,6 +70,8 @@ public final class MappingReader {
 		case "MD:":
 		case "FD:":
 			return MappingFormat.SRG;
+		case "PK\u0003":
+			return MappingFormat.JAR;
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -141,8 +144,12 @@ public final class MappingReader {
 		}
 
 		if (format.hasSingleFile()) {
-			try (Reader reader = Files.newBufferedReader(file)) {
-				read(reader, format, visitor);
+			if (format == MappingFormat.JAR) {
+				JarReader.read(file, visitor);
+			} else {
+				try (Reader reader = Files.newBufferedReader(file)) {
+					read(reader, format, visitor);
+				}
 			}
 		} else {
 			switch (format) {

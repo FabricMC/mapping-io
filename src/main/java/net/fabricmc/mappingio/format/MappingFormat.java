@@ -24,7 +24,8 @@ public enum MappingFormat {
 	SRG("SRG", "srg", false, false, false, false, false),
 	TSRG("TSRG", "tsrg", false, false, false, false, false),
 	TSRG2("TSRG2", "tsrg", true, false, false, true, false),
-	PROGUARD("ProGuard", "map", false, true, false, false, false);
+	PROGUARD("ProGuard", "map", false, true, false, false, false),
+	JAR("JAR", "jar", false, true, false, true, true);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
