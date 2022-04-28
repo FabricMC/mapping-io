@@ -98,6 +98,18 @@ public class JarReader {
 				if (closeFs) fs.close();
 			}
 		} else if (fileName.endsWith(".class")) {
+			Path parent = file.getParent();
+
+			while (parent != file.getRoot()) {
+				String parentDir = parent.getName(parent.getNameCount() - 1).toString();
+
+				if (parentDir.equals("META-INF") || parentDir.equals("doc-files")) {
+					return buffer;
+				}
+
+				parent = parent.getParent();
+			}
+
 			try (SeekableByteChannel channel = Files.newByteChannel(file)) {
 				if (buffer == null) buffer = ByteBuffer.allocate((int) Math.min(channel.size() + 1, 100_000_000));
 
