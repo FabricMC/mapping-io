@@ -103,7 +103,7 @@ public class JarReader {
 			while (parent != file.getRoot()) {
 				String parentDir = parent.getName(parent.getNameCount() - 1).toString();
 
-				if (parentDir.equals("META-INF") || parentDir.equals("doc-files")) {
+				if (parentDir.contains("-")) {
 					return buffer;
 				}
 
