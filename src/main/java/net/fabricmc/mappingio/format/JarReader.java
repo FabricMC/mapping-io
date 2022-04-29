@@ -68,6 +68,18 @@ public class JarReader {
 		String fileName = file.getFileName().toString().toLowerCase(Locale.ENGLISH);
 
 		if (fileName.endsWith(".jar")) {
+			Path parent = file.getParent();
+
+			while (parent != file.getRoot()) {
+				String parentDir = parent.getName(parent.getNameCount() - 1).toString();
+
+				if (parentDir.equals("doc-files")) {
+					return buffer;
+				}
+
+				parent = parent.getParent();
+			}
+
 			URI uri = file.toUri();
 
 			try {
