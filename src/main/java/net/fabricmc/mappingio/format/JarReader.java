@@ -19,6 +19,7 @@ package net.fabricmc.mappingio.format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -44,7 +45,7 @@ public class JarReader {
 		while (entries.hasMoreElements()) {
 			ZipEntry entry = entries.nextElement();
 			String entryName = entry.getName();
-			String parentName = Path.of(entryName).getParent().toString();
+			String parentName = Paths.get("/", entryName).getParent().toString();
 
 			if (entryName.endsWith(".class") && !parentName.contains("-")) {
 				processClass(zipFile.getInputStream(entry), analyzingVisitor);
