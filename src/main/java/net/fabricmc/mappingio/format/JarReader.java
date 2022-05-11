@@ -17,21 +17,12 @@
 package net.fabricmc.mappingio.format;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Locale;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -43,109 +34,26 @@ import net.fabricmc.mappingio.MappingVisitor;
 
 public class JarReader {
 	public static void read(Path path, MappingVisitor mappingVisitor) throws IOException {
+		AnalyzingVisitor analyzingVisitor = new AnalyzingVisitor(mappingVisitor);
+
+		ZipFile zipFile = new ZipFile(path.toFile());
+		Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
 		mappingVisitor.visitNamespaces("jar", new ArrayList<String>());
-		processFile(path, null, new AnalyzingVisitor(mappingVisitor));
+
+		while (entries.hasMoreElements()) {
+			ZipEntry entry = entries.nextElement();
+			String entryName = entry.getName();
+
+			if (entryName.endsWith(".class") && !entryName.contains("-")) {
+				processClass(zipFile.getInputStream(entry), analyzingVisitor);
+			}
+		}
 	}
 
-	private static final class DirVisitor extends SimpleFileVisitor<Path> {
-		DirVisitor(AnalyzingVisitor visitor) {
-			this.visitor = visitor;
-		}
-
-		@Override
-		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-			buffer = processFile(file, buffer, visitor);
-
-			return FileVisitResult.CONTINUE;
-		}
-
-		private final AnalyzingVisitor visitor;
-		ByteBuffer buffer;
-	}
-
-	@SuppressWarnings("resource")
-	private static ByteBuffer processFile(Path file, ByteBuffer buffer, AnalyzingVisitor visitor) throws IOException {
-		String fileName = file.getFileName().toString().toLowerCase(Locale.ENGLISH);
-
-		if (fileName.endsWith(".jar")) {
-			Path parent = file.getParent();
-
-			while (parent != file.getRoot()) {
-				String parentDir = parent.getName(parent.getNameCount() - 1).toString();
-
-				if (parentDir.equals("doc-files")) {
-					return buffer;
-				}
-
-				parent = parent.getParent();
-			}
-
-			URI uri = file.toUri();
-
-			try {
-				uri = new URI("jar:".concat(uri.getScheme()), uri.getHost(), uri.getPath(), uri.getFragment());
-			} catch (URISyntaxException e) {
-				throw new IOException(e);
-			}
-
-			FileSystem fs = null;
-			boolean closeFs = false;
-
-			try {
-				try {
-					fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
-					closeFs = true;
-				} catch (FileSystemAlreadyExistsException e) {
-					fs = FileSystems.getFileSystem(uri);
-				}
-
-				DirVisitor dirVisitor = new DirVisitor(visitor);
-
-				for (Path rootDir : fs.getRootDirectories()) {
-					Files.walkFileTree(rootDir, dirVisitor);
-				}
-
-				buffer = dirVisitor.buffer;
-			} finally {
-				if (closeFs) fs.close();
-			}
-		} else if (fileName.endsWith(".class")) {
-			Path parent = file.getParent();
-
-			while (parent != file.getRoot()) {
-				String parentDir = parent.getName(parent.getNameCount() - 1).toString();
-
-				if (parentDir.contains("-")) {
-					return buffer;
-				}
-
-				parent = parent.getParent();
-			}
-
-			try (SeekableByteChannel channel = Files.newByteChannel(file)) {
-				if (buffer == null) buffer = ByteBuffer.allocate((int) Math.min(channel.size() + 1, 100_000_000));
-
-				while (channel.read(buffer) >= 0) {
-					if (!buffer.hasRemaining()) {
-						ByteBuffer newBuffer = ByteBuffer.allocate(buffer.capacity() * 2);
-						buffer.flip();
-						newBuffer.put(buffer);
-						buffer = newBuffer;
-					}
-				}
-			}
-
-			buffer.flip();
-			processClass(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining(), visitor);
-			buffer.clear();
-		}
-
-		return buffer;
-	}
-
-	private static void processClass(byte[] classBytes, int offset, int length, AnalyzingVisitor visitor) {
-		ClassReader reader = new ClassReader(classBytes, offset, length);
-		reader.accept(visitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG);
+	private static void processClass(InputStream inputStream, AnalyzingVisitor analyzingVisitor) throws IOException {
+		ClassReader reader = new ClassReader(inputStream);
+		reader.accept(analyzingVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG);
 	}
 
 	private static final class AnalyzingVisitor extends ClassVisitor {
@@ -160,7 +68,6 @@ public class JarReader {
 			try {
 				mappingVisitor.visitClass(name);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -170,7 +77,6 @@ public class JarReader {
 			try {
 				mappingVisitor.visitField(name, descriptor);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -182,7 +88,6 @@ public class JarReader {
 			try {
 				mappingVisitor.visitMethod(name, descriptor);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
