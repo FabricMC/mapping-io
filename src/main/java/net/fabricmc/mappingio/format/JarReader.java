@@ -44,8 +44,9 @@ public class JarReader {
 		while (entries.hasMoreElements()) {
 			ZipEntry entry = entries.nextElement();
 			String entryName = entry.getName();
+			String parentName = Path.of(entryName).getParent().toString();
 
-			if (entryName.endsWith(".class") && !entryName.contains("-")) {
+			if (entryName.endsWith(".class") && !parentName.contains("-")) {
 				processClass(zipFile.getInputStream(entry), analyzingVisitor);
 			}
 		}
