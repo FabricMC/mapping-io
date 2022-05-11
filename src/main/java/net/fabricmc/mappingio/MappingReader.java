@@ -70,7 +70,8 @@ public final class MappingReader {
 		case "MD:":
 		case "FD:":
 			return MappingFormat.SRG;
-		case "PK\u0003":
+		case "PK\u0003": // zip/jar
+		case "MZ\ufffd": // windows exe
 			return MappingFormat.JAR;
 		}
 
