@@ -35,8 +35,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
-public final class EnigmaWriter implements MappingWriter {
-	public EnigmaWriter(Path dir, boolean deleteExistingFiles) throws IOException {
+public final class EnigmaDirWriter implements MappingWriter {
+	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
 		this.dir = dir.toAbsolutePath().normalize();
 
 		if (deleteExistingFiles && Files.exists(dir)) {

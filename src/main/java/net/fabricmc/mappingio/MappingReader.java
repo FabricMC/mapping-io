@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import net.fabricmc.mappingio.format.EnigmaDirReader;
 import net.fabricmc.mappingio.format.EnigmaReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.ProGuardReader;
@@ -64,6 +65,8 @@ public final class MappingReader {
 			return MappingFormat.TINY_2;
 		case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
 			return MappingFormat.TSRG2;
+		case "CLA":
+			return MappingFormat.ENIGMA;
 		case "PK:":
 		case "CL:":
 		case "MD:":
@@ -146,8 +149,8 @@ public final class MappingReader {
 			}
 		} else {
 			switch (format) {
-			case ENIGMA:
-				EnigmaReader.read(file, visitor);
+			case ENIGMA_DIR:
+				EnigmaDirReader.read(file, visitor);
 				break;
 			case MCP:
 				throw new UnsupportedOperationException(); // TODO: implement
@@ -176,6 +179,9 @@ public final class MappingReader {
 			break;
 		case TINY_2:
 			Tiny2Reader.read(reader, visitor);
+			break;
+		case ENIGMA:
+			EnigmaReader.read(reader, visitor);
 			break;
 		case SRG:
 			SrgReader.read(reader, visitor);
