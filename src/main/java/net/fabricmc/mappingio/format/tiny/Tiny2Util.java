@@ -19,6 +19,9 @@ package net.fabricmc.mappingio.format.tiny;
 import java.io.IOException;
 import java.io.Writer;
 
+import org.jetbrains.annotations.ApiStatus;
+
+@ApiStatus.Internal
 public final class Tiny2Util {
 	public static boolean needEscape(String s) {
 		for (int pos = 0, len = s.length(); pos < len; pos++) {
