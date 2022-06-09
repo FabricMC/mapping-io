@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.tiny;
 
 import java.io.IOException;
 import java.io.Writer;
 
-final class Tiny2Util {
+public final class Tiny2Util {
 	public static boolean needEscape(String s) {
 		for (int pos = 0, len = s.length(); pos < len; pos++) {
 			char c = s.charAt(pos);

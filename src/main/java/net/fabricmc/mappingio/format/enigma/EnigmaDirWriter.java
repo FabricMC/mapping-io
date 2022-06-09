@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.enigma;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {

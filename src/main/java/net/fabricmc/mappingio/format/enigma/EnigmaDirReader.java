@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.enigma;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -25,6 +25,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirReader {
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {

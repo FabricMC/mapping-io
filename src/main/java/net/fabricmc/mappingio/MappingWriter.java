@@ -22,11 +22,11 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import net.fabricmc.mappingio.format.EnigmaDirWriter;
-import net.fabricmc.mappingio.format.EnigmaWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.format.Tiny1Writer;
-import net.fabricmc.mappingio.format.Tiny2Writer;
+import net.fabricmc.mappingio.format.enigma.EnigmaDirWriter;
+import net.fabricmc.mappingio.format.enigma.EnigmaWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny1Writer;
+import net.fabricmc.mappingio.format.tiny.Tiny2Writer;
 
 public interface MappingWriter extends Closeable, MappingVisitor {
 	static MappingWriter create(Path file, MappingFormat format) throws IOException {

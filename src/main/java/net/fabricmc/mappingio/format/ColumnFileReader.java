@@ -21,8 +21,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
 
-final class ColumnFileReader implements Closeable {
-	ColumnFileReader(Reader reader, char columnSeparator) {
+import net.fabricmc.mappingio.format.tiny.Tiny2Util;
+
+public final class ColumnFileReader implements Closeable {
+	public ColumnFileReader(Reader reader, char columnSeparator) {
 		this.reader = reader;
 		this.columnSeparator = columnSeparator;
 	}

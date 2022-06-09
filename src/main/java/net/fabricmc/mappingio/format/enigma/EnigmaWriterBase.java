@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.enigma;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -26,8 +26,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
-public abstract class EnigmaWriterBase implements MappingWriter {
-	public EnigmaWriterBase(Writer writer) throws IOException {
+abstract class EnigmaWriterBase implements MappingWriter {
+	EnigmaWriterBase(Writer writer) throws IOException {
 		this.writer = writer;
 	}
 
