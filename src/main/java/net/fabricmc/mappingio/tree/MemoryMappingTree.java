@@ -1120,36 +1120,22 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (lvIndex >= 0) {
 				boolean hasMissing = false;
-				MethodVarEntry bestMatch = null;
+				MethodVarEntry foundEntry = null;
 
 				for (MethodVarEntry entry : vars) {
 					if (entry.lvIndex != lvIndex) {
 						if (entry.lvIndex < 0) hasMissing = true;
 						continue;
 					}
-
-					if (bestMatch == null) {
-						bestMatch = entry;
-					} else {
-						int startOpDeltaImprovement;
-
-						if (startOpIdx < 0 || bestMatch.startOpIdx < 0 && entry.startOpIdx < 0) {
-							startOpDeltaImprovement = 0;
-						} else if (bestMatch.startOpIdx < 0) {
-							startOpDeltaImprovement = 1;
-						} else if (entry.startOpIdx < 0) {
-							startOpDeltaImprovement = -1;
-						} else {
-							startOpDeltaImprovement = Math.abs(bestMatch.startOpIdx - startOpIdx) - Math.abs(entry.startOpIdx - startOpIdx);
-						}
-
-						if (startOpDeltaImprovement > 0 || startOpDeltaImprovement == 0 && srcName != null && srcName.equals(entry.srcName) && !srcName.equals(bestMatch.srcName)) {
-							bestMatch = entry;
-						}
+					if (entry.startOpIdx != startOpIdx) {
+						if (entry.startOpIdx < 0) hasMissing = true;
+						continue;
 					}
+					foundEntry = entry;
+					break;
 				}
 
-				if (!hasMissing || bestMatch != null) return bestMatch;
+				if (!hasMissing || foundEntry != null) return foundEntry;
 			}
 
 			if (srcName != null) {
