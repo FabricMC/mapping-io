@@ -114,9 +114,9 @@ public interface MappingTree extends MappingTreeView {
 		@Override
 		Collection<? extends MethodVarMapping> getVars();
 		@Override
-		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
+		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
 		MethodVarMapping addVar(MethodVarMapping var);
-		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName);
+		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
 	}
 
 	interface MethodArgMapping extends ElementMapping, MethodArgMappingView {
@@ -130,6 +130,6 @@ public interface MappingTree extends MappingTreeView {
 		@Override
 		MethodMapping getMethod();
 		void setLvtRowIndex(int index);
-		void setLvIndex(int lvIndex, int startOpIdx);
+		void setLvIndex(int lvIndex, int startOpIdx, int endOpIdx);
 	}
 }
