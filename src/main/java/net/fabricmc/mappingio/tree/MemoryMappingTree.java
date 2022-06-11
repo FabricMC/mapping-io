@@ -538,17 +538,17 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 		if (currentMethod == null) throw new UnsupportedOperationException("Tried to visit method variable before owning method");
 
-		MethodVarEntry var = currentMethod.getVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
+		MethodVarEntry var = currentMethod.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 
 		if (var == null) {
-			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, srcName);
+			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			var = currentMethod.addVar(var);
 		} else {
 			if (lvtRowIndex >= 0 && var.lvtRowIndex < 0) var.setLvtRowIndex(lvtRowIndex);
-			if (lvIndex >= 0 && startOpIdx >= 0 && (var.lvIndex < 0 || var.startOpIdx < 0)) var.setLvIndex(lvIndex, startOpIdx);
+			if (lvIndex >= 0 && startOpIdx >= 0 && (var.lvIndex < 0 || var.startOpIdx < 0)) var.setLvIndex(lvIndex, startOpIdx, endOpIdx);
 
 			if (srcName != null) {
 				assert !srcName.isEmpty();
@@ -1315,7 +1315,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 			if (vars == null) return null;
 
 			if (lvtRowIndex >= 0) {
@@ -1337,29 +1337,38 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				MethodVarEntry bestMatch = null;
 
 				for (MethodVarEntry entry : vars) {
+					// skip otherwise mismatched candidates
+					if (lvtRowIndex >= 0 && entry.lvtRowIndex >= 0 && lvtRowIndex != entry.lvtRowIndex // different lvtRowIndex
+							|| srcName != null && entry.srcName != null && !srcName.equals(entry.srcName)) { // different srcName
+						continue;
+					}
+
 					if (entry.lvIndex != lvIndex) {
 						if (entry.lvIndex < 0) hasMissing = true;
 						continue;
 					}
 
-					if (bestMatch == null) {
+					if (startOpIdx >= 0 && endOpIdx >= 0 && entry.startOpIdx >= 0 && entry.endOpIdx >= 0) { // full ranges on both
+						if (startOpIdx >= entry.endOpIdx || endOpIdx <= entry.startOpIdx) { // non-overlapping op idx ranges
+							continue;
+						} else { // full match
+							return entry;
+						}
+					}
+
+					if (endOpIdx >= 0 && entry.startOpIdx >= 0 && endOpIdx <= entry.startOpIdx
+							|| entry.endOpIdx >= 0 && startOpIdx >= 0 && entry.endOpIdx <= startOpIdx) {
+						// incompatible full range on one side
+						continue;
+					}
+
+					if (startOpIdx < 0 || startOpIdx == entry.startOpIdx) {
+						return entry;
+					}
+
+					if (bestMatch == null
+							|| entry.startOpIdx >= 0 && Math.abs(entry.startOpIdx - startOpIdx) < Math.abs(bestMatch.startOpIdx - startOpIdx)) {
 						bestMatch = entry;
-					} else {
-						int startOpDeltaImprovement;
-
-						if (startOpIdx < 0 || bestMatch.startOpIdx < 0 && entry.startOpIdx < 0) {
-							startOpDeltaImprovement = 0;
-						} else if (bestMatch.startOpIdx < 0) {
-							startOpDeltaImprovement = 1;
-						} else if (entry.startOpIdx < 0) {
-							startOpDeltaImprovement = -1;
-						} else {
-							startOpDeltaImprovement = Math.abs(bestMatch.startOpIdx - startOpIdx) - Math.abs(entry.startOpIdx - startOpIdx);
-						}
-
-						if (startOpDeltaImprovement > 0 || startOpDeltaImprovement == 0 && srcName != null && srcName.equals(entry.srcName) && !srcName.equals(bestMatch.srcName)) {
-							bestMatch = entry;
-						}
 					}
 				}
 
@@ -1382,7 +1391,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		@Override
 		public MethodVarEntry addVar(MethodVarMapping var) {
 			MethodVarEntry entry = var instanceof MethodVarEntry && var.getMethod() == this ? (MethodVarEntry) var : new MethodVarEntry(this, var, owner.tree.getSrcNsEquivalent(var));
-			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getSrcName());
+			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getEndOpIdx(), var.getSrcName());
 
 			if (prev == null) {
 				if (vars == null) vars = new ArrayList<>();
@@ -1398,15 +1407,15 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			if (toAdd.lvtRowIndex >= 0 && existing.lvtRowIndex < 0) existing.setLvtRowIndex(toAdd.lvtRowIndex);
 
 			if (toAdd.lvIndex >= 0 && toAdd.startOpIdx >= 0 && (existing.lvIndex < 0 || existing.startOpIdx < 0)) {
-				existing.setLvIndex(toAdd.lvIndex, toAdd.startOpIdx);
+				existing.setLvIndex(toAdd.lvIndex, toAdd.startOpIdx, toAdd.endOpIdx);
 			}
 
 			existing.copyFrom(toAdd, replace);
 		}
 
 		@Override
-		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
-			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
+		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			if (ret != null) vars.remove(ret);
 
 			return ret;
@@ -1454,7 +1463,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (o.vars != null) {
 				for (MethodVarEntry oVar : o.vars) {
-					MethodVarEntry var = getVar(oVar.lvtRowIndex, oVar.lvIndex, oVar.startOpIdx, oVar.srcName);
+					MethodVarEntry var = getVar(oVar.lvtRowIndex, oVar.lvIndex, oVar.startOpIdx, oVar.endOpIdx, oVar.srcName);
 
 					if (var == null) { // missing
 						addVar(oVar);
@@ -1556,13 +1565,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MethodVarEntry extends Entry<MethodVarEntry> implements MethodVarMapping {
-		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 			super(method.owner.tree, srcName);
 
 			this.method = method;
 			this.lvtRowIndex = lvtRowIndex;
 			this.lvIndex = lvIndex;
 			this.startOpIdx = startOpIdx;
+			this.endOpIdx = endOpIdx;
 		}
 
 		MethodVarEntry(MethodEntry method, MethodVarMapping src, int srcNs) {
@@ -1572,6 +1582,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.lvtRowIndex = src.getLvtRowIndex();
 			this.lvIndex = src.getLvIndex();
 			this.startOpIdx = src.getStartOpIdx();
+			this.endOpIdx = src.getEndOpIdx();
 		}
 
 		@Override
@@ -1610,9 +1621,15 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public void setLvIndex(int lvIndex, int startOpIdx) {
+		public int getEndOpIdx() {
+			return endOpIdx;
+		}
+
+		@Override
+		public void setLvIndex(int lvIndex, int startOpIdx, int endOpIdx) {
 			this.lvIndex = lvIndex;
 			this.startOpIdx = startOpIdx;
+			this.endOpIdx = endOpIdx;
 		}
 
 		public void setSrcName(String name) {
@@ -1620,7 +1637,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		void accept(MappingVisitor visitor) throws IOException {
-			if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName)) {
+			if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName)) {
 				acceptElement(visitor, null);
 			}
 		}
@@ -1636,13 +1653,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 		@Override
 		public String toString() {
-			return String.format("%d/%d@%d:%s", lvtRowIndex, lvIndex, startOpIdx, srcName);
+			return String.format("%d/%d@%d-%d:%s", lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 		}
 
 		private final MethodEntry method;
 		private int lvtRowIndex;
 		private int lvIndex;
 		private int startOpIdx;
+		private int endOpIdx;
 	}
 
 	static final class MemberKey {
