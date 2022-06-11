@@ -80,10 +80,10 @@ public interface FlatMappingVisitor {
 			String comment) throws IOException;
 
 	boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames) throws IOException;
 	void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
 			String comment) throws IOException;
 
@@ -125,10 +125,10 @@ public interface FlatMappingVisitor {
 	}
 
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstVarNames) throws IOException {
 		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc,
-				lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null,
 				dstVarNames);
 	}
@@ -236,36 +236,36 @@ public interface FlatMappingVisitor {
 	}
 
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstVarName) throws IOException {
 		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc,
-				lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, dstVarName);
 	}
 
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName) throws IOException {
 		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc,
-				lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstVarName));
 	}
 
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String comment) throws IOException {
 		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
-				lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				(String) null, null, null, null,
 				comment);
 	}
 
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,
 			String comment) throws IOException {
 		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
-				lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstVarName),
 				comment);
 	}
