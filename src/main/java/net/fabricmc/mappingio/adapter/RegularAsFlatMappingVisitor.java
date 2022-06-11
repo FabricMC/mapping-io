@@ -244,21 +244,21 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames) throws IOException {
-		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstVarNames, null, null, null, null);
 	}
 
 	@Override
-	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName) throws IOException {
-		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstVarName);
 	}
 
 	private boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstName) throws IOException {
 		if (!visitMethod(srcClsName, srcMethodName, srcMethodDesc, dstClsNames, dstMethodNames, dstMethodDescs, dstClsName, dstMethodName, dstMethodDesc)) return false;
@@ -268,7 +268,7 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 			lastLvIndex = lvIndex;
 			lastStartOpIdx = startOpIdx;
 			lastMethodSubIsArg = false;
-			relayLastMethodSub = next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName) && visitDstNames(MappedElementKind.METHOD_VAR, dstNames, dstName);
+			relayLastMethodSub = next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName) && visitDstNames(MappedElementKind.METHOD_VAR, dstNames, dstName);
 		}
 
 		return relayLastMethodSub;
@@ -276,10 +276,10 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 
 	@Override
 	public void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
 			String comment) throws IOException {
-		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstVarNames, null, null, null, null)) {
 			return;
 		}
@@ -289,10 +289,10 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 
 	@Override
 	public void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,
 			String comment) throws IOException {
-		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstVarName)) {
 			return;
 		}

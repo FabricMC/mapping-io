@@ -127,10 +127,10 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
 		this.srcName = srcName;
 
-		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
+		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 	}
 
 	@Override
