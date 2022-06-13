@@ -19,7 +19,8 @@ package net.fabricmc.mappingio.format;
 public enum MappingFormat {
 	TINY("Tiny", "tiny", true, true, false, false, false),
 	TINY_2("Tiny v2", "tiny", true, true, true, true, true),
-	ENIGMA("Enigma", null, false, true, true, true, false),
+	ENIGMA("Enigma", "mapping", false, true, true, true, false),
+	ENIGMA_DIR("Enigma directory", null, false, true, true, true, false),
 	MCP("MCP", null, false, false, true, true, false),
 	SRG("SRG", "srg", false, false, false, false, false),
 	TSRG("TSRG", "tsrg", false, false, false, false, false),

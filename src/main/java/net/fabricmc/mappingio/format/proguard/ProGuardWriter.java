@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.proguard;
 
 import java.io.IOException;
 import java.io.Writer;
