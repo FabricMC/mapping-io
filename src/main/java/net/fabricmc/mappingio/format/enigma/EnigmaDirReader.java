@@ -36,8 +36,8 @@ public final class EnigmaDirReader {
 		Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA.fileExt)) {
-					EnigmaReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
+				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
+					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
 				}
 
 				return FileVisitResult.CONTINUE;

@@ -27,8 +27,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
-public final class Tiny2Writer implements MappingWriter {
-	public Tiny2Writer(Writer writer, boolean escapeNames) {
+public final class Tiny2FileWriter implements MappingWriter {
+	public Tiny2FileWriter(Writer writer, boolean escapeNames) {
 		this.writer = writer;
 		this.escapeNames = escapeNames;
 	}

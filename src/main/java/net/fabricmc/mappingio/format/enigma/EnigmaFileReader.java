@@ -29,7 +29,7 @@ import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public final class EnigmaReader {
+public final class EnigmaFileReader {
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}

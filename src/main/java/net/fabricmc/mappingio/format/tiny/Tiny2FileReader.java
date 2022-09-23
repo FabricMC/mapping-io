@@ -26,7 +26,7 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 
-public final class Tiny2Reader {
+public final class Tiny2FileReader {
 	public static List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, '\t'));
 	}

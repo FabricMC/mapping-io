@@ -21,8 +21,8 @@ import java.io.Writer;
 
 import net.fabricmc.mappingio.MappedElementKind;
 
-public final class EnigmaWriter extends EnigmaWriterBase {
-	public EnigmaWriter(Writer writer) throws IOException {
+public final class EnigmaFileWriter extends EnigmaWriterBase {
+	public EnigmaFileWriter(Writer writer) throws IOException {
 		super(writer);
 	}
 

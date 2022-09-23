@@ -34,7 +34,7 @@ import net.fabricmc.mappingio.MappingWriter;
  *
  * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
  */
-public final class ProGuardWriter implements MappingWriter {
+public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
 	private int dstNamespace = -1;
 	private final String dstNamespaceString;
@@ -45,7 +45,7 @@ public final class ProGuardWriter implements MappingWriter {
 	 *
 	 * @param writer the writer where the mappings will be written
 	 */
-	public ProGuardWriter(Writer writer) {
+	public ProGuardFileWriter(Writer writer) {
 		this(writer, 0);
 	}
 
@@ -55,7 +55,7 @@ public final class ProGuardWriter implements MappingWriter {
 	 * @param writer       the writer where the mappings will be written
 	 * @param dstNamespace the namespace index to write as the destination namespace, must be at least 0
 	 */
-	public ProGuardWriter(Writer writer, int dstNamespace) {
+	public ProGuardFileWriter(Writer writer, int dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.dstNamespace = dstNamespace;
 		this.dstNamespaceString = null;
@@ -71,7 +71,7 @@ public final class ProGuardWriter implements MappingWriter {
 	 * @param writer       the writer where the mappings will be written
 	 * @param dstNamespace the namespace name to write as the destination namespace
 	 */
-	public ProGuardWriter(Writer writer, String dstNamespace) {
+	public ProGuardFileWriter(Writer writer, String dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.dstNamespaceString = Objects.requireNonNull(dstNamespace, "namespace cannot be null");
 	}

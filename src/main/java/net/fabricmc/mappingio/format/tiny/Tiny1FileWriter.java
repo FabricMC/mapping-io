@@ -27,8 +27,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
-public final class Tiny1Writer implements MappingWriter {
-	public Tiny1Writer(Writer writer) {
+public final class Tiny1FileWriter implements MappingWriter {
+	public Tiny1FileWriter(Writer writer) {
 		this.writer = writer;
 	}
 
@@ -60,19 +60,19 @@ public final class Tiny1Writer implements MappingWriter {
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
 		switch (key) {
-		case Tiny1Reader.nextIntermediaryClassProperty:
-		case Tiny1Reader.nextIntermediaryFieldProperty:
-		case Tiny1Reader.nextIntermediaryMethodProperty:
+		case Tiny1FileReader.nextIntermediaryClassProperty:
+		case Tiny1FileReader.nextIntermediaryFieldProperty:
+		case Tiny1FileReader.nextIntermediaryMethodProperty:
 			write("# INTERMEDIARY-COUNTER ");
 
 			switch (key) {
-			case Tiny1Reader.nextIntermediaryClassProperty:
+			case Tiny1FileReader.nextIntermediaryClassProperty:
 				write("class");
 				break;
-			case Tiny1Reader.nextIntermediaryFieldProperty:
+			case Tiny1FileReader.nextIntermediaryFieldProperty:
 				write("field");
 				break;
-			case Tiny1Reader.nextIntermediaryMethodProperty:
+			case Tiny1FileReader.nextIntermediaryMethodProperty:
 				write("method");
 				break;
 			default:

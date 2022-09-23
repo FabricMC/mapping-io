@@ -24,9 +24,9 @@ import java.nio.file.Path;
 
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirWriter;
-import net.fabricmc.mappingio.format.enigma.EnigmaWriter;
-import net.fabricmc.mappingio.format.tiny.Tiny1Writer;
-import net.fabricmc.mappingio.format.tiny.Tiny2Writer;
+import net.fabricmc.mappingio.format.enigma.EnigmaFileWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny1FileWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 
 public interface MappingWriter extends Closeable, MappingVisitor {
 	static MappingWriter create(Path file, MappingFormat format) throws IOException {
@@ -44,9 +44,9 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		if (!format.hasSingleFile()) throw new IllegalArgumentException("format "+format+" is not applicable to a single writer");
 
 		switch (format) {
-		case TINY: return new Tiny1Writer(writer);
-		case TINY_2: return new Tiny2Writer(writer, false);
-		case ENIGMA: return new EnigmaWriter(writer);
+		case TINY_FILE: return new Tiny1FileWriter(writer);
+		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
+		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 		}
 	}
