@@ -24,7 +24,9 @@ import java.util.Objects;
 import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.AbstractMappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
  * A mapping writer for the ProGuard mapping format.
@@ -34,8 +36,7 @@ import net.fabricmc.mappingio.MappingWriter;
  *
  * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
  */
-public final class ProGuardFileWriter implements MappingWriter {
-	private final Writer writer;
+public final class ProGuardFileWriter extends AbstractMappingWriter {
 	private int dstNamespace = -1;
 	private final String dstNamespaceString;
 
@@ -45,8 +46,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 	 *
 	 * @param writer the writer where the mappings will be written
 	 */
-	public ProGuardFileWriter(Writer writer) {
-		this(writer, 0);
+	public ProGuardFileWriter(Writer writer, ProgressListener progressListener) {
+		this(writer, 0, progressListener);
 	}
 
 	/**
@@ -55,7 +56,9 @@ public final class ProGuardFileWriter implements MappingWriter {
 	 * @param writer       the writer where the mappings will be written
 	 * @param dstNamespace the namespace index to write as the destination namespace, must be at least 0
 	 */
-	public ProGuardFileWriter(Writer writer, int dstNamespace) {
+	public ProGuardFileWriter(Writer writer, int dstNamespace, ProgressListener progressListener) {
+		super(MappingFormat.PROGUARD_FILE, writer, progressListener, "Writing Proguard file");
+
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.dstNamespace = dstNamespace;
 		this.dstNamespaceString = null;
@@ -71,19 +74,11 @@ public final class ProGuardFileWriter implements MappingWriter {
 	 * @param writer       the writer where the mappings will be written
 	 * @param dstNamespace the namespace name to write as the destination namespace
 	 */
-	public ProGuardFileWriter(Writer writer, String dstNamespace) {
+	public ProGuardFileWriter(Writer writer, String dstNamespace, ProgressListener progressListener) {
+		super(MappingFormat.PROGUARD_FILE, writer, progressListener, "Writing Proguard file");
+
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
 		this.dstNamespaceString = Objects.requireNonNull(dstNamespace, "namespace cannot be null");
-	}
-
-	/**
-	 * Closes the internal {@link Writer}.
-	 *
-	 * @throws IOException if an IO error occurs
-	 */
-	@Override
-	public void close() throws IOException {
-		writer.close();
 	}
 
 	@Override
@@ -103,6 +98,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		super.visitClass(srcName);
 		writer.write(toJavaClassName(srcName));
 		writeArrow();
 		return true;
@@ -110,16 +106,21 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		super.visitField(srcName, srcDesc);
+
 		writeIndent();
 		writer.write(toJavaType(srcDesc));
 		writer.write(' ');
 		writer.write(srcName);
 		writeArrow();
+
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		super.visitMethod(srcName, srcDesc);
+
 		Type type = Type.getMethodType(srcDesc);
 		writeIndent();
 		writer.write(toJavaType(type.getReturnType().getDescriptor()));
@@ -143,13 +144,13 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		// ignored
+		super.visitMethodArg(argPosition, lvIndex, srcName);
 		return false;
 	}
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		// ignored
+		super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 		return false;
 	}
 
@@ -167,11 +168,6 @@ public final class ProGuardFileWriter implements MappingWriter {
 		}
 
 		writer.write('\n');
-	}
-
-	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// ignored
 	}
 
 	private void writeArrow() throws IOException {

@@ -24,16 +24,13 @@ import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
-import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.AbstractMappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
-abstract class EnigmaWriterBase implements MappingWriter {
-	EnigmaWriterBase(Writer writer) throws IOException {
-		this.writer = writer;
-	}
-
-	@Override
-	public void close() throws IOException {
-		writer.close();
+abstract class EnigmaWriterBase extends AbstractMappingWriter {
+	EnigmaWriterBase(MappingFormat format, Writer writer, ProgressListener progressListener, String taskTitle) throws IOException {
+		super(format, writer, progressListener, taskTitle);
 	}
 
 	@Override
@@ -46,34 +43,39 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		super.visitClass(srcName);
 		srcClassName = srcName;
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		super.visitField(srcName, srcDesc);
+
 		writeIndent(0);
 		writer.write("FIELD ");
 		writer.write(srcName);
 
 		desc = srcDesc;
-
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		super.visitMethod(srcName, srcDesc);
+
 		writeIndent(0);
 		writer.write("METHOD ");
 		writer.write(srcName);
 
 		desc = srcDesc;
-
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+		super.visitMethodArg(argPosition, lvIndex, srcName);
+
 		writeIndent(1);
 		writer.write("ARG ");
 		writer.write(Integer.toString(lvIndex));
@@ -88,8 +90,8 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitEnd() throws IOException {
+		super.visitEnd();
 		close();
-
 		return true;
 	}
 
@@ -213,9 +215,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	protected static final String toEscape = "\\\n\r\0\t";
 	protected static final String escaped = "\\nr0t";
 
-	protected Writer writer;
 	protected int indent;
-
 	protected String srcClassName;
 	protected String currentClass;
 	protected String lastWrittenClass = "";

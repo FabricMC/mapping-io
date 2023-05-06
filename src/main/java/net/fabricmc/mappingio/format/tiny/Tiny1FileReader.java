@@ -25,7 +25,9 @@ import java.util.Set;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -49,15 +51,16 @@ public final class Tiny1FileReader {
 		return ret;
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(new ColumnFileReader(reader, '\t'), visitor, new MappingReaderProgressListenerHelper(progressListener));
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		if (!reader.nextCol("v1")) { // magic/version
 			throw new IOException("invalid/unsupported tiny file: no tiny 1 header");
 		}
 
+		progressHelper.init(-1, "Reading Tiny v1 file");
 		String srcNamespace = reader.nextCol();
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
@@ -84,7 +87,7 @@ public final class Tiny1FileReader {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 				String lastClass = null;
 				boolean lastClassDstNamed = false;;
 				boolean visitLastClass = false;
@@ -99,6 +102,7 @@ public final class Tiny1FileReader {
 						if (!lastClassDstNamed || !srcName.equals(lastClass)) {
 							lastClass = srcName;
 							lastClassDstNamed = true;
+							progressHelper.readClass(srcName);
 							visitLastClass = visitor.visitClass(srcName);
 
 							if (visitLastClass) {
@@ -113,6 +117,7 @@ public final class Tiny1FileReader {
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;
 							lastClassDstNamed = false;
+							progressHelper.readClass(srcOwner);
 							visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 
@@ -121,6 +126,12 @@ public final class Tiny1FileReader {
 							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
 							String srcName = reader.nextCol();
 							if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
+
+							if (isMethod) {
+								progressHelper.readMethod(srcName);
+							} else {
+								progressHelper.readField(srcName);
+							}
 
 							if (isMethod && visitor.visitMethod(srcName, srcDesc)
 									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
@@ -151,6 +162,7 @@ public final class Tiny1FileReader {
 							}
 
 							if (property != null) {
+								progressHelper.readMetadata();
 								visitor.visitMetadata(property, parts[1]);
 							}
 						}
@@ -166,6 +178,8 @@ public final class Tiny1FileReader {
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
+
+		progressHelper.finish();
 	}
 
 	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor) throws IOException {

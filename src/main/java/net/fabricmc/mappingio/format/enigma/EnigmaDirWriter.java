@@ -29,10 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirWriter extends EnigmaWriterBase {
-	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
-		super(null);
+	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles, ProgressListener progressListener) throws IOException {
+		super(MappingFormat.ENIGMA_DIR, null, progressListener, "Writing Enigma directory");
 		this.dir = dir.toAbsolutePath().normalize();
 
 		if (deleteExistingFiles && Files.exists(dir)) {

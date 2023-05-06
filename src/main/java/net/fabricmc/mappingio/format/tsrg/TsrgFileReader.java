@@ -27,7 +27,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 
 public final class TsrgFileReader {
 	public static List<String> getNamespaces(Reader reader) throws IOException {
@@ -49,20 +51,22 @@ public final class TsrgFileReader {
 		}
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, progressListener);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor, new MappingReaderProgressListenerHelper(progressListener));
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		boolean isTsrg2 = reader.nextCol("tsrg2");
 		String srcNamespace;
 		List<String> dstNamespaces;
 
 		if (isTsrg2) {
+			progressHelper.init(-1, "Reading TSRG2 file");
 			srcNamespace = reader.nextCol();
 			dstNamespaces = new ArrayList<>();
 			String dstNamespace;
@@ -73,6 +77,7 @@ public final class TsrgFileReader {
 
 			reader.nextLine(0);
 		} else {
+			progressHelper.init(-1, "Reading TSRG file");
 			srcNamespace = sourceNs;
 			dstNamespaces = Collections.singletonList(targetNs);
 		}
@@ -92,16 +97,17 @@ public final class TsrgFileReader {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 				do {
 					if (reader.hasExtraIndents()) continue;
 
 					String srcName = reader.nextCol();
 					if (srcName == null || srcName.endsWith("/")) continue;
 					if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+					progressHelper.readClass(srcName);
 
 					if (visitor.visitClass(srcName)) {
-						readClass(reader, isTsrg2, dstNsCount, nameTmp, visitor);
+						readClass(reader, isTsrg2, dstNsCount, nameTmp, visitor, progressHelper);
 					}
 				} while (reader.nextLine(0));
 			}
@@ -110,9 +116,12 @@ public final class TsrgFileReader {
 
 			reader.reset();
 		}
+
+		progressHelper.finish();
 	}
 
-	private static void readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor) throws IOException {
+	private static void readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		readDstNames(reader, MappedElementKind.CLASS, 0, dstNsCount, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.CLASS)) return;
 
@@ -126,10 +135,14 @@ public final class TsrgFileReader {
 			if (arg == null) throw new IOException("missing desc/name-b in line "+reader.getLineNumber());
 
 			if (arg.startsWith("(")) { // method: <nameA> <descA> <names>...
+				progressHelper.readMethod(srcName);
+
 				if (visitor.visitMethod(srcName, arg)) {
-					readMethod(reader, dstNsCount, visitor);
+					readMethod(reader, dstNsCount, visitor, progressHelper);
 				}
 			} else if (!isTsrg2) { // tsrg1 field, never has a desc: <nameA> <names>...
+				progressHelper.readField(srcName);
+
 				if (visitor.visitField(srcName, null)) {
 					if (!arg.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, arg);
 					readElement(reader, MappedElementKind.FIELD, 1, dstNsCount, visitor);
@@ -175,7 +188,7 @@ public final class TsrgFileReader {
 		}
 	}
 
-	private static void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private static void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		readDstNames(reader, MappedElementKind.METHOD, 0, dstNsCount, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
@@ -191,6 +204,7 @@ public final class TsrgFileReader {
 				String srcName = reader.nextCol();
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
+				progressHelper.readMethodArg(null, srcName);
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
 					readElement(reader, MappedElementKind.METHOD_ARG, 0, dstNsCount, visitor);

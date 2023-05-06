@@ -135,11 +135,11 @@ public final class MappingReader {
 		}
 	}
 
-	public static void read(Path file, MappingVisitor visitor) throws IOException {
-		read(file, null, visitor);
+	public static void read(Path file, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(file, null, visitor, progressListener);
 	}
 
-	public static void read(Path file, MappingFormat format, MappingVisitor visitor) throws IOException {
+	public static void read(Path file, MappingFormat format, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
 		if (format == null) {
 			format = detectFormat(file);
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
@@ -147,12 +147,12 @@ public final class MappingReader {
 
 		if (format.hasSingleFile()) {
 			try (Reader reader = Files.newBufferedReader(file)) {
-				read(reader, format, visitor);
+				read(reader, format, visitor, progressListener);
 			}
 		} else {
 			switch (format) {
 			case ENIGMA_DIR:
-				EnigmaDirReader.read(file, visitor);
+				EnigmaDirReader.read(file, visitor, progressListener);
 				break;
 			case MCP_DIR:
 				throw new UnsupportedOperationException(); // TODO: implement
@@ -162,11 +162,11 @@ public final class MappingReader {
 		}
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, null, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(reader, null, visitor, progressListener);
 	}
 
-	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
 		if (format == null) {
 			if (!reader.markSupported()) reader = new BufferedReader(reader);
 			reader.mark(DETECT_HEADER_LEN);
@@ -179,23 +179,23 @@ public final class MappingReader {
 
 		switch (format) {
 		case TINY_FILE:
-			Tiny1FileReader.read(reader, visitor);
+			Tiny1FileReader.read(reader, visitor, progressListener);
 			break;
 		case TINY_2_FILE:
-			Tiny2FileReader.read(reader, visitor);
+			Tiny2FileReader.read(reader, visitor, progressListener);
 			break;
 		case ENIGMA_FILE:
-			EnigmaFileReader.read(reader, visitor);
+			EnigmaFileReader.read(reader, visitor, progressListener);
 			break;
 		case SRG_FILE:
-			SrgFileReader.read(reader, visitor);
+			SrgFileReader.read(reader, visitor, progressListener);
 			break;
 		case TSRG_FILE:
 		case TSRG_2_FILE:
-			TsrgFileReader.read(reader, visitor);
+			TsrgFileReader.read(reader, visitor, progressListener);
 			break;
 		case PROGUARD_FILE:
-			ProGuardFileReader.read(reader, visitor);
+			ProGuardFileReader.read(reader, visitor, progressListener);
 			break;
 		default:
 			throw new IllegalStateException();

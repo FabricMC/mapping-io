@@ -24,7 +24,9 @@ import java.util.List;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 
 public final class Tiny2FileReader {
 	public static List<String> getNamespaces(Reader reader) throws IOException {
@@ -48,17 +50,18 @@ public final class Tiny2FileReader {
 		return ret;
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(new ColumnFileReader(reader, '\t'), visitor, new MappingReaderProgressListenerHelper(progressListener));
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		if (!reader.nextCol("tiny") // magic
 				|| reader.nextIntCol() != 2 // major version
 				|| reader.nextIntCol() < 0) { // minor version
 			throw new IOException("invalid/unsupported tiny file: no tiny 2 header");
 		}
 
+		progressHelper.init(-1, "Reading Tiny v2 file");
 		String srcNamespace = reader.nextCol();
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
@@ -98,19 +101,21 @@ public final class Tiny2FileReader {
 							escapeNames = true;
 						}
 
+						progressHelper.readMetadata();
 						visitor.visitMetadata(key, value);
 					}
 				}
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 				while (reader.nextLine(0)) {
 					if (reader.nextCol("c")) { // class: c <names>...
 						String srcName = reader.nextCol(escapeNames);
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+						progressHelper.readClass(srcName);
 
 						if (visitor.visitClass(srcName)) {
-							readClass(reader, dstNsCount, escapeNames, visitor);
+							readClass(reader, dstNsCount, escapeNames, visitor, progressHelper);
 						}
 					}
 				}
@@ -121,9 +126,12 @@ public final class Tiny2FileReader {
 			reader.reset();
 			firstIteration = false;
 		}
+
+		progressHelper.finish();
 	}
 
-	private static void readClass(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private static void readClass(ColumnFileReader reader, int dstNsCount, boolean escapeNames,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		readDstNames(reader, MappedElementKind.CLASS, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.CLASS)) return;
 
@@ -133,26 +141,29 @@ public final class Tiny2FileReader {
 				if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing field-desc-a in line "+reader.getLineNumber());
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null || srcName.isEmpty()) throw new IOException("missing field-name-a in line "+reader.getLineNumber());
+				progressHelper.readField(srcName);
 
 				if (visitor.visitField(srcName, srcDesc)) {
-					readElement(reader, MappedElementKind.FIELD, dstNsCount, escapeNames, visitor);
+					readElement(reader, MappedElementKind.FIELD, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("m")) { // method: m <descA> <names>...
 				String srcDesc = reader.nextCol(escapeNames);
 				if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing method-desc-a in line "+reader.getLineNumber());
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null || srcName.isEmpty()) throw new IOException("missing method-name-a in line "+reader.getLineNumber());
+				progressHelper.readMethod(srcName);
 
 				if (visitor.visitMethod(srcName, srcDesc)) {
-					readMethod(reader, dstNsCount, escapeNames, visitor);
+					readMethod(reader, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.CLASS, visitor);
+				readComment(reader, MappedElementKind.CLASS, visitor, progressHelper);
 			}
 		}
 	}
 
-	private static void readMethod(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private static void readMethod(ColumnFileReader reader, int dstNsCount, boolean escapeNames,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		readDstNames(reader, MappedElementKind.METHOD, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
@@ -163,9 +174,10 @@ public final class Tiny2FileReader {
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
+				progressHelper.readMethodArg(null, srcName);
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
-					readElement(reader, MappedElementKind.METHOD_ARG, dstNsCount, escapeNames, visitor);
+					readElement(reader, MappedElementKind.METHOD_ARG, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("v")) { // method variable: v <lv-index> <lv-start-offset> <optional-lvt-index> <names>...
 				int lvIndex = reader.nextIntCol();
@@ -176,28 +188,32 @@ public final class Tiny2FileReader {
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
+				progressHelper.readMethodVar(srcName);
 
 				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, -1, srcName)) {
-					readElement(reader, MappedElementKind.METHOD_VAR, dstNsCount, escapeNames, visitor);
+					readElement(reader, MappedElementKind.METHOD_VAR, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.METHOD, visitor);
+				readComment(reader, MappedElementKind.METHOD, visitor, progressHelper);
 			}
 		}
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsCount,
+			boolean escapeNames, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		readDstNames(reader, kind, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(kind)) return;
 
 		while (reader.nextLine(kind.level + 1)) {
 			if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, kind, visitor);
+				readComment(reader, kind, visitor, progressHelper);
 			}
 		}
 	}
 
-	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
+	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
+		progressHelper.readComment();
 		String comment = reader.nextEscapedCol();
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 

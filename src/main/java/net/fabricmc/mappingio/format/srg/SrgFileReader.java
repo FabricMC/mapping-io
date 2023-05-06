@@ -25,20 +25,24 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class SrgFileReader {
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, progressListener);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor, new MappingReaderProgressListenerHelper(progressListener));
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
+		progressHelper.init(-1, "Reading SRG file");
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -56,7 +60,7 @@ public final class SrgFileReader {
 				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 				String lastClass = null;
 				boolean visitLastClass = false;
 
@@ -66,6 +70,7 @@ public final class SrgFileReader {
 					if (reader.nextCol("CL:")) { // class: CL: <src> <dst>
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+						progressHelper.readClass(srcName);
 
 						if (!srcName.equals(lastClass)) {
 							lastClass = srcName;
@@ -116,6 +121,12 @@ public final class SrgFileReader {
 						if (visitLastClass) {
 							String srcName = src.substring(srcSepPos + 1);
 
+							if (isMethod) {
+								progressHelper.readMethod(srcName);
+							} else {
+								progressHelper.readField(srcName);
+							}
+
 							if (isMethod && visitor.visitMethod(srcName, srcDesc)
 									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
 								MappedElementKind kind = isMethod ? MappedElementKind.METHOD : MappedElementKind.FIELD;
@@ -135,5 +146,7 @@ public final class SrgFileReader {
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
+
+		progressHelper.finish();
 	}
 }

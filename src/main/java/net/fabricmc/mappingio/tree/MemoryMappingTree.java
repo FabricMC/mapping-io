@@ -309,7 +309,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				}
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(classesBySrcName.size(), fieldCount, methodCount, methodArgCount, methodVarCount, commentCount, metadata.size())) {
 				Set<MappingFlag> flags = visitor.getFlags();
 				boolean supplyFieldDstDescs = flags.contains(MappingFlag.NEEDS_DST_FIELD_DESC);
 				boolean supplyMethodDstDescs = flags.contains(MappingFlag.NEEDS_DST_METHOD_DESC);
@@ -429,6 +429,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			} else {
 				field = new FieldEntry(currentClass, srcName, srcDesc);
 				field = currentClass.addField(field);
+				fieldCount++;
 			}
 		} else if (srcDesc != null && field.srcDesc == null) {
 			field.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
@@ -451,6 +452,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			} else {
 				method = new MethodEntry(currentClass, srcName, srcDesc);
 				method = currentClass.addMethod(method);
+				methodCount++;
 			}
 		} else if (srcDesc != null && (method.srcDesc == null || method.srcDesc.endsWith(")") && !srcDesc.endsWith(")"))) {
 			method.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
@@ -501,6 +503,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			} else { // copy remaining data
 				field.copyFrom((FieldEntry) member, false);
 			}
+
+			fieldCount++;
 		} else {
 			MethodEntry method = member.getOwner().getMethod(name, desc);
 
@@ -510,6 +514,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			} else { // copy remaining data
 				method.copyFrom((MethodEntry) member, false);
 			}
+
+			methodCount++;
 		}
 	}
 
@@ -522,6 +528,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (arg == null) {
 			arg = new MethodArgEntry(currentMethod, argPosition, lvIndex, srcName);
 			arg = currentMethod.addArg(arg);
+			methodArgCount++;
 		} else {
 			if (argPosition >= 0 && arg.argPosition < 0) arg.setArgPosition(argPosition);
 			if (lvIndex >= 0 && arg.lvIndex < 0) arg.setLvIndex(lvIndex);
@@ -546,6 +553,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (var == null) {
 			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			var = currentMethod.addVar(var);
+			methodVarCount++;
 		} else {
 			if (lvtRowIndex >= 0 && var.lvtRowIndex < 0) var.setLvtRowIndex(lvtRowIndex);
 			if (lvIndex >= 0 && startOpIdx >= 0 && (var.lvIndex < 0 || var.startOpIdx < 0)) var.setLvIndex(lvIndex, startOpIdx, endOpIdx);
@@ -686,6 +694,13 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		if (entry == null) throw new UnsupportedOperationException("Tried to visit comment before owning target");
+
+		if (comment == null && entry.comment != null) {
+			commentCount--;
+		} else if (comment != null && entry.comment == null) {
+			commentCount++;
+		}
+
 		entry.setComment(comment);
 	}
 
@@ -1742,6 +1757,11 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
+	int fieldCount;
+	int methodCount;
+	int methodArgCount;
+	int methodVarCount;
+	int commentCount;
 
 	private HierarchyInfoProvider<?> hierarchyInfo;
 

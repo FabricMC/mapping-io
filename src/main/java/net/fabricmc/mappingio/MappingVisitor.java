@@ -73,10 +73,11 @@ public interface MappingVisitor {
 
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
+	 * Lazy callers, which don't know beforehand how many elements they're going to have (e.g. mapping readers), must pass -1.
 	 *
 	 * @return true if content is to be visited, false otherwise
 	 */
-	default boolean visitContent() throws IOException {
+	default boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
 		return true;
 	}
 

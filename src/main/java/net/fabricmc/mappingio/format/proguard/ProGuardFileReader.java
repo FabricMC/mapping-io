@@ -27,19 +27,24 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 
 public final class ProGuardFileReader {
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, progressListener);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
 		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+		MappingReaderProgressListenerHelper progressHelper = new MappingReaderProgressListenerHelper(progressListener);
 
-		read(br, sourceNs, targetNs, visitor);
+		read(br, sourceNs, targetNs, visitor, progressHelper);
 	}
 
-	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(BufferedReader reader, String sourceNs, String targetNs,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
+		progressHelper.init(-1, "Reading Proguard file");
 		CharArrayReader parentReader = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -66,7 +71,7 @@ public final class ProGuardFileReader {
 				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 			}
 
-			if (visitor.visitContent()) {
+			if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 				if (tmp == null) tmp = new StringBuilder();
 
 				String line;
@@ -83,6 +88,7 @@ public final class ProGuardFileReader {
 						if (pos + 4 + 1 >= line.length()) throw new IOException("invalid proguard line (empty dst class): "+line);
 
 						String name = line.substring(0, pos).replace('.', '/');
+						progressHelper.readClass(name);
 						visitClass = visitor.visitClass(name);
 
 						if (visitClass) {
@@ -102,6 +108,7 @@ public final class ProGuardFileReader {
 						if (parts[1].indexOf('(') < 0) { // field: <type> <deobf> -> <obf>
 							String name = parts[1];
 							String desc = pgTypeToAsm(parts[0], tmp);
+							progressHelper.readField(name);
 
 							if (visitor.visitField(name, desc)) {
 								String mappedName = parts[3];
@@ -134,6 +141,7 @@ public final class ProGuardFileReader {
 								String name = part1.substring(0, pos);
 								String argDesc = part1.substring(pos, pos3 + 1);
 								String desc = pgDescToAsm(argDesc, retType, tmp);
+								progressHelper.readMethod(name);
 
 								if (visitor.visitMethod(name, desc)) {
 									String mappedName = parts[3];
@@ -155,6 +163,8 @@ public final class ProGuardFileReader {
 				reader = new BufferedReader(parentReader);
 			}
 		}
+
+		progressHelper.finish();
 	}
 
 	private static String pgDescToAsm(String pgArgDesc, String pgRetType, StringBuilder tmp) {

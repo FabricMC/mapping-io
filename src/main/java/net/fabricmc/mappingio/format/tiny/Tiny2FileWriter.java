@@ -25,17 +25,14 @@ import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
-import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.AbstractMappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
-public final class Tiny2FileWriter implements MappingWriter {
-	public Tiny2FileWriter(Writer writer, boolean escapeNames) {
-		this.writer = writer;
+public final class Tiny2FileWriter extends AbstractMappingWriter {
+	public Tiny2FileWriter(Writer writer, boolean escapeNames, ProgressListener progressListener) {
+		super(MappingFormat.TINY_2_FILE, writer, progressListener, "Writing Tiny v2 file");
 		this.escapeNames = escapeNames;
-	}
-
-	@Override
-	public void close() throws IOException {
-		writer.close();
 	}
 
 	@Override
@@ -60,6 +57,8 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
+		super.visitMetadata(key, value);
+
 		if (key.equals(Tiny2Util.escapedNamesProperty)) {
 			escapeNames = true;
 			wroteEscapedNamesProperty = true;
@@ -77,7 +76,9 @@ public final class Tiny2FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitContent() throws IOException {
+	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
+		super.visitContent(classCount, fieldCount, methodCount, methodArgCount, methodVarCount, commentCount, metadataCount);
+
 		if (escapeNames && !wroteEscapedNamesProperty) {
 			write("\t");
 			write(Tiny2Util.escapedNamesProperty);
@@ -89,6 +90,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		super.visitClass(srcName);
 		write("c\t");
 		writeName(srcName);
 
@@ -97,6 +99,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		super.visitField(srcName, srcDesc);
 		write("\tf\t");
 		writeName(srcDesc);
 		writeTab();
@@ -107,6 +110,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		super.visitMethod(srcName, srcDesc);
 		write("\tm\t");
 		writeName(srcDesc);
 		writeTab();
@@ -117,6 +121,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+		super.visitMethodArg(argPosition, lvIndex, srcName);
 		write("\t\tp\t");
 		write(lvIndex);
 		writeTab();
@@ -127,6 +132,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+		super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 		write("\t\tv\t");
 		write(lvIndex);
 		writeTab();
@@ -152,7 +158,6 @@ public final class Tiny2FileWriter implements MappingWriter {
 		}
 
 		writeLn();
-
 		Arrays.fill(dstNames, null);
 
 		return true;
@@ -160,6 +165,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		super.visitComment(targetKind, comment);
 		writeTabs(targetKind.level);
 		write("\tc\t");
 		writeEscaped(comment);
@@ -202,7 +208,6 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_HEADER_METADATA, MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
-	private final Writer writer;
 	private boolean escapeNames;
 	private boolean wroteEscapedNamesProperty;
 	private String[] dstNames;

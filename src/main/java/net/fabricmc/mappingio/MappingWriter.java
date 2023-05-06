@@ -30,25 +30,25 @@ import net.fabricmc.mappingio.format.tiny.Tiny1FileWriter;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 
 public interface MappingWriter extends Closeable, MappingVisitor {
-	static MappingWriter create(Path file, MappingFormat format) throws IOException {
+	static MappingWriter create(Path file, MappingFormat format, ProgressListener progressListener) throws IOException {
 		if (format.hasSingleFile()) {
-			return create(Files.newBufferedWriter(file), format);
+			return create(Files.newBufferedWriter(file), format, progressListener);
 		} else {
 			switch (format) {
-			case ENIGMA_DIR: return new EnigmaDirWriter(file, true);
+			case ENIGMA_DIR: return new EnigmaDirWriter(file, true, progressListener);
 			default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 			}
 		}
 	}
 
-	static MappingWriter create(Writer writer, MappingFormat format) throws IOException {
+	static MappingWriter create(Writer writer, MappingFormat format, ProgressListener progressListener) throws IOException {
 		if (!format.hasSingleFile()) throw new IllegalArgumentException("format "+format+" is not applicable to a single writer");
 
 		switch (format) {
-		case TINY_FILE: return new Tiny1FileWriter(writer);
-		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
-		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
-		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
+		case TINY_FILE: return new Tiny1FileWriter(writer, progressListener);
+		case TINY_2_FILE: return new Tiny2FileWriter(writer, false, progressListener);
+		case ENIGMA_FILE: return new EnigmaFileWriter(writer, progressListener);
+		case PROGUARD_FILE: return new ProGuardFileWriter(writer, progressListener);
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 		}
 	}

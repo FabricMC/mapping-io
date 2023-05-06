@@ -25,20 +25,25 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingReaderProgressListenerHelper;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class EnigmaFileReader {
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, progressListener);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor, progressListener);
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		MappingReaderProgressListenerHelper progressHelper = new MappingReaderProgressListenerHelper(progressListener);
+		progressHelper.init(-1, "Reading Enigma file");
+
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -47,19 +52,17 @@ public final class EnigmaFileReader {
 			visitor = new MemoryMappingTree();
 		}
 
-		boolean visitHeader = visitor.visitHeader();
-
-		if (visitHeader) {
+		if (visitor.visitHeader()) {
 			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 		}
 
-		if (visitor.visitContent()) {
+		if (visitor.visitContent(-1, -1, -1, -1, -1, -1, -1)) {
 			StringBuilder commentSb = new StringBuilder(200);
 			final MappingVisitor finalVisitor = visitor;
 
 			do {
 				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
-					readClass(reader, 0, null, null, commentSb, finalVisitor);
+					readClass(reader, 0, null, null, commentSb, finalVisitor, progressHelper);
 				}
 			} while (reader.nextLine(0));
 		}
@@ -69,9 +72,12 @@ public final class EnigmaFileReader {
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
+
+		progressHelper.finish();
 	}
 
-	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass,
+			StringBuilder commentSb, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		String srcInnerName = reader.nextCol();
 		if (srcInnerName == null || srcInnerName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
@@ -93,10 +99,12 @@ public final class EnigmaFileReader {
 			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
 
-		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
+		progressHelper.readClass(srcName);
+		readClassBody(reader, indent, srcName, dstName, commentSb, visitor, progressHelper);
 	}
 
-	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass,
+			StringBuilder commentSb, MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		boolean visited = false;
 		int state = 0; // 0=invalid 1=visit -1=skip
 
@@ -109,10 +117,10 @@ public final class EnigmaFileReader {
 					visited = true;
 				}
 
-				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor);
+				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor, progressHelper);
 				state = 0;
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb);
+				readComment(reader, commentSb, progressHelper);
 			} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD <name-a> [<name-b>] <desc-a> or field: FIELD <name-a> [<name-b>] <desc-a>
 				state = visitClass(srcClass, dstClass, state, commentSb, visitor);
 				visited = true;
@@ -136,10 +144,12 @@ public final class EnigmaFileReader {
 
 				if (isMethod && visitor.visitMethod(srcName, srcDesc)) {
 					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-					readMethod(reader, indent, commentSb, visitor);
+					progressHelper.readMethod(srcName);
+					readMethod(reader, indent, commentSb, visitor, progressHelper);
 				} else if (!isMethod && visitor.visitField(srcName, srcDesc)) {
 					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor);
+					progressHelper.readField(srcName);
+					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor, progressHelper);
 				}
 			}
 		}
@@ -175,12 +185,13 @@ public final class EnigmaFileReader {
 		return state;
 	}
 
-	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
 		while (reader.nextLine(indent + 2)) {
 			if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb);
+				readComment(reader, commentSb, progressHelper);
 			} else {
 				submitComment(MappedElementKind.METHOD, commentSb, visitor);
 
@@ -193,7 +204,8 @@ public final class EnigmaFileReader {
 						if (dstName == null) throw new IOException("missing var-name-b column in line "+reader.getLineNumber());
 						if (!dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 
-						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor);
+						progressHelper.readMethodArg(null, dstName);
+						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor, progressHelper);
 					}
 				}
 			}
@@ -202,21 +214,23 @@ public final class EnigmaFileReader {
 		submitComment(MappedElementKind.METHOD, commentSb, visitor);
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int indent, StringBuilder commentSb,
+			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
 		if (!visitor.visitElementContent(kind)) return;
 
 		while (reader.nextLine(indent + kind.level + 1)) {
 			if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb);
+				readComment(reader, commentSb, progressHelper);
 			}
 		}
 
 		submitComment(kind, commentSb, visitor);
 	}
 
-	private static void readComment(ColumnFileReader reader, StringBuilder commentSb) throws IOException {
-		if (commentSb.length() > 0) commentSb.append('\n');
+	private static void readComment(ColumnFileReader reader, StringBuilder commentSb, MappingReaderProgressListenerHelper progressHelper) throws IOException {
+		progressHelper.readComment();
 
+		if (commentSb.length() > 0) commentSb.append('\n');
 		String comment = reader.nextCols(true);
 
 		if (comment != null) {

@@ -64,8 +64,8 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public boolean visitContent() throws IOException {
-		return next.visitContent();
+	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
+		return next.visitContent(classCount, fieldCount, methodCount, methodArgCount, methodVarCount, commentCount, metadataCount);
 	}
 
 	@Override

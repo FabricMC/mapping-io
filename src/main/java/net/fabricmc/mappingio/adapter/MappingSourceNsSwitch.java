@@ -132,12 +132,16 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitContent() throws IOException {
+	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
 		if (!classMapReady) return true;
 
 		relayHeaderOrMetadata = true; // for in-content metadata
 
-		return next.visitContent();
+		if (dropMissingNewSrcName) {
+			return next.visitContent(-1, -1, -1, -1, -1, -1, -1);
+		} else {
+			return next.visitContent(classCount, fieldCount, methodCount, methodArgCount, methodVarCount, commentCount, metadataCount);
+		}
 	}
 
 	@Override

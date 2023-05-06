@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.io.Writer;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaFileWriter extends EnigmaWriterBase {
-	public EnigmaFileWriter(Writer writer) throws IOException {
-		super(writer);
+	public EnigmaFileWriter(Writer writer, ProgressListener progressListener) throws IOException {
+		super(MappingFormat.ENIGMA_FILE, writer, progressListener, "Writing Enigma file");
 	}
 
 	@Override

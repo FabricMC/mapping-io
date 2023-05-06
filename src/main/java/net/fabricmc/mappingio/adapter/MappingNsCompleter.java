@@ -92,10 +92,10 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitContent() throws IOException {
+	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
 		relayHeaderOrMetadata = true; // for in-content metadata
 
-		return next.visitContent();
+		return next.visitContent(classCount, fieldCount, methodCount, methodArgCount, methodVarCount, commentCount, metadataCount);
 	}
 
 	@Override

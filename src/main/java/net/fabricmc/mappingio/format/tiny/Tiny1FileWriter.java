@@ -25,16 +25,13 @@ import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
-import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.format.AbstractMappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
-public final class Tiny1FileWriter implements MappingWriter {
-	public Tiny1FileWriter(Writer writer) {
-		this.writer = writer;
-	}
-
-	@Override
-	public void close() throws IOException {
-		writer.close();
+public final class Tiny1FileWriter extends AbstractMappingWriter {
+	public Tiny1FileWriter(Writer writer, ProgressListener progressListener) {
+		super(MappingFormat.TINY_FILE, writer, progressListener, "Writing Tiny v1 file");
 	}
 
 	@Override
@@ -59,6 +56,8 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
+		super.visitMetadata(key, value);
+
 		switch (key) {
 		case Tiny1FileReader.nextIntermediaryClassProperty:
 		case Tiny1FileReader.nextIntermediaryFieldProperty:
@@ -87,13 +86,15 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		super.visitClass(srcName);
 		classSrcName = srcName;
-
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		super.visitField(srcName, srcDesc);
+
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -102,6 +103,8 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		super.visitMethod(srcName, srcDesc);
+
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -173,11 +176,6 @@ public final class Tiny1FileWriter implements MappingWriter {
 		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
 	}
 
-	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// not supported, skip
-	}
-
 	private void write(String str) throws IOException {
 		writer.write(str);
 	}
@@ -192,7 +190,6 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
-	private final Writer writer;
 	private String classSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;

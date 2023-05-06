@@ -17,32 +17,57 @@
 package net.fabricmc.mappingio.format.enigma;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.ProgressListener;
+import net.fabricmc.mappingio.ProgressListener.LogLevel;
 
 public final class EnigmaDirReader {
-	public static void read(Path dir, MappingVisitor visitor) throws IOException {
-		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	public static void read(Path dir, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, progressListener);
 	}
 
-	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor, ProgressListener progressListener) throws IOException {
+		ProgressListener delegatingProgressListener = new ProgressListener(progressListener.logLevel) {
 			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				if (file.getFileName().toString().endsWith("." + DIR_FILE_EXT)) {
-					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
-				}
-
-				return FileVisitResult.CONTINUE;
+			public void init(int totalWork, String title) {
 			}
-		});
+
+			@Override
+			public void startStep(LogLevel logLevel, @Nullable String message) {
+				progressListener.forwarder.updateMessage(logLevel, message);
+			}
+
+			@Override
+			public void updateMessage(LogLevel logLevel, @Nullable String message) {
+				progressListener.forwarder.updateMessage(logLevel, message);
+			}
+
+			@Override
+			public void finish() {
+			}
+		};
+
+		List<Path> files = Files.walk(dir)
+				.filter(file -> !Files.isDirectory(file))
+				.filter(file -> file.toString().endsWith("." + DIR_FILE_EXT))
+				.toList();
+
+		progressListener.forwarder.init(files.size(), "Reading Enigma directory");
+
+		for (Path file : files) {
+			progressListener.forwarder.startStep(LogLevel.FILES, dir.relativize(file).toString());
+			EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor, delegatingProgressListener);
+		}
+
 		visitor.visitEnd();
+		progressListener.forwarder.finish();
 	}
 
 	static final String DIR_FILE_EXT = "mapping"; // non-plural form unlike ENIGMA_FILE
