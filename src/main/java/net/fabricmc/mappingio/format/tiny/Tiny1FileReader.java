@@ -134,7 +134,7 @@ public final class Tiny1FileReader {
 						}
 					} else {
 						String line = reader.nextCol();
-						final String prefix = "# INTERMEDIARY-COUNTER ";
+						final String prefix = TinyProperties.intermediaryCounter + " ";
 						String[] parts;
 
 						if (line.startsWith(prefix)
@@ -143,13 +143,13 @@ public final class Tiny1FileReader {
 
 							switch (parts[0]) {
 							case "class":
-								property = nextIntermediaryClassProperty;
+								property = TinyProperties.NEXT_INTERMEDIARY_CLASS;
 								break;
 							case "field":
-								property = nextIntermediaryFieldProperty;
+								property = TinyProperties.NEXT_INTERMEDIARY_FIELD;
 								break;
 							case "method":
-								property = nextIntermediaryMethodProperty;
+								property = TinyProperties.NEXT_INTERMEDIARY_METHOD;
 								break;
 							}
 
@@ -179,8 +179,4 @@ public final class Tiny1FileReader {
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
-
-	static final String nextIntermediaryClassProperty = "next-intermediary-class";
-	static final String nextIntermediaryFieldProperty = "next-intermediary-field";
-	static final String nextIntermediaryMethodProperty = "next-intermediary-method";
 }
