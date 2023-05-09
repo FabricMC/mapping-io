@@ -24,6 +24,9 @@ import java.util.Objects;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * Adapter that removes the specified destination namespaces.
+ */
 public final class MappingDstNsRemover extends ForwardingMappingVisitor {
 	public MappingDstNsRemover(MappingVisitor next, List<String> namespacesToRemove) {
 		super(next);
