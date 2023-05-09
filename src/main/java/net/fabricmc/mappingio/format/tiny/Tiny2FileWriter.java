@@ -60,7 +60,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
-		if (key.equals(Tiny2Util.escapedNamesProperty)) {
+		if (key.equals(TinyProperties.ESCAPED_NAMES)) {
 			escapeNames = true;
 			wroteEscapedNamesProperty = true;
 		}
@@ -80,7 +80,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 	public boolean visitContent() throws IOException {
 		if (escapeNames && !wroteEscapedNamesProperty) {
 			write("\t");
-			write(Tiny2Util.escapedNamesProperty);
+			write(TinyProperties.ESCAPED_NAMES);
 			writeLn();
 		}
 
