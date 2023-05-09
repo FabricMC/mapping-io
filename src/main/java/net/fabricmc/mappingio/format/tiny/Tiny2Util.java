@@ -84,6 +84,4 @@ public final class Tiny2Util {
 
 	private static final String toEscape = "\\\n\r\0\t";
 	private static final String escaped = "\\nr0t";
-
-	static final String escapedNamesProperty = "escaped-names";
 }
