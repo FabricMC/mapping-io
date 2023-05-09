@@ -89,7 +89,7 @@ public final class Tiny2FileReader {
 			if (visitHeader || firstIteration) {
 				while (reader.nextLine(1)) {
 					if (!visitHeader) {
-						if (!escapeNames && reader.nextCol(Tiny2Util.escapedNamesProperty)) {
+						if (!escapeNames && reader.nextCol(TinyProperties.ESCAPED_NAMES)) {
 							escapeNames = true;
 						}
 					} else {
@@ -97,7 +97,7 @@ public final class Tiny2FileReader {
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
 						String value = reader.nextEscapedCol(); // may be missing -> null
 
-						if (key.equals(Tiny2Util.escapedNamesProperty)) {
+						if (key.equals(TinyProperties.ESCAPED_NAMES)) {
 							escapeNames = true;
 						}
 
