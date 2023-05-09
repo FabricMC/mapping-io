@@ -18,8 +18,6 @@ package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,38 +25,28 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class MappingDstNsRemover extends ForwardingMappingVisitor {
-	public MappingDstNsRemover(MappingVisitor next, Integer... namespacesToRemove) {
+	public MappingDstNsRemover(MappingVisitor next, List<String> namespacesToRemove) {
 		super(next);
 
-		Objects.requireNonNull(namespacesToRemove, "null namespacesToRemove array");
+		Objects.requireNonNull(namespacesToRemove, "null namespacesToRemove list");
 
-		this.namespacesIndicesToRemove = Arrays.asList(namespacesToRemove);
-		this.namespaceNamesToRemove = Collections.emptyList();
-	}
-
-	public MappingDstNsRemover(MappingVisitor next, String... namespacesToRemove) {
-		super(next);
-
-		Objects.requireNonNull(namespacesToRemove, "null namespacesToRemove array");
-
-		this.namespacesIndicesToRemove = Collections.emptyList();
-		this.namespaceNamesToRemove = Arrays.asList(namespacesToRemove);
+		this.namespaceNamesToRemove = namespacesToRemove;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		int listSize = dstNamespaces.size() - Math.max(namespacesIndicesToRemove.size(), namespaceNamesToRemove.size());
-		filteredNamespacesIndices = new ArrayList<>(listSize);
+		int listSize = dstNamespaces.size() - namespaceNamesToRemove.size();
+		filteredNamespaceIndices = new ArrayList<>(listSize);
 		filteredNamespaceNames = new ArrayList<>(listSize);
 
 		for (int i = 0; i < dstNamespaces.size(); i++) {
 			String dstName = dstNamespaces.get(i);
 
-			if (namespacesIndicesToRemove.contains(i) || namespaceNamesToRemove.contains(dstName)) {
+			if (namespaceNamesToRemove.contains(dstName)) {
 				continue;
 			}
 
-			filteredNamespacesIndices.add(i);
+			filteredNamespaceIndices.add(i);
 			filteredNamespaceNames.add(dstName);
 		}
 
@@ -67,24 +55,23 @@ public final class MappingDstNsRemover extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
-		if (!filteredNamespacesIndices.contains(namespace)) {
+		if (!filteredNamespaceIndices.contains(namespace)) {
 			return;
 		}
 
-		super.visitDstName(targetKind, filteredNamespacesIndices.indexOf(namespace), name);
+		super.visitDstName(targetKind, filteredNamespaceIndices.indexOf(namespace), name);
 	}
 
 	@Override
 	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
-		if (!filteredNamespacesIndices.contains(namespace)) {
+		if (!filteredNamespaceIndices.contains(namespace)) {
 			return;
 		}
 
-		super.visitDstDesc(targetKind, filteredNamespacesIndices.indexOf(namespace), desc);
+		super.visitDstDesc(targetKind, filteredNamespaceIndices.indexOf(namespace), desc);
 	}
 
-	private final List<Integer> namespacesIndicesToRemove;
 	private final List<String> namespaceNamesToRemove;
-	private List<Integer> filteredNamespacesIndices;
+	private List<Integer> filteredNamespaceIndices;
 	private List<String> filteredNamespaceNames;
 }
