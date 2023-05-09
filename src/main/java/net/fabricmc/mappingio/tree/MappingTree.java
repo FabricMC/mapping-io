@@ -23,8 +23,8 @@ public interface MappingTree extends MappingTreeView {
 	String setSrcNamespace(String namespace);
 	List<String> setDstNamespaces(List<String> namespaces);
 
-	void addMetadata(String key, String value);
-	String removeMetadata(String key);
+	void addMetadata(String key, String value, boolean overrideExisting);
+	boolean removeMetadata(String key);
 
 	@Override
 	Collection<? extends ClassMapping> getClasses();
