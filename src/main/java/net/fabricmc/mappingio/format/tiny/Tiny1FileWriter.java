@@ -60,20 +60,18 @@ public final class Tiny1FileWriter implements MappingWriter {
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
 		switch (key) {
-		case Tiny1FileReader.nextIntermediaryClassProperty:
-		case Tiny1FileReader.nextIntermediaryFieldProperty:
-		case Tiny1FileReader.nextIntermediaryMethodProperty:
-			write("# INTERMEDIARY-COUNTER ");
-
+		case TinyProperties.NEXT_INTERMEDIARY_CLASS:
+		case TinyProperties.NEXT_INTERMEDIARY_FIELD:
+		case TinyProperties.NEXT_INTERMEDIARY_METHOD:
 			switch (key) {
-			case Tiny1FileReader.nextIntermediaryClassProperty:
-				write("class");
+			case TinyProperties.NEXT_INTERMEDIARY_CLASS:
+				write(TinyProperties.NEXT_INTERMEDIARY_CLASS);
 				break;
-			case Tiny1FileReader.nextIntermediaryFieldProperty:
-				write("field");
+			case TinyProperties.NEXT_INTERMEDIARY_FIELD:
+				write(TinyProperties.NEXT_INTERMEDIARY_FIELD);
 				break;
-			case Tiny1FileReader.nextIntermediaryMethodProperty:
-				write("method");
+			case TinyProperties.NEXT_INTERMEDIARY_METHOD:
+				write(TinyProperties.NEXT_INTERMEDIARY_METHOD);
 				break;
 			default:
 				throw new IllegalStateException();
