@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
@@ -44,21 +45,12 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		this.indexByDstNames = indexByDstNames;
 	}
 
-	public MemoryMappingTree(MappingTree src) {
+	public MemoryMappingTree(MappingTree src) throws IOException {
 		if (src instanceof MemoryMappingTree) {
 			indexByDstNames = ((MemoryMappingTree) src).indexByDstNames;
 		}
 
-		setSrcNamespace(src.getSrcNamespace());
-		setDstNamespaces(src.getDstNamespaces());
-
-		for (Map.Entry<String, String> entry : src.getMetadata()) {
-			addMetadata(entry.getKey(), entry.getValue());
-		}
-
-		for (ClassMapping cls : src.getClasses()) {
-			addClass(cls);
-		}
+		src.accept(this);
 	}
 
 	public void setIndexByDstNames(boolean indexByDstNames) {
@@ -205,37 +197,45 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
-	public Collection<Map.Entry<String, String>> getMetadata() {
-		return metadata;
+	public List<Map.Entry<String, String>> getMetadata() {
+		return Collections.unmodifiableList(metadata.stream()
+				.map(entry -> new AbstractMap.SimpleEntry<>(entry.key, entry.value))
+				.collect(Collectors.toList()));
 	}
 
 	@Override
-	public String getMetadata(String key) {
-		for (Map.Entry<String, String> entry : metadata) {
-			if (entry.getKey().equals(key)) return entry.getValue();
+	public List<String> getMetadata(String key) {
+		return Collections.unmodifiableList(metadata.stream()
+				.filter(entry -> entry.key.equals(key))
+				.map(entry -> entry.value)
+				.collect(Collectors.toList()));
+	}
+
+	@Override
+	public void addMetadata(String key, String value, boolean overrideExisting) {
+		MetadataEntry entry = new MetadataEntry(key, value, overrideExisting);
+
+		if (overrideExisting) {
+			removeMetadata(key);
 		}
 
-		return null;
+		metadata.add(entry);
 	}
 
 	@Override
-	public void addMetadata(String key, String value) {
-		metadata.add(new AbstractMap.SimpleEntry<>(key, value));
-	}
+	public boolean removeMetadata(String key) {
+		boolean removedAny = false;
 
-	@Override
-	public String removeMetadata(String key) {
-		for (Iterator<Map.Entry<String, String>> it = metadata.iterator(); it.hasNext(); ) {
-			Map.Entry<String, String> entry = it.next();
+		for (Iterator<MetadataEntry> it = metadata.iterator(); it.hasNext(); ) {
+			MetadataEntry entry = it.next();
 
-			if (entry.getKey().equals(key)) {
+			if (entry.key.equals(key)) {
 				it.remove();
-
-				return entry.getValue();
+				removedAny = true;
 			}
 		}
 
-		return null;
+		return removedAny;
 	}
 
 	@Override
@@ -304,8 +304,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 
-				for (Map.Entry<String, String> entry : metadata) {
-					visitor.visitMetadata(entry.getKey(), entry.getValue());
+				for (MetadataEntry entry : metadata) {
+					visitor.visitMetadata(entry.key, entry.value, entry.overrideExisting);
 				}
 			}
 
@@ -390,8 +390,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
-		this.metadata.add(new AbstractMap.SimpleEntry<>(key, value));
+	public void visitMetadata(String key, String value, boolean overrideExisting) {
+		MetadataEntry entry = new MetadataEntry(key, value, overrideExisting);
+
+		if (overrideExisting) {
+			removeMetadata(key);
+		}
+
+		metadata.add(entry);
 	}
 
 	@Override
@@ -1699,6 +1705,29 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		private final int hash;
 	}
 
+	static final class MetadataEntry {
+		MetadataEntry(String key, String value, boolean enforceUniqueness) {
+			this.key = key;
+			this.value = value;
+			this.overrideExisting = enforceUniqueness;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof MetadataEntry)) {
+				return false;
+			}
+
+			MetadataEntry entry = (MetadataEntry) other;
+
+			return this.key.equals(entry.key) && this.value.equals(entry.value);
+		}
+
+		final String key;
+		final String value;
+		final boolean overrideExisting;
+	}
+
 	static final class GlobalMemberKey {
 		GlobalMemberKey(ClassEntry owner, String name, String desc, boolean isField) {
 			this.owner = owner;
@@ -1739,7 +1768,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private boolean indexByDstNames;
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
-	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
+	private final List<MetadataEntry> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
 

@@ -69,7 +69,7 @@ public interface MappingVisitor {
 
 	void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException;
 
-	default void visitMetadata(String key, String value) throws IOException { }
+	default void visitMetadata(String key, String value, boolean overrideExisting) throws IOException { }
 
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
