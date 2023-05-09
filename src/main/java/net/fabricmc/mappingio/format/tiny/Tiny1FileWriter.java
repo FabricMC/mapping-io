@@ -58,7 +58,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
 		switch (key) {
 		case Tiny1FileReader.nextIntermediaryClassProperty:
 		case Tiny1FileReader.nextIntermediaryFieldProperty:

@@ -87,8 +87,8 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
-		if (relayHeaderOrMetadata) next.visitMetadata(key, value);
+	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
+		if (relayHeaderOrMetadata) next.visitMetadata(key, value, overrideExisting);
 	}
 
 	@Override

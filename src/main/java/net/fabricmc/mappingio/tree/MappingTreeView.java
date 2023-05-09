@@ -58,7 +58,7 @@ public interface MappingTreeView {
 	}
 
 	Collection<Entry<String, String>> getMetadata();
-	String getMetadata(String key);
+	Collection<String> getMetadata(String key);
 
 	Collection<? extends ClassMappingView> getClasses();
 	ClassMappingView getClass(String srcName);
