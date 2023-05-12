@@ -14,7 +14,7 @@ group "net.fabricmc"
 archivesBaseName = "mapping-io"
 
 def ENV = System.getenv()
-version = "0.4.1"
+version = "0.4.2"
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-	implementation "org.ow2.asm:asm:9.1"
+	implementation "org.ow2.asm:asm:9.5"
 }
 
 spotless {
@@ -53,13 +53,21 @@ jar {
 	}
 }
 
+tasks.register('javadocJar', Jar) {
+	dependsOn javadoc
+	archiveClassifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+assemble.dependsOn javadocJar
+
 if (ENV.SIGNING_SERVER) {
 	remoteSign {
 		requestUrl = ENV.SIGNING_SERVER
 		pgpAuthKey = ENV.SIGNING_PGP_KEY
 		jarAuthKey = ENV.SIGNING_JAR_KEY
 
-		sign (jar, sourcesJar)
+		sign (jar, sourcesJar, javadocJar)
 
 		afterEvaluate {
 			sign publishing.publications.mavenJava
@@ -79,6 +87,11 @@ publishing {
 				artifact(signSourcesJar.output) {
 					classifier "sources"
 					builtBy signSourcesJar
+				}
+
+				artifact(signJavadocJar.output) {
+					classifier "javadoc"
+					builtBy signJavadocJar
 				}
 			} else {
 				from components.java
