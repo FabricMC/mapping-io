@@ -55,9 +55,9 @@ jar {
 
 if (ENV.SIGNING_SERVER) {
 	remoteSign {
-		requestUrl ENV.SIGNING_SERVER
-		pgpAuthKey ENV.SIGNING_PGP_KEY
-		jarAuthKey ENV.SIGNING_JAR_KEY
+		requestUrl = ENV.SIGNING_SERVER
+		pgpAuthKey = ENV.SIGNING_PGP_KEY
+		jarAuthKey = ENV.SIGNING_JAR_KEY
 
 		sign (jar, sourcesJar)
 
