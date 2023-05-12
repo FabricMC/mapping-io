@@ -71,12 +71,14 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			if (ENV.SIGNING_SERVER) {
-				artifact(signJar) {
+				artifact(signJar.output) {
 					classifier null
+					builtBy signJar
 				}
 
-				artifact(signSourcesJar) {
+				artifact(signSourcesJar.output) {
 					classifier "sources"
+					builtBy signSourcesJar
 				}
 			} else {
 				from components.java
