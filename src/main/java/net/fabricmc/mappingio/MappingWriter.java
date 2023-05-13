@@ -24,6 +24,7 @@ import java.nio.file.Path;
 
 import net.fabricmc.mappingio.format.EnigmaWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.ProGuardWriter;
 import net.fabricmc.mappingio.format.Tiny1Writer;
 import net.fabricmc.mappingio.format.Tiny2Writer;
 
@@ -45,6 +46,7 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		switch (format) {
 		case TINY: return new Tiny1Writer(writer);
 		case TINY_2: return new Tiny2Writer(writer, false);
+		case PROGUARD: return new ProGuardWriter(writer);
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 		}
 	}
