@@ -25,7 +25,8 @@ public enum MappingFormat {
 	SRG_FILE("SRG file", "srg", false, false, false, false, false, MetadataSupport.NONE, MetadataSupport.NONE),
 	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, MetadataSupport.NONE, MetadataSupport.NONE),
 	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false, MetadataSupport.NONE, MetadataSupport.HARDCODED);
+	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
+	MATCH_FILE("Match file", "match", false, true, false, true, true, MetadataSupport.HARDCODED, MetadataSupport.HARDCODED);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
