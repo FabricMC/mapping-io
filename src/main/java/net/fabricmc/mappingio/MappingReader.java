@@ -29,6 +29,7 @@ import java.util.List;
 import net.fabricmc.mappingio.format.EnigmaReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.ProGuardReader;
+import net.fabricmc.mappingio.format.SimpleReader;
 import net.fabricmc.mappingio.format.SrgReader;
 import net.fabricmc.mappingio.format.Tiny1Reader;
 import net.fabricmc.mappingio.format.Tiny2Reader;
@@ -186,6 +187,9 @@ public final class MappingReader {
 			break;
 		case PROGUARD:
 			ProGuardReader.read(reader, visitor);
+			break;
+		case SIMPLE:
+			SimpleReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();
