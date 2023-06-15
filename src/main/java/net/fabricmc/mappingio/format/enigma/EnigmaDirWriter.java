@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
@@ -40,7 +39,7 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 			Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
+					if (file.getFileName().toString().endsWith("." + EnigmaDirReader.DIR_FILE_EXT)) {
 						Files.delete(file);
 					}
 
@@ -82,7 +81,7 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 				if (pos >= 0) name = name.substring(0, pos);
 
 				// currentClass is not an outer class of srcName (or the same)
-				Path file = dir.resolve(name + "." + MappingFormat.ENIGMA_FILE.fileExt).normalize();
+				Path file = dir.resolve(name + "." + EnigmaDirReader.DIR_FILE_EXT).normalize();
 				if (!file.startsWith(dir)) throw new RuntimeException("invalid name: " + name);
 
 				if (writer != null) {

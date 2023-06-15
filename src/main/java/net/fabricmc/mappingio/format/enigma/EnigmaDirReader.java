@@ -25,7 +25,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirReader {
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {
@@ -36,7 +35,7 @@ public final class EnigmaDirReader {
 		Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
+				if (file.getFileName().toString().endsWith("." + DIR_FILE_EXT)) {
 					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
 				}
 
@@ -45,4 +44,6 @@ public final class EnigmaDirReader {
 		});
 		visitor.visitEnd();
 	}
+
+	static final String DIR_FILE_EXT = "mapping"; // non-plural form unlike ENIGMA_FILE
 }
