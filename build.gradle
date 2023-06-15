@@ -45,6 +45,7 @@ spotless {
 
 java {
 	withSourcesJar()
+	withJavadocJar()
 }
 
 jar {
@@ -53,10 +54,8 @@ jar {
 	}
 }
 
-tasks.register('javadocJar', Jar) {
-	dependsOn javadoc
-	archiveClassifier = 'javadoc'
-	from javadoc.destinationDir
+javadoc {
+	failOnError = false
 }
 
 assemble.dependsOn javadocJar
