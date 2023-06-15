@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.enigma;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.io.Reader;
 import java.util.Collections;
 import java.util.Set;
 
@@ -29,15 +25,20 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public final class EnigmaReader {
-	public static void read(Path dir, MappingVisitor visitor) throws IOException {
-		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+public final class EnigmaFileReader {
+	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	}
+
+	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -56,22 +57,11 @@ public final class EnigmaReader {
 			StringBuilder commentSb = new StringBuilder(200);
 			final MappingVisitor finalVisitor = visitor;
 
-			Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					if (file.getFileName().toString().endsWith(".mapping")) {
-						try (ColumnFileReader reader = new ColumnFileReader(Files.newBufferedReader(file), ' ')) {
-							do {
-								if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
-									readClass(reader, 0, null, null, commentSb, finalVisitor);
-								}
-							} while (reader.nextLine(0));
-						}
-					}
-
-					return FileVisitResult.CONTINUE;
+			do {
+				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
+					readClass(reader, 0, null, null, commentSb, finalVisitor);
 				}
-			});
+			} while (reader.nextLine(0));
 		}
 
 		visitor.visitEnd();

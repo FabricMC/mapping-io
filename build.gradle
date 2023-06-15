@@ -14,7 +14,6 @@ group "net.fabricmc"
 archivesBaseName = "mapping-io"
 
 def ENV = System.getenv()
-version = "0.4.2"
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
@@ -26,7 +25,7 @@ tasks.withType(JavaCompile).configureEach {
 
 checkstyle {
 	configFile = project.file("checkstyle.xml")
-	toolVersion = "8.31"
+	toolVersion = project.checkstyle_tool_version
 }
 
 repositories {
@@ -38,8 +37,9 @@ repositories {
 }
 
 dependencies {
-	implementation "org.ow2.asm:asm:9.5"
-	implementation "net.fabricmc:tiny-remapper:0.8.0"
+	implementation "org.ow2.asm:asm:${project.asm_version}"
+	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
 }
 
 spotless {

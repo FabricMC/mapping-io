@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format;
+package net.fabricmc.mappingio.format.tiny;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -27,9 +27,10 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
-public final class Tiny1Writer implements MappingWriter {
-	public Tiny1Writer(Writer writer) {
+public final class Tiny2FileWriter implements MappingWriter {
+	public Tiny2FileWriter(Writer writer, boolean escapeNames) {
 		this.writer = writer;
+		this.escapeNames = escapeNames;
 	}
 
 	@Override
@@ -46,7 +47,7 @@ public final class Tiny1Writer implements MappingWriter {
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		dstNames = new String[dstNamespaces.size()];
 
-		write("v1\t");
+		write("tiny\t2\t0\t");
 		write(srcNamespace);
 
 		for (String dstNamespace : dstNamespaces) {
@@ -59,63 +60,83 @@ public final class Tiny1Writer implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, String value) throws IOException {
-		switch (key) {
-		case Tiny1Reader.nextIntermediaryClassProperty:
-		case Tiny1Reader.nextIntermediaryFieldProperty:
-		case Tiny1Reader.nextIntermediaryMethodProperty:
-			write("# INTERMEDIARY-COUNTER ");
+		if (key.equals(Tiny2Util.escapedNamesProperty)) {
+			escapeNames = true;
+			wroteEscapedNamesProperty = true;
+		}
 
-			switch (key) {
-			case Tiny1Reader.nextIntermediaryClassProperty:
-				write("class");
-				break;
-			case Tiny1Reader.nextIntermediaryFieldProperty:
-				write("field");
-				break;
-			case Tiny1Reader.nextIntermediaryMethodProperty:
-				write("method");
-				break;
-			default:
-				throw new IllegalStateException();
-			}
+		writeTab();
+		write(key);
 
-			write(" ");
+		if (value != null) {
+			writeTab();
 			write(value);
+		}
+
+		writeLn();
+	}
+
+	@Override
+	public boolean visitContent() throws IOException {
+		if (escapeNames && !wroteEscapedNamesProperty) {
+			write("\t");
+			write(Tiny2Util.escapedNamesProperty);
 			writeLn();
 		}
+
+		return true;
 	}
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		classSrcName = srcName;
+		write("c\t");
+		writeName(srcName);
 
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
-		memberSrcName = srcName;
-		memberSrcDesc = srcDesc;
+		write("\tf\t");
+		writeName(srcDesc);
+		writeTab();
+		writeName(srcName);
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
-		memberSrcName = srcName;
-		memberSrcDesc = srcDesc;
+		write("\tm\t");
+		writeName(srcDesc);
+		writeTab();
+		writeName(srcName);
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		return false; // not supported, skip
+		write("\t\tp\t");
+		write(lvIndex);
+		writeTab();
+		if (srcName != null) writeName(srcName);
+
+		return true;
 	}
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		return false; // not supported, skip
+		write("\t\tv\t");
+		write(lvIndex);
+		writeTab();
+		write(startOpIdx);
+		writeTab();
+		write(Math.max(lvtRowIndex, -1));
+		writeTab();
+		if (srcName != null) writeName(srcName);
+
+		return true;
 	}
 
 	@Override
@@ -125,61 +146,44 @@ public final class Tiny1Writer implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		// determine if there is any useful data to emit
-		boolean found = false;
-
-		for (String dstName : dstNames) {
-			if (dstName != null) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) return true;
-
-		switch (targetKind) {
-		case CLASS:
-			write("CLASS");
-			break;
-		case FIELD:
-			write("FIELD");
-			break;
-		case METHOD:
-			write("METHOD");
-			break;
-		default:
-			throw new IllegalStateException("unexpected invocation for "+targetKind);
-		}
-
-		writeTab();
-		write(classSrcName);
-
-		if (targetKind != MappedElementKind.CLASS) {
-			writeTab();
-			write(memberSrcDesc);
-			writeTab();
-			write(memberSrcName);
-		}
-
 		for (String dstName : dstNames) {
 			writeTab();
-			if (dstName != null) write(dstName);
+			if (dstName != null) writeName(dstName);
 		}
 
 		writeLn();
 
 		Arrays.fill(dstNames, null);
 
-		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
+		return true;
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// not supported, skip
+		writeTabs(targetKind.level);
+		write("\tc\t");
+		writeEscaped(comment);
+		writeLn();
 	}
 
 	private void write(String str) throws IOException {
 		writer.write(str);
+	}
+
+	private void write(int i) throws IOException {
+		write(Integer.toString(i));
+	}
+
+	private void writeEscaped(String str) throws IOException {
+		Tiny2Util.writeEscaped(str, writer);
+	}
+
+	private void writeName(String str) throws IOException {
+		if (escapeNames) {
+			writeEscaped(str);
+		} else {
+			write(str);
+		}
 	}
 
 	private void writeLn() throws IOException {
@@ -190,11 +194,16 @@ public final class Tiny1Writer implements MappingWriter {
 		writer.write('\t');
 	}
 
-	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private void writeTabs(int count) throws IOException {
+		for (int i = 0; i < count; i++) {
+			writer.write('\t');
+		}
+	}
+
+	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_HEADER_METADATA, MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
-	private String classSrcName;
-	private String memberSrcName;
-	private String memberSrcDesc;
+	private boolean escapeNames;
+	private boolean wroteEscapedNamesProperty;
 	private String[] dstNames;
 }

@@ -22,11 +22,12 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import net.fabricmc.mappingio.format.EnigmaWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.format.ProGuardWriter;
-import net.fabricmc.mappingio.format.Tiny1Writer;
-import net.fabricmc.mappingio.format.Tiny2Writer;
+import net.fabricmc.mappingio.format.enigma.EnigmaDirWriter;
+import net.fabricmc.mappingio.format.enigma.EnigmaFileWriter;
+import net.fabricmc.mappingio.format.proguard.ProGuardFileWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny1FileWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 
 public interface MappingWriter extends Closeable, MappingVisitor {
 	static MappingWriter create(Path file, MappingFormat format) throws IOException {
@@ -34,7 +35,7 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 			return create(Files.newBufferedWriter(file), format);
 		} else {
 			switch (format) {
-			case ENIGMA: return new EnigmaWriter(file, true);
+			case ENIGMA_DIR: return new EnigmaDirWriter(file, true);
 			default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 			}
 		}
@@ -44,9 +45,10 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		if (!format.hasSingleFile()) throw new IllegalArgumentException("format "+format+" is not applicable to a single writer");
 
 		switch (format) {
-		case TINY: return new Tiny1Writer(writer);
-		case TINY_2: return new Tiny2Writer(writer, false);
-		case PROGUARD: return new ProGuardWriter(writer);
+		case TINY_FILE: return new Tiny1FileWriter(writer);
+		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
+		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
+		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 		}
 	}
