@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
 	implementation "org.ow2.asm:asm:${project.asm_version}"
-	implementation "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 }
 
 spotless {
