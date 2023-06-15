@@ -177,7 +177,7 @@ public final class Tiny2FileReader {
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
 
-				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName)) {
+				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, -1, srcName)) {
 					readElement(reader, MappedElementKind.METHOD_VAR, dstNsCount, escapeNames, visitor);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>

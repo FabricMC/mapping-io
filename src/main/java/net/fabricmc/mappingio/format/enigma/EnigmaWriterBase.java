@@ -82,7 +82,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 		return false;
 	}
 

@@ -126,7 +126,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
 		write("\t\tv\t");
 		write(lvIndex);
 		writeTab();

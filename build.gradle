@@ -29,12 +29,17 @@ checkstyle {
 }
 
 repositories {
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
 	mavenCentral()
 }
 
 dependencies {
 	implementation "org.ow2.asm:asm:${project.asm_version}"
 	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
 }
 
 spotless {

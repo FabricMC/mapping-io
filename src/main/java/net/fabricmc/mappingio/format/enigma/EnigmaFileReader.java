@@ -84,8 +84,11 @@ public final class EnigmaFileReader {
 		String dstInnerName = reader.nextCol();
 		String dstName = dstInnerName;
 
-		if (outerDstClass != null) {
-			if (dstInnerName == null) dstInnerName = srcInnerName;
+		// merge with outer name if available
+		if (outerDstClass != null
+				|| dstInnerName != null && outerSrcClass != null) {
+			if (dstInnerName == null) dstInnerName = srcInnerName; // inner name is not mapped
+			if (outerDstClass == null) outerDstClass = outerSrcClass; // outer name is not mapped
 
 			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
@@ -106,7 +109,7 @@ public final class EnigmaFileReader {
 					visited = true;
 				}
 
-				readClass(reader, indent + 1, srcClass, dstClass != null ? dstClass : srcClass, commentSb, visitor);
+				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor);
 				state = 0;
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
 				readComment(reader, commentSb);

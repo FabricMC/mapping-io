@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,6 +89,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 	}
 
+	public void setHierarchyInfoProvider(HierarchyInfoProvider<?> provider) {
+		hierarchyInfo = provider;
+
+		if (provider != null) {
+			propagateNames(provider);
+		}
+	}
+
 	@Override
 	public String getSrcNamespace() {
 		return srcNamespace;
@@ -108,6 +117,39 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 	@Override
 	public List<String> setDstNamespaces(List<String> namespaces) {
+		if (!classesBySrcName.isEmpty()) { // classes present, update existing dstNames
+			int newSize = namespaces.size();
+			int[] nameMap = new int[newSize];
+
+			for (int i = 0; i < newSize; i++) {
+				String newNs = namespaces.get(i);
+
+				if (newNs.equals(srcNamespace)) {
+					throw new IllegalArgumentException("can't use the same namespace for src and dst");
+				} else {
+					int oldNsIdx = dstNamespaces.indexOf(newNs);
+					nameMap[i] = oldNsIdx;
+				}
+			}
+
+			boolean useResize = true;
+
+			for (int i = 0; i < newSize; i++) {
+				int src = nameMap[i];
+
+				if (src != i && (src >= 0 || i >= dstNamespaces.size())) { // not a 1:1 copy with potential null extension
+					useResize = false;
+					break;
+				}
+			}
+
+			if (useResize) {
+				resizeDstNames(newSize);
+			} else {
+				updateDstNames(nameMap);
+			}
+		}
+
 		List<String> ret = dstNamespaces;
 		dstNamespaces = namespaces;
 
@@ -116,6 +158,50 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		return ret;
+	}
+
+	private void resizeDstNames(int newSize) {
+		for (ClassEntry cls : classesBySrcName.values()) {
+			cls.resizeDstNames(newSize);
+
+			for (FieldEntry field : cls.getFields()) {
+				field.resizeDstNames(newSize);
+			}
+
+			for (MethodEntry method : cls.getMethods()) {
+				method.resizeDstNames(newSize);
+
+				for (MethodArgEntry arg : method.getArgs()) {
+					arg.resizeDstNames(newSize);
+				}
+
+				for (MethodVarEntry var : method.getVars()) {
+					var.resizeDstNames(newSize);
+				}
+			}
+		}
+	}
+
+	private void updateDstNames(int[] nameMap) {
+		for (ClassEntry cls : classesBySrcName.values()) {
+			cls.updateDstNames(nameMap);
+
+			for (FieldEntry field : cls.getFields()) {
+				field.updateDstNames(nameMap);
+			}
+
+			for (MethodEntry method : cls.getMethods()) {
+				method.updateDstNames(nameMap);
+
+				for (MethodArgEntry arg : method.getArgs()) {
+					arg.updateDstNames(nameMap);
+				}
+
+				for (MethodVarEntry var : method.getVars()) {
+					var.updateDstNames(nameMap);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -153,26 +239,26 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public Collection<ClassEntry> getClasses() {
+	public Collection<? extends ClassMapping> getClasses() {
 		return classesBySrcName.values();
 	}
 
 	@Override
-	public ClassEntry getClass(String srcName) {
+	public ClassMapping getClass(String srcName) {
 		return classesBySrcName.get(srcName);
 	}
 
 	@Override
-	public ClassEntry getClass(String name, int namespace) {
+	public ClassMapping getClass(String name, int namespace) {
 		if (namespace < 0 || !indexByDstNames) {
-			return (ClassEntry) MappingTree.super.getClass(name, namespace);
+			return MappingTree.super.getClass(name, namespace);
 		} else {
 			return classesByDstNames[namespace].get(name);
 		}
 	}
 
 	@Override
-	public ClassEntry addClass(ClassMapping cls) {
+	public ClassMapping addClass(ClassMapping cls) {
 		ClassEntry entry = cls instanceof ClassEntry && cls.getTree() == this ? (ClassEntry) cls : new ClassEntry(this, cls, getSrcNsEquivalent(cls));
 		ClassEntry ret = classesBySrcName.putIfAbsent(cls.getSrcName(), entry);
 
@@ -199,7 +285,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public ClassEntry removeClass(String srcName) {
+	public ClassMapping removeClass(String srcName) {
 		ClassEntry ret = classesBySrcName.remove(srcName);
 
 		if (ret != null && indexByDstNames) {
@@ -279,26 +365,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (newDstNamespaces > 0) {
 				int newSize = this.dstNamespaces.size();
-
-				for (ClassEntry cls : getClasses()) {
-					cls.resizeDstNames(newSize);
-
-					for (FieldEntry field : cls.getFields()) {
-						field.resizeDstNames(newSize);
-					}
-
-					for (MethodEntry method : cls.getMethods()) {
-						method.resizeDstNames(newSize);
-
-						for (MethodArgEntry arg : method.getArgs()) {
-							arg.resizeDstNames(newSize);
-						}
-
-						for (MethodVarEntry var : method.getVars()) {
-							var.resizeDstNames(newSize);
-						}
-					}
-				}
+				resizeDstNames(newSize);
 
 				if (indexByDstNames) {
 					classesByDstNames = Arrays.copyOf(classesByDstNames, newSize);
@@ -331,16 +398,16 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	public boolean visitClass(String srcName) {
 		currentMethod = null;
 
-		ClassEntry cls = getClass(srcName, srcNsMap);
+		ClassEntry cls = (ClassEntry) getClass(srcName, srcNsMap);
 
 		if (cls == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = currentClass = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown
+				cls = new ClassEntry(this, null);
+				cls.setDstName(srcName, srcNsMap);
+			} else {
+				cls = new ClassEntry(this, srcName);
+				classesBySrcName.put(srcName, cls);
 			}
-
-			cls = new ClassEntry(this, srcName);
-			classesBySrcName.put(srcName, cls);
 		}
 
 		currentEntry = currentClass = cls;
@@ -357,13 +424,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		FieldEntry field = currentClass.getField(srcName, srcDesc, srcNsMap);
 
 		if (field == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown, can't create new entry directly
+				field = (FieldEntry) queuePendingMember(srcName, srcDesc, true);
+			} else {
+				field = new FieldEntry(currentClass, srcName, srcDesc);
+				field = currentClass.addField(field);
 			}
-
-			field = new FieldEntry(currentClass, srcName, srcDesc);
-			field = currentClass.addField(field);
 		} else if (srcDesc != null && field.srcDesc == null) {
 			field.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
 		}
@@ -380,13 +446,12 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		MethodEntry method = currentClass.getMethod(srcName, srcDesc, srcNsMap);
 
 		if (method == null) {
-			if (srcNsMap >= 0) { // can't create new entry without src name
-				currentEntry = currentMethod = null;
-				return false;
+			if (srcNsMap >= 0) { // tree-side srcName unknown, can't create new entry directly
+				method = (MethodEntry) queuePendingMember(srcName, srcDesc, false);
+			} else {
+				method = new MethodEntry(currentClass, srcName, srcDesc);
+				method = currentClass.addMethod(method);
 			}
-
-			method = new MethodEntry(currentClass, srcName, srcDesc);
-			method = currentClass.addMethod(method);
 		} else if (srcDesc != null && (method.srcDesc == null || method.srcDesc.endsWith(")") && !srcDesc.endsWith(")"))) {
 			method.setSrcDesc(mapDesc(srcDesc, srcNsMap, SRC_NAMESPACE_ID)); // assumes the class mapping is already sufficiently present..
 		}
@@ -394,6 +459,58 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		currentEntry = currentMethod = method;
 
 		return true;
+	}
+
+	private MemberEntry<?> queuePendingMember(String name, String desc, boolean isField) {
+		if (pendingMembers == null) pendingMembers = new HashMap<>();
+		GlobalMemberKey key = new GlobalMemberKey(currentClass, name, desc, isField);
+		MemberEntry<?> member = pendingMembers.get(key);
+
+		if (member == null) {
+			if (isField) {
+				member = new FieldEntry(currentClass, null, desc);
+			} else {
+				member = new MethodEntry(currentClass, null, desc);
+			}
+
+			pendingMembers.put(key, member);
+		}
+
+		if (srcNsMap >= 0) {
+			member.setDstName(name, srcNsMap);
+		}
+
+		return member;
+	}
+
+	private void addPendingMember(MemberEntry<?> member) {
+		String name = member.getName(srcNsMap);
+
+		if (name == null) {
+			return;
+		}
+
+		String desc = member.getDesc(srcNsMap);
+
+		if (member.getKind() == MappedElementKind.FIELD) {
+			FieldEntry field = member.getOwner().getField(name, desc);
+
+			if (field == null) {
+				member.srcName = name;
+				member.setSrcDesc(desc);
+			} else { // copy remaining data
+				field.copyFrom((FieldEntry) member, false);
+			}
+		} else {
+			MethodEntry method = member.getOwner().getMethod(name, desc);
+
+			if (method == null) {
+				member.srcName = name;
+				member.setSrcDesc(desc);
+			} else { // copy remaining data
+				method.copyFrom((MethodEntry) member, false);
+			}
+		}
 	}
 
 	@Override
@@ -421,17 +538,17 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 		if (currentMethod == null) throw new UnsupportedOperationException("Tried to visit method variable before owning method");
 
-		MethodVarEntry var = currentMethod.getVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
+		MethodVarEntry var = currentMethod.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 
 		if (var == null) {
-			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, srcName);
+			var = new MethodVarEntry(currentMethod, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			var = currentMethod.addVar(var);
 		} else {
 			if (lvtRowIndex >= 0 && var.lvtRowIndex < 0) var.setLvtRowIndex(lvtRowIndex);
-			if (lvIndex >= 0 && startOpIdx >= 0 && (var.lvIndex < 0 || var.startOpIdx < 0)) var.setLvIndex(lvIndex, startOpIdx);
+			if (lvIndex >= 0 && startOpIdx >= 0 && (var.lvIndex < 0 || var.startOpIdx < 0)) var.setLvIndex(lvIndex, startOpIdx, endOpIdx);
 
 			if (srcName != null) {
 				assert !srcName.isEmpty();
@@ -450,7 +567,68 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		currentClass = null;
 		currentMethod = null;
 
+		if (pendingMembers != null) {
+			for (MemberEntry<?> member : pendingMembers.values()) {
+				addPendingMember(member);
+			}
+
+			pendingMembers = null;
+		}
+
+		if (hierarchyInfo != null) {
+			propagateNames(hierarchyInfo);
+		}
+
 		return true;
+	}
+
+	private <T> void propagateNames(HierarchyInfoProvider<T> provider) {
+		int nsId = getNamespaceId(provider.getNamespace());
+		if (nsId == NULL_NAMESPACE_ID) return;
+
+		Set<MethodEntry> processed = Collections.newSetFromMap(new IdentityHashMap<>());
+
+		for (ClassEntry cls : classesBySrcName.values()) {
+			for (MethodEntry method : cls.getMethods()) {
+				String name = method.getName(nsId);
+				if (name == null || name.startsWith("<")) continue; // missing name, <clinit> or <init>
+				if (!processed.add(method)) continue;
+
+				T hierarchy = provider.getMethodHierarchy(method);
+				if (provider.getHierarchySize(hierarchy) <= 1) continue;
+
+				Collection<? extends MethodMapping> hierarchyMethods = provider.getHierarchyMethods(hierarchy, this);
+				if (hierarchyMethods.size() <= 1) continue;
+
+				String[] dstNames = new String[dstNamespaces.size()];
+				int rem = dstNames.length;
+
+				nameGatherLoop: for (MethodMapping m : hierarchyMethods) {
+					for (int i = 0; i < dstNames.length; i++) {
+						if (dstNames[i] != null) continue;
+
+						String curName = m.getDstName(i);
+
+						if (curName != null) {
+							dstNames[i] = curName;
+							if (--rem == 0) break nameGatherLoop;
+						}
+					}
+				}
+
+				for (MethodMapping m : hierarchyMethods) {
+					processed.add((MethodEntry) m);
+
+					for (int i = 0; i < dstNames.length; i++) {
+						String curName = dstNames[i];
+
+						if (curName != null) {
+							m.setDstName(curName, i);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -462,22 +640,34 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		if (namespace < 0) {
 			if (name.equals(currentEntry.getSrcName())) return;
 
-			if (currentEntry instanceof MethodArgEntry) {
+			switch (currentEntry.getKind()) {
+			case CLASS:
+				assert currentClass == currentEntry;
+
+				if (currentClass.srcName == null) {
+					currentClass.srcName = name;
+				} else {
+					throw new UnsupportedOperationException("can't change src name for "+currentEntry.getKind());
+				}
+
+				break;
+			case METHOD_ARG:
 				((MethodArgEntry) currentEntry).setSrcName(name);
-			} else if (currentEntry instanceof MethodVarEntry) {
+				break;
+			case METHOD_VAR:
 				((MethodVarEntry) currentEntry).setSrcName(name);
-			} else {
-				throw new UnsupportedOperationException("can't change non-arg/var src name");
+				break;
+			default:
+				throw new UnsupportedOperationException("can't change src name for "+currentEntry.getKind());
 			}
 		} else {
 			currentEntry.setDstName(name, namespace);
-
-			if (indexByDstNames) {
-				if (targetKind == MappedElementKind.CLASS) {
-					classesByDstNames[namespace].put(name, currentClass);
-				}
-			}
 		}
+	}
+
+	@Override
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		return targetKind != MappedElementKind.CLASS || currentClass.getSrcName() != null; // reject classes that never received a src name
 	}
 
 	@Override
@@ -540,6 +730,20 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			dstNames = Arrays.copyOf(dstNames, newSize);
 		}
 
+		void updateDstNames(int[] map) {
+			String[] newDstNames = new String[map.length];
+
+			for (int i = 0; i < map.length; i++) {
+				int src = map[i];
+
+				if (src >= 0) {
+					newDstNames[i] = dstNames[src];
+				}
+			}
+
+			dstNames = newDstNames;
+		}
+
 		@Override
 		public final String getComment() {
 			return comment;
@@ -586,6 +790,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			if (o.comment != null && (replace || comment == null)) {
 				comment = o.comment;
 			}
+
+			// TODO: copy args+vars
 		}
 
 		protected String srcName;
@@ -1109,7 +1315,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 			if (vars == null) return null;
 
 			if (lvtRowIndex >= 0) {
@@ -1131,29 +1337,38 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				MethodVarEntry bestMatch = null;
 
 				for (MethodVarEntry entry : vars) {
+					// skip otherwise mismatched candidates
+					if (lvtRowIndex >= 0 && entry.lvtRowIndex >= 0 && lvtRowIndex != entry.lvtRowIndex // different lvtRowIndex
+							|| srcName != null && entry.srcName != null && !srcName.equals(entry.srcName)) { // different srcName
+						continue;
+					}
+
 					if (entry.lvIndex != lvIndex) {
 						if (entry.lvIndex < 0) hasMissing = true;
 						continue;
 					}
 
-					if (bestMatch == null) {
+					if (startOpIdx >= 0 && endOpIdx >= 0 && entry.startOpIdx >= 0 && entry.endOpIdx >= 0) { // full ranges on both
+						if (startOpIdx >= entry.endOpIdx || endOpIdx <= entry.startOpIdx) { // non-overlapping op idx ranges
+							continue;
+						} else { // full match
+							return entry;
+						}
+					}
+
+					if (endOpIdx >= 0 && entry.startOpIdx >= 0 && endOpIdx <= entry.startOpIdx
+							|| entry.endOpIdx >= 0 && startOpIdx >= 0 && entry.endOpIdx <= startOpIdx) {
+						// incompatible full range on one side
+						continue;
+					}
+
+					if (startOpIdx < 0 || startOpIdx == entry.startOpIdx) {
+						return entry;
+					}
+
+					if (bestMatch == null
+							|| entry.startOpIdx >= 0 && Math.abs(entry.startOpIdx - startOpIdx) < Math.abs(bestMatch.startOpIdx - startOpIdx)) {
 						bestMatch = entry;
-					} else {
-						int startOpDeltaImprovement;
-
-						if (startOpIdx < 0 || bestMatch.startOpIdx < 0 && entry.startOpIdx < 0) {
-							startOpDeltaImprovement = 0;
-						} else if (bestMatch.startOpIdx < 0) {
-							startOpDeltaImprovement = 1;
-						} else if (entry.startOpIdx < 0) {
-							startOpDeltaImprovement = -1;
-						} else {
-							startOpDeltaImprovement = Math.abs(bestMatch.startOpIdx - startOpIdx) - Math.abs(entry.startOpIdx - startOpIdx);
-						}
-
-						if (startOpDeltaImprovement > 0 || startOpDeltaImprovement == 0 && srcName != null && srcName.equals(entry.srcName) && !srcName.equals(bestMatch.srcName)) {
-							bestMatch = entry;
-						}
 					}
 				}
 
@@ -1176,7 +1391,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		@Override
 		public MethodVarEntry addVar(MethodVarMapping var) {
 			MethodVarEntry entry = var instanceof MethodVarEntry && var.getMethod() == this ? (MethodVarEntry) var : new MethodVarEntry(this, var, owner.tree.getSrcNsEquivalent(var));
-			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getSrcName());
+			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getEndOpIdx(), var.getSrcName());
 
 			if (prev == null) {
 				if (vars == null) vars = new ArrayList<>();
@@ -1192,15 +1407,15 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			if (toAdd.lvtRowIndex >= 0 && existing.lvtRowIndex < 0) existing.setLvtRowIndex(toAdd.lvtRowIndex);
 
 			if (toAdd.lvIndex >= 0 && toAdd.startOpIdx >= 0 && (existing.lvIndex < 0 || existing.startOpIdx < 0)) {
-				existing.setLvIndex(toAdd.lvIndex, toAdd.startOpIdx);
+				existing.setLvIndex(toAdd.lvIndex, toAdd.startOpIdx, toAdd.endOpIdx);
 			}
 
 			existing.copyFrom(toAdd, replace);
 		}
 
 		@Override
-		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
-			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, srcName);
+		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			if (ret != null) vars.remove(ret);
 
 			return ret;
@@ -1248,7 +1463,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 			if (o.vars != null) {
 				for (MethodVarEntry oVar : o.vars) {
-					MethodVarEntry var = getVar(oVar.lvtRowIndex, oVar.lvIndex, oVar.startOpIdx, oVar.srcName);
+					MethodVarEntry var = getVar(oVar.lvtRowIndex, oVar.lvIndex, oVar.startOpIdx, oVar.endOpIdx, oVar.srcName);
 
 					if (var == null) { // missing
 						addVar(oVar);
@@ -1350,13 +1565,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MethodVarEntry extends Entry<MethodVarEntry> implements MethodVarMapping {
-		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) {
+		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
 			super(method.owner.tree, srcName);
 
 			this.method = method;
 			this.lvtRowIndex = lvtRowIndex;
 			this.lvIndex = lvIndex;
 			this.startOpIdx = startOpIdx;
+			this.endOpIdx = endOpIdx;
 		}
 
 		MethodVarEntry(MethodEntry method, MethodVarMapping src, int srcNs) {
@@ -1366,6 +1582,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.lvtRowIndex = src.getLvtRowIndex();
 			this.lvIndex = src.getLvIndex();
 			this.startOpIdx = src.getStartOpIdx();
+			this.endOpIdx = src.getEndOpIdx();
 		}
 
 		@Override
@@ -1404,9 +1621,15 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public void setLvIndex(int lvIndex, int startOpIdx) {
+		public int getEndOpIdx() {
+			return endOpIdx;
+		}
+
+		@Override
+		public void setLvIndex(int lvIndex, int startOpIdx, int endOpIdx) {
 			this.lvIndex = lvIndex;
 			this.startOpIdx = startOpIdx;
+			this.endOpIdx = endOpIdx;
 		}
 
 		public void setSrcName(String name) {
@@ -1414,7 +1637,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		void accept(MappingVisitor visitor) throws IOException {
-			if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName)) {
+			if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName)) {
 				acceptElement(visitor, null);
 			}
 		}
@@ -1430,13 +1653,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 		@Override
 		public String toString() {
-			return String.format("%d/%d@%d:%s", lvtRowIndex, lvIndex, startOpIdx, srcName);
+			return String.format("%d/%d@%d-%d:%s", lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 		}
 
 		private final MethodEntry method;
 		private int lvtRowIndex;
 		private int lvIndex;
 		private int startOpIdx;
+		private int endOpIdx;
 	}
 
 	static final class MemberKey {
@@ -1475,16 +1699,56 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private final int hash;
 	}
 
+	static final class GlobalMemberKey {
+		GlobalMemberKey(ClassEntry owner, String name, String desc, boolean isField) {
+			this.owner = owner;
+			this.name = name;
+			this.desc = desc;
+			this.isField = isField;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null || obj.getClass() != GlobalMemberKey.class) return false;
+
+			GlobalMemberKey o = (GlobalMemberKey) obj;
+
+			return owner == o.owner && name.equals(o.name) && Objects.equals(desc, o.desc) && isField == o.isField;
+		}
+
+		@Override
+		public int hashCode() {
+			int ret = owner.hashCode() * 31 + name.hashCode();
+			if (desc != null) ret |= desc.hashCode();
+			if (isField) ret++;
+
+			return ret;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s.%s.%s", owner, name, desc);
+		}
+
+		private final ClassEntry owner;
+		private final String name;
+		private final String desc;
+		private final boolean isField;
+	}
+
 	private boolean indexByDstNames;
 	private String srcNamespace;
-	private List<String> dstNamespaces;
+	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
+
+	private HierarchyInfoProvider<?> hierarchyInfo;
 
 	private int srcNsMap;
 	private int[] dstNameMap;
 	private Entry<?> currentEntry;
 	private ClassEntry currentClass;
 	private MethodEntry currentMethod;
+	private Map<GlobalMemberKey, MemberEntry<?>> pendingMembers;
 }

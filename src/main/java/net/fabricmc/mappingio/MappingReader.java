@@ -118,6 +118,8 @@ public final class MappingReader {
 		}
 
 		if (format.hasNamespaces) {
+			checkReaderCompatible(format);
+
 			switch (format) {
 			case TINY_FILE:
 				return Tiny1FileReader.getNamespaces(reader);
@@ -173,6 +175,8 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
+		checkReaderCompatible(format);
+
 		switch (format) {
 		case TINY_FILE:
 			Tiny1FileReader.read(reader, visitor);
@@ -195,6 +199,12 @@ public final class MappingReader {
 			break;
 		default:
 			throw new IllegalStateException();
+		}
+	}
+
+	private static void checkReaderCompatible(MappingFormat format) throws IOException {
+		if (!format.hasSingleFile()) {
+			throw new IOException("can't read mapping format "+format.name+" using a Reader, use the Path based API");
 		}
 	}
 

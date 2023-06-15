@@ -84,7 +84,7 @@ public interface MappingVisitor {
 	boolean visitField(String srcName, String srcDesc) throws IOException;
 	boolean visitMethod(String srcName, String srcDesc) throws IOException;
 	boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException;
-	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, String srcName) throws IOException;
+	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException;
 
 	/**
 	 * Finish the visitation pass.
