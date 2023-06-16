@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,7 @@ public final class EnigmaDirReader {
 		List<Path> files = Files.walk(dir)
 				.filter(file -> !Files.isDirectory(file))
 				.filter(file -> file.toString().endsWith("." + DIR_FILE_EXT))
-				.toList();
+				.collect(Collectors.toList());
 
 		progressListener.forwarder.init(files.size(), "Reading Enigma directory");
 
