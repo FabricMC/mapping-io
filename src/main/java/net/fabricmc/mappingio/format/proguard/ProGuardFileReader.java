@@ -29,6 +29,9 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class ProGuardFileReader {
+	private ProGuardFileReader() {
+	}
+
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}

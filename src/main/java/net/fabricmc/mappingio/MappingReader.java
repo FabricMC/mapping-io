@@ -36,6 +36,9 @@ import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import net.fabricmc.mappingio.format.tsrg.TsrgFileReader;
 
 public final class MappingReader {
+	private MappingReader() {
+	}
+
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;

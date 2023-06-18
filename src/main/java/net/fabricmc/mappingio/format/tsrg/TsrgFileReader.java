@@ -30,6 +30,9 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 
 public final class TsrgFileReader {
+	private TsrgFileReader() {
+	}
+
 	public static List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, ' '));
 	}

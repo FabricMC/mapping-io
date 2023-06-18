@@ -19,6 +19,9 @@ package net.fabricmc.mappingio;
 import java.util.Map;
 
 public final class MappingUtil {
+	private MappingUtil() {
+	}
+
 	public static String mapDesc(String desc, Map<String, String> clsMap) {
 		return mapDesc(desc, 0, desc.length(), clsMap);
 	}
