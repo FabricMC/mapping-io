@@ -25,8 +25,9 @@ public abstract class ProgressListener {
 	}
 
 	/**
-	 * Sets the progress listener's total amount of steps and provides a name of the progressing job.
-	 * Set totalWork to -1 if you don't know how many steps there will be.
+	 * Sets the progress listener's total amount of steps and provides a name for the job.
+	 * If the total amount of steps isn't known beforehand, {@code totalWork} must be set to -1.
+	 * Can only be called once.
 	 */
 	protected abstract void init(int totalWork, String title);
 
@@ -42,9 +43,14 @@ public abstract class ProgressListener {
 
 	/**
 	 * Indicates that all steps have finished processing.
+	 * After that point, further method invocations are illegal.
 	 */
 	protected abstract void finish();
 
+	/**
+	 * Determines the granularity of progress reports the progress
+	 * listener wishes to receive.
+	 */
 	public enum LogLevel {
 		FILES,
 		CLASSES,
@@ -59,19 +65,33 @@ public abstract class ProgressListener {
 		}
 	}
 
+	/**
+	 * Class which forwards only applicable log levels to the passed receiver,
+	 * and automatically checks for illegal calls.
+	 */
 	public final class Forwarder extends ProgressListener {
 		private Forwarder(LogLevel logLevel, ProgressListener receiver) {
 			super(logLevel);
+
 			this.receiver = receiver;
 		}
 
 		@Override
 		public void init(int totalWork, String title) {
+			assertNotFinished();
+
+			if (initialized) {
+				throw new RuntimeException("Progress listener can only be initialized once!");
+			}
+
 			receiver.init(totalWork, title);
+			initialized = true;
 		}
 
 		@Override
 		public void startStep(LogLevel logLevel, @Nullable String stepName) {
+			assertNotFinished();
+
 			if (this.logLevel.allows(logLevel)) {
 				receiver.startStep(logLevel, stepName);
 			}
@@ -79,6 +99,8 @@ public abstract class ProgressListener {
 
 		@Override
 		public void updateMessage(LogLevel logLevel, @Nullable String stepName) {
+			assertNotFinished();
+
 			if (this.logLevel.allows(logLevel)) {
 				receiver.updateMessage(logLevel, stepName);
 			}
@@ -86,12 +108,25 @@ public abstract class ProgressListener {
 
 		@Override
 		public void finish() {
+			assertNotFinished();
 			receiver.finish();
+			finished = true;
+		}
+
+		private void assertNotFinished() {
+			if (finished) {
+				throw new RuntimeException("Illegal method invocation, progress listener has already finished!");
+			}
 		}
 
 		private final ProgressListener receiver;
+		private boolean initialized;
+		private boolean finished;
 	}
 
+	/**
+	 * No-op progress listener that ignores all events.
+	 */
 	public static final ProgressListener NOP = new ProgressListener(LogLevel.FILES) {
 		@Override
 		public void init(int totalWork, String title) {
@@ -109,6 +144,16 @@ public abstract class ProgressListener {
 		public void finish() {
 		}
 	};
+
+	/**
+	 * Finest log level the progress listener accepts.
+	 */
 	public final LogLevel logLevel;
+
+	/**
+	 * Public-facing progress listener interface for progress passers to interact with,
+	 * which automatically checks for illegal calls and only forwards the applicable
+	 * log levels to the actual {@link ProgressListener}.
+	 */
 	public final Forwarder forwarder;
 }

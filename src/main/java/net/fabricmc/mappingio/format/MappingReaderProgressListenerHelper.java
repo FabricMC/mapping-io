@@ -23,7 +23,7 @@ import net.fabricmc.mappingio.ProgressListener;
 import net.fabricmc.mappingio.ProgressListener.LogLevel;
 
 /**
- * Helper for MappingReaders which takes care of forwarding the current step to the progress listener.
+ * Helper for MappingReaders, which takes care of forwarding steps to the passed progress listener.
  */
 @ApiStatus.Internal
 public class MappingReaderProgressListenerHelper {
