@@ -41,6 +41,7 @@ public final class Tiny1FileWriter extends AbstractMappingWriter {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
+		super.visitNamespaces(srcNamespace, dstNamespaces);
 		dstNames = new String[dstNamespaces.size()];
 
 		write("v1\t");
@@ -109,16 +110,6 @@ public final class Tiny1FileWriter extends AbstractMappingWriter {
 		memberSrcDesc = srcDesc;
 
 		return true;
-	}
-
-	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		return false; // not supported, skip
-	}
-
-	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		return false; // not supported, skip
 	}
 
 	@Override

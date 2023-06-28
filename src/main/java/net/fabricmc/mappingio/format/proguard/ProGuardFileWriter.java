@@ -83,6 +83,8 @@ public final class ProGuardFileWriter extends AbstractMappingWriter {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
+		super.visitNamespaces(srcNamespace, dstNamespaces);
+
 		if (dstNamespaceString != null) {
 			dstNamespace = dstNamespaces.indexOf(dstNamespaceString);
 
