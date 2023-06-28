@@ -120,7 +120,7 @@ public final class EnigmaFileReader {
 				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor, progressHelper);
 				state = 0;
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb, progressHelper);
+				readComment(reader, commentSb);
 			} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD <name-a> [<name-b>] <desc-a> or field: FIELD <name-a> [<name-b>] <desc-a>
 				state = visitClass(srcClass, dstClass, state, commentSb, visitor);
 				visited = true;
@@ -191,7 +191,7 @@ public final class EnigmaFileReader {
 
 		while (reader.nextLine(indent + 2)) {
 			if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb, progressHelper);
+				readComment(reader, commentSb);
 			} else {
 				submitComment(MappedElementKind.METHOD, commentSb, visitor);
 
@@ -204,7 +204,6 @@ public final class EnigmaFileReader {
 						if (dstName == null) throw new IOException("missing var-name-b column in line "+reader.getLineNumber());
 						if (!dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 
-						progressHelper.readMethodArg(null, dstName);
 						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor, progressHelper);
 					}
 				}
@@ -220,16 +219,14 @@ public final class EnigmaFileReader {
 
 		while (reader.nextLine(indent + kind.level + 1)) {
 			if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
-				readComment(reader, commentSb, progressHelper);
+				readComment(reader, commentSb);
 			}
 		}
 
 		submitComment(kind, commentSb, visitor);
 	}
 
-	private static void readComment(ColumnFileReader reader, StringBuilder commentSb, MappingReaderProgressListenerHelper progressHelper) throws IOException {
-		progressHelper.readComment();
-
+	private static void readComment(ColumnFileReader reader, StringBuilder commentSb) throws IOException {
 		if (commentSb.length() > 0) commentSb.append('\n');
 		String comment = reader.nextCols(true);
 

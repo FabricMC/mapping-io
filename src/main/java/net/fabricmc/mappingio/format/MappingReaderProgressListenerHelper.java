@@ -52,20 +52,6 @@ public class MappingReaderProgressListenerHelper {
 		progressListener.forwarder.startStep(LogLevel.MEMBERS, "Reading method" + (name == null ? "" : ": " + name));
 	}
 
-	public void readMethodArg(@Nullable Integer pos, @Nullable String name) {
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Reading method arg"
-				+ (pos == null ? "" : " " + pos)
-				+ (name == null ? "" : ": " + name));
-	}
-
-	public void readMethodVar(@Nullable String name) {
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Reading method var" + (name == null ? "" : ": " + name));
-	}
-
-	public void readComment() {
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Reading comment");
-	}
-
 	public void readMetadata() {
 		if (!progressListenerInitialized) return;
 		progressListener.forwarder.startStep(LogLevel.MEMBERS, "Reading metadata");

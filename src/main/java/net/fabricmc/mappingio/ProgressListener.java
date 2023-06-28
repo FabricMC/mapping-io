@@ -48,8 +48,7 @@ public abstract class ProgressListener {
 	public enum LogLevel {
 		FILES,
 		CLASSES,
-		MEMBERS,
-		LOCALS_AND_COMMENTS;
+		MEMBERS;
 
 		public boolean allows(LogLevel logLevel) {
 			if (logLevel.compareTo(this) <= 0) {

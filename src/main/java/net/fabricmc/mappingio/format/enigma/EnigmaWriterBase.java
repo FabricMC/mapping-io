@@ -19,7 +19,6 @@ package net.fabricmc.mappingio.format.enigma;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -37,9 +36,6 @@ abstract class EnigmaWriterBase extends AbstractMappingWriter {
 	public Set<MappingFlag> getFlags() {
 		return flags;
 	}
-
-	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) { }
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
@@ -81,11 +77,6 @@ abstract class EnigmaWriterBase extends AbstractMappingWriter {
 		writer.write(Integer.toString(lvIndex));
 
 		return true;
-	}
-
-	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
-		return false;
 	}
 
 	@Override

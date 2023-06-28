@@ -18,6 +18,7 @@ package net.fabricmc.mappingio.format;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -30,7 +31,8 @@ import net.fabricmc.mappingio.ProgressListener.LogLevel;
  * A MappingWriter which automatically:
  * <ul>
  * <li>takes care of the underlying progress listener,</li>
- * <li>returns {@code true} or {@code false} for the visit methods, depending on whether the current format supports the operation, and</li>
+ * <li>returns {@code true} or {@code false} for the visit methods, depending on whether the current format supports the operation,</li>
+ * <li>stubs most other visit methods as well, so writers which don't support certain visits don't have empty methods cluttering the file, and</li>
  * <li>closes the writer in {@link #close()}.</li>
  * </ul>
  */
@@ -44,6 +46,10 @@ public abstract class AbstractMappingWriter implements MappingWriter {
 	}
 
 	@Override
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
+	}
+
+	@Override
 	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
 		int totalWork = 0;
 		if (progressListener.logLevel.allows(LogLevel.CLASSES) && classCount > 0) totalWork = classCount;
@@ -52,12 +58,6 @@ public abstract class AbstractMappingWriter implements MappingWriter {
 			if (fieldCount > 0) totalWork += fieldCount;
 			if (methodCount > 0) totalWork += methodCount;
 			if (metadataCount > 0) totalWork += metadataCount;
-		}
-
-		if (progressListener.logLevel.allows(LogLevel.LOCALS_AND_COMMENTS)) {
-			if (format.supportsArgs && methodArgCount > 0) totalWork += methodArgCount;
-			if (format.supportsLocals && methodArgCount > 0) totalWork += methodVarCount;
-			if (format.supportsComments && commentCount > 0) totalWork += commentCount;
 		}
 
 		progressListener.forwarder.init(totalWork > 0 ? totalWork : -1, taskTitle);
@@ -85,25 +85,16 @@ public abstract class AbstractMappingWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		if (!format.supportsArgs) return false;
-
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Writing method arg: " + srcName);
-		return true;
+		return format.supportsArgs;
 	}
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		if (!format.supportsLocals) return false;
-
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Writing method var: " + srcName);
-		return true;
+		return format.supportsLocals;
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		if (!format.supportsComments) return;
-
-		progressListener.forwarder.startStep(LogLevel.LOCALS_AND_COMMENTS, "Writing comment");
 	}
 
 	@Override

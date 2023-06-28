@@ -157,7 +157,7 @@ public final class Tiny2FileReader {
 					readMethod(reader, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.CLASS, visitor, progressHelper);
+				readComment(reader, MappedElementKind.CLASS, visitor);
 			}
 		}
 	}
@@ -174,7 +174,6 @@ public final class Tiny2FileReader {
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
-				progressHelper.readMethodArg(null, srcName);
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
 					readElement(reader, MappedElementKind.METHOD_ARG, dstNsCount, escapeNames, visitor, progressHelper);
@@ -188,13 +187,12 @@ public final class Tiny2FileReader {
 				String srcName = reader.nextCol(escapeNames);
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
-				progressHelper.readMethodVar(srcName);
 
 				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, -1, srcName)) {
 					readElement(reader, MappedElementKind.METHOD_VAR, dstNsCount, escapeNames, visitor, progressHelper);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.METHOD, visitor, progressHelper);
+				readComment(reader, MappedElementKind.METHOD, visitor);
 			}
 		}
 	}
@@ -206,14 +204,12 @@ public final class Tiny2FileReader {
 
 		while (reader.nextLine(kind.level + 1)) {
 			if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, kind, visitor, progressHelper);
+				readComment(reader, kind, visitor);
 			}
 		}
 	}
 
-	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind,
-			MappingVisitor visitor, MappingReaderProgressListenerHelper progressHelper) throws IOException {
-		progressHelper.readComment();
+	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
 		String comment = reader.nextEscapedCol();
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 

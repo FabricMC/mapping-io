@@ -143,18 +143,6 @@ public final class ProGuardFileWriter extends AbstractMappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		super.visitMethodArg(argPosition, lvIndex, srcName);
-		return false;
-	}
-
-	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
-		return false;
-	}
-
-	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		if (this.dstNamespace != namespace) {
 			return;

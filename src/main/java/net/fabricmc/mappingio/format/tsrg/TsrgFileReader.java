@@ -204,7 +204,6 @@ public final class TsrgFileReader {
 				String srcName = reader.nextCol();
 				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
-				progressHelper.readMethodArg(null, srcName);
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
 					readElement(reader, MappedElementKind.METHOD_ARG, 0, dstNsCount, visitor);
