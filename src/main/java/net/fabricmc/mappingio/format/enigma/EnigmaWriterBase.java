@@ -114,6 +114,7 @@ abstract class EnigmaWriterBase extends AbstractMappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		super.visitComment(targetKind, comment);
 		int start = 0;
 		int pos;
 
