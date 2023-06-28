@@ -1757,11 +1757,11 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
-	int fieldCount;
-	int methodCount;
-	int methodArgCount;
-	int methodVarCount;
-	int commentCount;
+	private int fieldCount;
+	private int methodCount;
+	private int methodArgCount;
+	private int methodVarCount;
+	private int commentCount;
 
 	private HierarchyInfoProvider<?> hierarchyInfo;
 
