@@ -40,6 +40,11 @@ public class MappingReaderProgressListenerHelper {
 		progressListener.forwarder.startStep(LogLevel.FILES, "Reading file" + (name == null ? "" : ": " + name));
 	}
 
+	public void readMetadata() {
+		if (!progressListenerInitialized) return;
+		progressListener.forwarder.startStep(LogLevel.CLASSES, "Reading metadata");
+	}
+
 	public void readClass(@Nullable String name) {
 		progressListener.forwarder.startStep(LogLevel.CLASSES, "Reading class" + (name == null ? "" : ": " + name));
 	}
@@ -50,11 +55,6 @@ public class MappingReaderProgressListenerHelper {
 
 	public void readMethod(@Nullable String name) {
 		progressListener.forwarder.startStep(LogLevel.MEMBERS, "Reading method" + (name == null ? "" : ": " + name));
-	}
-
-	public void readMetadata() {
-		if (!progressListenerInitialized) return;
-		progressListener.forwarder.startStep(LogLevel.MEMBERS, "Reading metadata");
 	}
 
 	public void finish() {

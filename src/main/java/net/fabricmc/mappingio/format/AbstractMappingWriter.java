@@ -52,17 +52,27 @@ public abstract class AbstractMappingWriter implements MappingWriter {
 	@Override
 	public boolean visitContent(int classCount, int fieldCount, int methodCount, int methodArgCount, int methodVarCount, int commentCount, int metadataCount) throws IOException {
 		int totalWork = 0;
-		if (progressListener.logLevel.allows(LogLevel.CLASSES) && classCount > 0) totalWork = classCount;
+
+		if (progressListener.logLevel.allows(LogLevel.CLASSES)) {
+			if (metadataCount > 0) totalWork += metadataCount;
+			if (classCount > 0) totalWork += classCount;
+		}
 
 		if (progressListener.logLevel.allows(LogLevel.MEMBERS)) {
 			if (fieldCount > 0) totalWork += fieldCount;
 			if (methodCount > 0) totalWork += methodCount;
-			if (metadataCount > 0) totalWork += metadataCount;
 		}
 
 		progressListener.forwarder.init(totalWork > 0 ? totalWork : -1, taskTitle);
 		progressListenerInitialized = true;
 		return true;
+	}
+
+	@Override
+	public void visitMetadata(String key, String value) throws IOException {
+		if (!progressListenerInitialized) return;
+
+		progressListener.forwarder.startStep(LogLevel.CLASSES, "Writing metadata");
 	}
 
 	@Override
@@ -95,13 +105,6 @@ public abstract class AbstractMappingWriter implements MappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-	}
-
-	@Override
-	public void visitMetadata(String key, String value) throws IOException {
-		if (!progressListenerInitialized) return;
-
-		progressListener.forwarder.startStep(LogLevel.MEMBERS, "Writing metadata");
 	}
 
 	@Override
