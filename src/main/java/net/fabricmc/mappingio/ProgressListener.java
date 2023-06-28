@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ProgressListener {
@@ -48,8 +49,7 @@ public abstract class ProgressListener {
 	protected abstract void finish();
 
 	/**
-	 * Determines the granularity of progress reports the progress
-	 * listener wishes to receive.
+	 * Determines the granularity of progress reports the progress listener wishes to receive.
 	 */
 	public enum LogLevel {
 		FILES,
@@ -69,6 +69,7 @@ public abstract class ProgressListener {
 	 * Class which forwards only applicable log levels to the passed receiver,
 	 * and automatically checks for illegal calls.
 	 */
+	@ApiStatus.Internal
 	public final class Forwarder extends ProgressListener {
 		private Forwarder(LogLevel logLevel, ProgressListener receiver) {
 			super(logLevel);
@@ -155,5 +156,6 @@ public abstract class ProgressListener {
 	 * which automatically checks for illegal calls and only forwards the applicable
 	 * log levels to the actual {@link ProgressListener}.
 	 */
+	@ApiStatus.Internal
 	public final Forwarder forwarder;
 }
