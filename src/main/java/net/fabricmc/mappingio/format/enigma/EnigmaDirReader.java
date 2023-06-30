@@ -27,6 +27,9 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class EnigmaDirReader {
+	private EnigmaDirReader() {
+	}
+
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {
 		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}

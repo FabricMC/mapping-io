@@ -43,6 +43,9 @@ import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 
 public final class ClassAnalysisDescCompleter {
+	private ClassAnalysisDescCompleter() {
+	}
+
 	public static void process(Path path, String namespace, MappingTree mappingTree) throws IOException {
 		AnalyzingVisitor visitor = new AnalyzingVisitor(namespace, mappingTree);
 
