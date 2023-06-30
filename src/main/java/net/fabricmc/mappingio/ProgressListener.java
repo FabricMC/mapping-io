@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ProgressListener {
 	protected ProgressListener(LogLevel logLevel) {
 		this.logLevel = logLevel;
-		this.forwarder = new Forwarder(logLevel, this);
+		this.forwarder = this instanceof Forwarder ? (Forwarder) this : new Forwarder(logLevel, this);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public abstract class ProgressListener {
 		public void init(int totalWork, String title) {
 			assertNotFinished();
 
-			if (initialized) {
+			if (initialized && receiver != NOP) {
 				throw new RuntimeException("Progress listener can only be initialized once!");
 			}
 
@@ -115,7 +115,7 @@ public abstract class ProgressListener {
 		}
 
 		private void assertNotFinished() {
-			if (finished) {
+			if (finished && receiver != NOP) {
 				throw new RuntimeException("Illegal method invocation, progress listener has already finished!");
 			}
 		}
