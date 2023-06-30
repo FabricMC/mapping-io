@@ -21,6 +21,9 @@ package net.fabricmc.mappingio.format.tiny;
  * Internally, trees use the lowest common denominator.
  */
 public final class TinyProperties {
+	private TinyProperties() {
+	}
+
 	// Tiny v1
 	static final String intermediaryCounter = "# INTERMEDIARY COUNTER";
 	public static final String NEXT_INTERMEDIARY_CLASS = intermediaryCounter + " class";
