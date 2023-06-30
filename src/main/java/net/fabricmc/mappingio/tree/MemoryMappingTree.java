@@ -35,7 +35,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public final class MemoryMappingTree implements MappingTree, MappingVisitor {
+public final class MemoryMappingTree implements VisitableMappingTree {
 	public MemoryMappingTree() {
 		this(false);
 	}
@@ -251,7 +251,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	@Override
 	public ClassMapping getClass(String name, int namespace) {
 		if (namespace < 0 || !indexByDstNames) {
-			return MappingTree.super.getClass(name, namespace);
+			return VisitableMappingTree.super.getClass(name, namespace);
 		} else {
 			return classesByDstNames[namespace].get(name);
 		}
