@@ -25,6 +25,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 public final class Tiny2FileReader {
 	private Tiny2FileReader() {
@@ -89,16 +92,21 @@ public final class Tiny2FileReader {
 			if (visitHeader || firstIteration) {
 				while (reader.nextLine(1)) {
 					if (!visitHeader) {
-						if (!escapeNames && reader.nextCol(TinyProperties.ESCAPED_NAMES)) {
+						if (!escapeNames && reader.nextCol(StandardProperties.ESCAPED_NAMES.getNameFor(format))) {
 							escapeNames = true;
 						}
 					} else {
 						String key = reader.nextCol();
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
 						String value = reader.nextEscapedCol(); // may be missing -> null
+						StandardProperty property = StandardProperties.getByName(key);
 
-						if (key.equals(TinyProperties.ESCAPED_NAMES)) {
-							escapeNames = true;
+						if (property != null) {
+							key = property.getId();
+
+							if (property == StandardProperties.ESCAPED_NAMES) {
+								escapeNames = true;
+							}
 						}
 
 						visitor.visitMetadata(key, value);
@@ -215,4 +223,6 @@ public final class Tiny2FileReader {
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
+
+	private static final MappingFormat format = MappingFormat.TINY_2_FILE;
 }
