@@ -45,6 +45,7 @@ dependencies {
 spotless {
 	java {
 		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+		targetExclude 'src/main/java/net/fabricmc/mappingio/libs/**/*.java'
 	}
 }
 
