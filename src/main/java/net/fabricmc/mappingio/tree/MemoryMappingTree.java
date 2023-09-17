@@ -1714,6 +1714,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		@Override
 		public boolean equals(Object other) {
+			if (other == this) return true;
+
 			if (!(other instanceof MetadataEntry)) {
 				return false;
 			}
@@ -1721,6 +1723,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			MetadataEntry entry = (MetadataEntry) other;
 
 			return this.key.equals(entry.key) && this.value.equals(entry.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return key.hashCode() | value.hashCode();
 		}
 
 		final String key;
