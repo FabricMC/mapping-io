@@ -16,9 +16,13 @@
 
 package net.fabricmc.mappingio;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
 
 public final class TestHelper {
 	public static Path getResource(String slashPrefixedResourcePath) {
@@ -27,5 +31,11 @@ public final class TestHelper {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
+		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
+		tree.accept(writer);
+		writer.close();
 	}
 }

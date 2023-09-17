@@ -34,7 +34,7 @@ public class DetectionTest {
 	}
 
 	@Test
-	public void enigma() throws Exception {
+	public void enigmaFile() throws Exception {
 		assertEquals(MappingFormat.ENIGMA_FILE, MappingReader.detectFormat(dir.resolve("enigma.mappings")));
 	}
 
@@ -44,12 +44,12 @@ public class DetectionTest {
 	}
 
 	@Test
-	public void tiny() throws Exception {
+	public void tinyFile() throws Exception {
 		assertEquals(MappingFormat.TINY_FILE, MappingReader.detectFormat(dir.resolve("tiny.tiny")));
 	}
 
 	@Test
-	public void tinyV2() throws Exception {
+	public void tinyV2File() throws Exception {
 		assertEquals(MappingFormat.TINY_2_FILE, MappingReader.detectFormat(dir.resolve("tinyV2.tiny")));
 	}
 }
