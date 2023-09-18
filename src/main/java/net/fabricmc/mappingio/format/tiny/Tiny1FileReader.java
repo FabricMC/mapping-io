@@ -157,7 +157,7 @@ public final class Tiny1FileReader {
 								key = property.getId();
 							}
 
-							visitor.visitMetadata(key, value, true);
+							visitor.visitMetadata(key, value);
 						}
 					}
 				}

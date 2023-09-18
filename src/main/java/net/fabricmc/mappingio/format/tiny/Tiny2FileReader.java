@@ -110,7 +110,7 @@ public final class Tiny2FileReader {
 							}
 						}
 
-						visitor.visitMetadata(key, value, true);
+						visitor.visitMetadata(key, value);
 					}
 				}
 			}

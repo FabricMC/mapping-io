@@ -61,7 +61,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
+	public void visitMetadata(String key, String value) throws IOException {
 		StandardProperty property = StandardProperties.getById(key);
 
 		if (property != null) {
