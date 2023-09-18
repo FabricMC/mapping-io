@@ -101,7 +101,7 @@ public final class Tiny2FileReader {
 							escapeNames = true;
 						}
 
-						visitor.visitMetadata(key, value, true);
+						visitor.visitMetadata(key, value);
 					}
 				}
 			}
