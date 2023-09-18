@@ -53,8 +53,8 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
-		next.visitMetadata(key, value, overrideExisting);
+	public void visitMetadata(String key, String value) throws IOException {
+		next.visitMetadata(key, value);
 	}
 
 	@Override

@@ -127,8 +127,8 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
-		if (classMapReady && relayHeaderOrMetadata) next.visitMetadata(key, value, overrideExisting);
+	public void visitMetadata(String key, String value) throws IOException {
+		if (classMapReady && relayHeaderOrMetadata) next.visitMetadata(key, value);
 	}
 
 	@Override

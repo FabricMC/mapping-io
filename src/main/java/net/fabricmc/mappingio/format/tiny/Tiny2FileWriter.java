@@ -59,7 +59,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
+	public void visitMetadata(String key, String value) throws IOException {
 		if (key.equals(Tiny2Util.escapedNamesProperty)) {
 			escapeNames = true;
 			wroteEscapedNamesProperty = true;
