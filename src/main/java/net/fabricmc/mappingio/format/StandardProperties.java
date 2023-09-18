@@ -37,37 +37,37 @@ public final class StandardProperties {
 
 	static {
 		NEXT_INTERMEDIARY_CLASS = register(
-				"next-intermediary-class",
-				new HashMap<MappingFormat, String>() {{
+			"next-intermediary-class",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER class");
 					put(MappingFormat.TINY_2_FILE, "next-intermediary-class");
 				}});
 		NEXT_INTERMEDIARY_FIELD = register(
-				"next-intermediary-field",
-				new HashMap<MappingFormat, String>() {{
+			"next-intermediary-field",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER field");
 					put(MappingFormat.TINY_2_FILE, "next-intermediary-field");
 				}});
 		NEXT_INTERMEDIARY_METHOD = register(
-				"next-intermediary-method",
-				new HashMap<MappingFormat, String>() {{
+			"next-intermediary-method",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER method");
 					put(MappingFormat.TINY_2_FILE, "next-intermediary-method");
 				}});
 		NEXT_INTERMEDIARY_COMPONENT = register(
-				"next-intermediary-component",
-				new HashMap<MappingFormat, String>() {{
+			"next-intermediary-component",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER component");
 					put(MappingFormat.TINY_2_FILE, "next-intermediary-component");
 				}});
 		MISSING_LVT_INDICES = register(
-				"missing-lvt-indices",
-				new HashMap<MappingFormat, String>() {{
+			"missing-lvt-indices",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_2_FILE, "missing-lvt-indices");
 				}});
 		ESCAPED_NAMES = register(
-				"escaped-names",
-				new HashMap<MappingFormat, String>() {{
+			"escaped-names",
+			new HashMap<MappingFormat, String>() {{
 					put(MappingFormat.TINY_2_FILE, "escaped-names");
 				}});
 	}
