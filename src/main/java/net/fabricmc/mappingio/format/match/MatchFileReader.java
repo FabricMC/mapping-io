@@ -24,6 +24,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.StandardProperties;
 
 public class MatchFileReader {
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
@@ -131,7 +132,7 @@ public class MatchFileReader {
 				if (srcArgPos < 0 || dstArgPos < 0) throw new IOException("missing/invalid method arg position in line "+reader.getLineNumber());
 
 				if (visitor.visitMethodArg(srcArgPos, -1, null)) {
-					// TODO: Implement once per-element metadata is supported
+					visitor.visitElementMetadata(MappedElementKind.METHOD_ARG, StandardProperties.PARAM_DEST_POS.getId(), 0, String.valueOf(dstArgPos));
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, MappedElementKind.METHOD, visitor);

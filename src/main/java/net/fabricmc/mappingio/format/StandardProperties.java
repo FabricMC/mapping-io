@@ -56,6 +56,7 @@ public final class StandardProperties {
 	public static final StandardProperty IS_STATIC;
 	public static final StandardProperty START_LINE_NUMBER;
 	public static final StandardProperty END_LINE_NUMBER;
+	public static final StandardProperty PARAM_DEST_POS;
 	private static final Set<StandardProperty> values = new HashSet<>();
 	private static final Map<String, StandardProperty> valuesByName = new HashMap<>();
 	private static final Map<String, StandardProperty> valuesById = new HashMap<>();
@@ -131,6 +132,12 @@ public final class StandardProperties {
 			new HashMap<Entry<MappingFormat, MappedElementKind>, String>() {{
 					put(new SimpleEntry<>(MappingFormat.PROGUARD_FILE, MappedElementKind.FIELD), null);
 					put(new SimpleEntry<>(MappingFormat.PROGUARD_FILE, MappedElementKind.FIELD), null);
+				}});
+		PARAM_DEST_POS = register(
+			"parameter-destination-position",
+			Collections.emptyMap(),
+			new HashMap<Entry<MappingFormat, MappedElementKind>, String>() {{
+					put(new SimpleEntry<>(MappingFormat.MATCH_FILE, MappedElementKind.METHOD_ARG), null);
 				}});
 	}
 
