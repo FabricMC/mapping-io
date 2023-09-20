@@ -52,52 +52,58 @@ public final class StandardProperties {
 	private static final Map<String, StandardProperty> valuesById = new HashMap<>();
 
 	static {
-		NEXT_INTERMEDIARY_CLASS = register(
-			"next-intermediary-class",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER class");
-					put(MappingFormat.TINY_2_FILE, "next-intermediary-class");
-				}});
-		NEXT_INTERMEDIARY_FIELD = register(
-			"next-intermediary-field",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER field");
-					put(MappingFormat.TINY_2_FILE, "next-intermediary-field");
-				}});
-		NEXT_INTERMEDIARY_METHOD = register(
-			"next-intermediary-method",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER method");
-					put(MappingFormat.TINY_2_FILE, "next-intermediary-method");
-				}});
-		NEXT_INTERMEDIARY_COMPONENT = register(
-			"next-intermediary-component",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER component");
-					put(MappingFormat.TINY_2_FILE, "next-intermediary-component");
-				}});
-		MISSING_LVT_INDICES = register(
-			"missing-lvt-indices",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_2_FILE, "missing-lvt-indices");
-				}});
-		ESCAPED_NAMES = register(
-			"escaped-names",
-			new HashMap<MappingFormat, String>() {{
-					put(MappingFormat.TINY_2_FILE, "escaped-names");
-				}});
+		NEXT_INTERMEDIARY_CLASS = builder("next-intermediary-class")
+				.add(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER class")
+				.add(MappingFormat.TINY_2_FILE, "next-intermediary-class")
+				.build();
+		NEXT_INTERMEDIARY_FIELD = builder("next-intermediary-field")
+				.add(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER field")
+				.add(MappingFormat.TINY_2_FILE, "next-intermediary-field")
+				.build();
+		NEXT_INTERMEDIARY_METHOD = builder("next-intermediary-method")
+				.add(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER method")
+				.add(MappingFormat.TINY_2_FILE, "next-intermediary-method")
+				.build();
+		NEXT_INTERMEDIARY_COMPONENT = builder("next-intermediary-component")
+				.add(MappingFormat.TINY_FILE, "INTERMEDIARY_COUNTER component")
+				.add(MappingFormat.TINY_2_FILE, "next-intermediary-component")
+				.build();
+		MISSING_LVT_INDICES = builder("missing-lvt-indices")
+				.add(MappingFormat.TINY_2_FILE, "missing-lvt-indices")
+				.build();
+		ESCAPED_NAMES = builder("escaped-names")
+				.add(MappingFormat.TINY_2_FILE, "escaped-names")
+				.build();
 	}
 
-	private static StandardProperty register(String id, Map<MappingFormat, String> nameByFormat) {
-		StandardProperty ret = new StandardPropertyImpl(id, nameByFormat);
-		values.add(ret);
-		valuesById.put(id, ret);
+	private static PropertyBuilder builder(String id) {
+		return new PropertyBuilder(id);
+	}
 
-		for (String name : nameByFormat.values()) {
-			valuesByName.putIfAbsent(name, ret);
+	private static class PropertyBuilder {
+		PropertyBuilder(String id) {
+			this.id = id;
 		}
 
-		return ret;
+		PropertyBuilder add(MappingFormat format, String name) {
+			nameByFormat.put(format, name);
+			return this;
+		}
+
+		StandardProperty build() {
+			StandardProperty ret = new StandardPropertyImpl(id, new HashMap<>(nameByFormat));
+			values.add(ret);
+			valuesById.put(id, ret);
+
+			for (String name : nameByFormat.values()) {
+				valuesByName.putIfAbsent(name, ret);
+			}
+
+			return ret;
+		}
+
+		private final String id;
+		private final Map<MappingFormat, String> nameByFormat = new HashMap<>(4);
 	}
 
 	private static class StandardPropertyImpl implements StandardProperty {
