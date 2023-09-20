@@ -655,7 +655,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String propertyKey, int namespace, String propertyValue) {
+		getCurrentEntry(targetKind).addMetadata(propertyKey, namespace, propertyValue);
+	}
+
+	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) {
+		getCurrentEntry(targetKind).setComment(comment);
+	}
+
+	private Entry<?> getCurrentEntry(MappedElementKind targetKind) {
 		Entry<?> entry;
 
 		switch (targetKind) {
@@ -670,7 +679,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		if (entry == null) throw new UnsupportedOperationException("Tried to visit comment before owning target");
-		entry.setComment(comment);
+		return entry;
 	}
 
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
@@ -729,6 +738,33 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		public Collection<Map.Entry<String, String[]>> getMetadata() {
+			return Collections.unmodifiableSet(metadata.entrySet());
+		}
+
+		@Override
+		public String[] getMetadata(String key) {
+			return metadata.get(key);
+		}
+
+		@Override
+		public String getMetadata(String key, int namespace) {
+			return metadata.get(key)[namespace];
+		}
+
+		@Override
+		public void addMetadata(String key, int namespace, String value) {
+			String[] values = metadata.getOrDefault(key, new String[dstNames.length + 1]);
+			values[namespace] = value;
+			metadata.put(key, values);
+		}
+
+		@Override
+		public String[] removeMetadata(String key) {
+			return metadata.remove(key);
+		}
+
+		@Override
 		public final String getComment() {
 			return comment;
 		}
@@ -778,6 +814,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			// TODO: copy args+vars
 		}
 
+		private final Map<String, String[]> metadata = new HashMap<>();
 		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;

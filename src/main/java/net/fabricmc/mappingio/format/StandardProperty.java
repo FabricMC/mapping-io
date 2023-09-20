@@ -16,14 +16,25 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import net.fabricmc.mappingio.MappedElementKind;
+
 public interface StandardProperty {
+	boolean isFileProperty();
+	boolean isElementProperty();
+
 	Set<MappingFormat> getApplicableFormats();
+	Map<MappingFormat, MappedElementKind> getApplicableElementKinds();
+
 	boolean isApplicableTo(MappingFormat format);
+	boolean isApplicableTo(MappingFormat format, MappedElementKind elementKind);
+
 	String getNameFor(MappingFormat format);
+	String getNameFor(MappingFormat format, MappedElementKind elementKind);
 
 	/**
 	 * Used internally by MappingTrees, consistency between JVM sessions

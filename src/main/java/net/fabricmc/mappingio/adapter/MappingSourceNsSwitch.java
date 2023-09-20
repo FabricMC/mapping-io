@@ -300,6 +300,17 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 		return relay;
 	}
 
+	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String key, int namespace, String value) throws IOException {
+		if (namespace == newSourceNs) {
+			namespace = -1;
+		} else if (namespace == -1) {
+			namespace = newSourceNs;
+		}
+
+		next.visitElementMetadata(targetKind, key, namespace, value);
+	}
+
 	private final String newSourceNsName;
 	private final boolean dropMissingNewSrcName;
 

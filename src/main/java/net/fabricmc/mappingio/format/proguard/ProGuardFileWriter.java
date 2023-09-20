@@ -18,6 +18,7 @@ package net.fabricmc.mappingio.format.proguard;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +26,8 @@ import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 /**
  * A mapping writer for the ProGuard mapping format.
@@ -36,8 +39,11 @@ import net.fabricmc.mappingio.MappingWriter;
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
-	private int dstNamespace = -1;
 	private final String dstNamespaceString;
+	private int dstNamespace = -1;
+	private MappedElementKind pendingMemberType;
+	/** srcName, srcDesc, dstName, [lineStart, lineEnd]. */
+	private String[] pendingMemberData = new String[5];
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -103,6 +109,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		writePendingMember();
+
 		writer.write(toJavaClassName(srcName));
 		writeArrow();
 		return true;
@@ -110,34 +118,21 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
-		writeIndent();
-		writer.write(toJavaType(srcDesc));
-		writer.write(' ');
-		writer.write(srcName);
-		writeArrow();
+		writePendingMember();
+
+		pendingMemberType = MappedElementKind.FIELD;
+		pendingMemberData[0] = srcName;
+		pendingMemberData[1] = srcDesc;
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
-		Type type = Type.getMethodType(srcDesc);
-		writeIndent();
-		writer.write(toJavaType(type.getReturnType().getDescriptor()));
-		writer.write(' ');
-		writer.write(srcName);
-		writer.write('(');
-		Type[] args = type.getArgumentTypes();
+		writePendingMember();
 
-		for (int i = 0; i < args.length; i++) {
-			if (i > 0) {
-				writer.write(',');
-			}
-
-			writer.write(toJavaType(args[i].getDescriptor()));
-		}
-
-		writer.write(')');
-		writeArrow();
+		pendingMemberType = MappedElementKind.METHOD;
+		pendingMemberData[0] = srcName;
+		pendingMemberData[1] = srcDesc;
 		return true;
 	}
 
@@ -162,16 +157,83 @@ public final class ProGuardFileWriter implements MappingWriter {
 		if (targetKind == MappedElementKind.CLASS) {
 			writer.write(toJavaClassName(name));
 			writer.write(':');
+			writer.write('\n');
 		} else {
-			writer.write(name);
+			pendingMemberData[2] = name;
 		}
+	}
 
-		writer.write('\n');
+	@Override
+	public void visitElementMetadata(MappedElementKind target, String key, int namespace, String value) {
+		assert target == pendingMemberType;
+		StandardProperty property = StandardProperties.getById(key);
+
+		if (property == StandardProperties.START_LINE_NUMBER) {
+			pendingMemberData[3] = value;
+		} else if (property == StandardProperties.END_LINE_NUMBER) {
+			pendingMemberData[4] = value;
+		}
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		// ignored
+	}
+
+	@Override
+	public boolean visitEnd() throws IOException {
+		writePendingMember();
+		return true;
+	}
+
+	private void writePendingMember() throws IOException {
+		if (pendingMemberType == null) return;
+		String srcName = pendingMemberData[0];
+		String srcDesc = pendingMemberData[1];
+		String startLine = pendingMemberData[2];
+		String endLine = pendingMemberData[3];
+
+		writeIndent();
+
+		if (startLine != null) {
+			writer.write(startLine);
+			writer.write(':');
+			writer.write(endLine);
+			writer.write(':');
+		}
+
+		if (pendingMemberType == MappedElementKind.FIELD) {
+			writer.write(toJavaType(srcDesc));
+			writer.write(' ');
+			writer.write(srcName);
+			writeArrow();
+		} else {
+			Type type = Type.getMethodType(srcDesc);
+			writer.write(toJavaType(type.getReturnType().getDescriptor()));
+			writer.write(' ');
+			writer.write(srcName);
+			writer.write('(');
+			Type[] args = type.getArgumentTypes();
+
+			for (int i = 0; i < args.length; i++) {
+				if (i > 0) {
+					writer.write(',');
+				}
+
+				writer.write(toJavaType(args[i].getDescriptor()));
+			}
+
+			writer.write(')');
+			writeArrow();
+		}
+
+		if (pendingMemberData[2] != null) {
+			writer.write(pendingMemberData[2]);
+			writer.write('\n');
+		}
+
+		Arrays.fill(pendingMemberData, null);
+		pendingMemberType = null;
 	}
 
 	private void writeArrow() throws IOException {

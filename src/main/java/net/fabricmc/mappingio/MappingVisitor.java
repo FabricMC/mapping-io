@@ -27,11 +27,11 @@ import java.util.Set;
  * <ul><li>overall: header -> content -> End -> overall
  * <li>header: Header -> Namespaces [-> Metadata]*
  * <li>content: Content [-> class|Metadata]*
- * <li>class: Class [-> DstName]* -> ElementContent [-> field|method|Comment]*
- * <li>field: Field [-> DstName|DstDesc]* -> ElementContent [-> Comment]
- * <li>method: Method [-> DstName|DstDesc]* -> ElementContent [-> arg|var|Comment]*
- * <li>arg: Arg [-> DstName]* -> ElementContent [-> Comment]
- * <li>var: Var [-> DstName]* -> ElementContent [-> Comment]
+ * <li>class: Class [-> DstName]* -> ElementContent [-> ElementMetadata|field|method|Comment]*
+ * <li>field: Field [-> DstName|DstDesc]* -> ElementContent [-> ElementMetadata|Comment]*
+ * <li>method: Method [-> DstName|DstDesc]* -> ElementContent [-> ElementMetadata|arg|var|Comment]*
+ * <li>arg: Arg [-> DstName]* -> ElementContent [-> ElementMetadata|Comment]*
+ * <li>var: Var [-> DstName]* -> ElementContent [-> ElementMetadata|Comment]*
  * </ul>
  *
  * <p>The elements with a skip-return (Header/Content/Class/Field/Method/Arg/Var/ElementContent) abort processing the
@@ -117,6 +117,11 @@ public interface MappingVisitor {
 	default boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		return true;
 	}
+
+	/**
+	 * Metadata for the specified element (last content-visited or any parent).
+	 */
+	default void visitElementMetadata(MappedElementKind targetKind, String key, int namespace, String value) throws IOException { }
 
 	/**
 	 * Comment for the specified element (last content-visited or any parent).

@@ -18,7 +18,9 @@ package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.fabricmc.mappingio.FlatMappingVisitor;
@@ -75,7 +77,8 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitClass(String srcName) {
+	public boolean visitClass(String srcName) throws IOException {
+		relayPendingElementMetadata();
 		this.srcClsName = srcName;
 
 		Arrays.fill(dstNames, null);
@@ -85,7 +88,8 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		relayPendingElementMetadata();
 		this.srcMemberName = srcName;
 		this.srcMemberDesc = srcDesc;
 
@@ -97,7 +101,8 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		relayPendingElementMetadata();
 		this.srcMemberName = srcName;
 		this.srcMemberDesc = srcDesc;
 
@@ -109,7 +114,8 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+		relayPendingElementMetadata();
 		this.srcMemberSubName = srcName;
 		this.argIdx = argPosition;
 		this.lvIndex = lvIndex;
@@ -120,7 +126,8 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+		relayPendingElementMetadata();
 		this.srcMemberSubName = srcName;
 		this.argIdx = lvtRowIndex;
 		this.lvIndex = lvIndex;
@@ -134,6 +141,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 
 	@Override
 	public boolean visitEnd() throws IOException {
+		relayPendingElementMetadata();
 		return next.visitEnd();
 	}
 
@@ -149,6 +157,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		currentElementKind = targetKind;
 		boolean relay;
 
 		switch (targetKind) {
@@ -182,7 +191,16 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String key, int namespace, String value) {
+		String[] values = elementMetadata.getOrDefault(key, new String[dstNames.length + 1]);
+		values[namespace] = value;
+		elementMetadata.put(key, values);
+	}
+
+	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		relayPendingElementMetadata();
+
 		switch (targetKind) {
 		case CLASS:
 			next.visitClassComment(srcClsName, dstClassNames, comment);
@@ -206,8 +224,46 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		}
 	}
 
-	private final FlatMappingVisitor next;
+	private void relayPendingElementMetadata() throws IOException {
+		if (elementMetadata.isEmpty()) return;
 
+		for (Map.Entry<String, String[]> entry : elementMetadata.entrySet()) {
+			String key = entry.getKey();
+			String[] values = entry.getValue();
+
+			switch (currentElementKind) {
+			case CLASS:
+				next.visitClassMetadata(srcClsName, dstClassNames, key, values);
+				break;
+			case FIELD:
+				next.visitFieldMetadata(srcClsName, srcMemberName, srcMemberDesc,
+						dstClassNames, dstMemberNames, dstMemberDescs, key, values);
+				break;
+			case METHOD:
+				next.visitMethodMetadata(srcClsName, srcMemberName, srcMemberDesc,
+						dstClassNames, dstMemberNames, dstMemberDescs, key, values);
+				break;
+			case METHOD_ARG:
+				next.visitMethodArgMetadata(srcClsName, srcMemberName, srcMemberDesc, argIdx, lvIndex, srcMemberSubName,
+						dstClassNames, dstMemberNames, dstMemberDescs, dstNames, key, values);
+				break;
+			case METHOD_VAR:
+				next.visitMethodVarMetadata(srcClsName, srcMemberName, srcMemberDesc, argIdx, lvIndex, startOpIdx, endOpIdx, srcMemberSubName,
+						dstClassNames, dstMemberNames, dstMemberDescs, dstNames, key, values);
+				break;
+			default:
+				throw new IllegalStateException();
+			}
+		}
+
+		elementMetadata.clear();
+		currentElementKind = null;
+	}
+
+	private final FlatMappingVisitor next;
+	private final LinkedHashMap<String, String[]> elementMetadata = new LinkedHashMap<>();
+
+	private MappedElementKind currentElementKind;
 	private String srcClsName;
 	private String srcMemberName;
 	private String srcMemberDesc;

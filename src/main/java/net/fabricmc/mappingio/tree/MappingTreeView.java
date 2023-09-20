@@ -206,6 +206,9 @@ public interface MappingTreeView {
 			}
 		}
 
+		Collection<Entry<String, String[]>> getMetadata();
+		String[] getMetadata(String key);
+		String getMetadata(String key, int namespace);
 		String getComment();
 	}
 
