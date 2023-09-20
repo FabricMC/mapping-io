@@ -28,6 +28,8 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.tree.MappingTree;
 
 public final class TsrgFileReader {
 	private TsrgFileReader() {
@@ -185,8 +187,8 @@ public final class TsrgFileReader {
 		while (reader.nextLine(2)) {
 			if (reader.hasExtraIndents()) continue;
 
-			if (reader.nextCol("static")) {
-				// method is static
+			if (reader.nextCol("static")) { // method is static
+				visitor.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.IS_STATIC.getId(), MappingTree.SRC_NAMESPACE_ID, "true");
 			} else {
 				int lvIndex = reader.nextIntCol();
 				if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());

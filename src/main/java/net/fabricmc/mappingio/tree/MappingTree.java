@@ -82,11 +82,46 @@ public interface MappingTree extends MappingTreeView {
 	interface MetadataEntry extends MetadataEntryView {
 	}
 
+	interface ElementMetadataEntry extends ElementMetadataEntryView {
+	}
+
 	interface ElementMapping extends ElementMappingView {
 		@Override
 		MappingTree getTree();
 
 		void setDstName(String name, int namespace);
+
+		/**
+		 * @return A modifiable list of all metadata entries currently associated with the element.
+		 * The list's order is equal to the order in which the entries have been originally added.
+		 */
+		@Override
+		List<? extends ElementMetadataEntry> getMetadata();
+
+		/**
+		 * @return An unmodifiable list of all metadata entries currently associated with the element
+		 * whose key is equal to the passed one.
+		 * The list's order is equal to the order in which the entries have been originally added.
+		 */
+		@Override
+		List<? extends ElementMetadataEntry> getMetadata(String key);
+
+		/**
+		 * @return An unmodifiable list of all metadata entries currently associated with the element
+		 * whose key and namespace are equal to the passed ones.
+		 * The list's order is equal to the order in which the entries have been originally added.
+		 */
+		@Override
+		List<? extends ElementMetadataEntry> getMetadata(String key, int namespace);
+
+		void addMetadata(ElementMetadataEntry entry);
+
+		/**
+		 * Removes all metadata entries whose key is equal to the passed one.
+		 * @return Whether or not any entries have been removed.
+		 */
+		boolean removeMetadata(String key);
+
 		void setComment(String comment);
 	}
 

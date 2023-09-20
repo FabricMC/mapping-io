@@ -17,6 +17,7 @@
 package net.fabricmc.mappingio;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,11 @@ public class WriteTest {
 	@Test
 	public void tinyV2File() throws Exception {
 		write(MappingFormat.TINY_2_FILE);
+	}
+
+	@Test
+	public void proguardFile() throws Exception {
+		write(MappingFormat.PROGUARD_FILE);
 	}
 
 	private void write(MappingFormat format) throws Exception {

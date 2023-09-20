@@ -679,7 +679,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String propertyKey, int namespace, String propertyValue) {
+		getCurrentEntry(targetKind).visitMetadata(propertyKey, namespace, propertyValue);
+	}
+
+	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) {
+		getCurrentEntry(targetKind).setComment(comment);
+	}
+
+	private Entry<?> getCurrentEntry(MappedElementKind targetKind) {
 		Entry<?> entry;
 
 		switch (targetKind) {
@@ -693,8 +702,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			entry = currentEntry;
 		}
 
-		if (entry == null) throw new UnsupportedOperationException("Tried to visit comment before owning target");
-		entry.setComment(comment);
+		if (entry == null) throw new UnsupportedOperationException("Tried to visit element content before owning target");
+		return entry;
 	}
 
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
@@ -736,6 +745,18 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		void resizeDstNames(int newSize) {
 			dstNames = Arrays.copyOf(dstNames, newSize);
+
+			for (ElementMetadataEntry entry : metadata) {
+				String[] resizedValues = Arrays.copyOf(entry.getValues(), newSize);
+
+				if (entry instanceof ElementMetadataEntryImpl) {
+					ElementMetadataEntryImpl impl = (ElementMetadataEntryImpl) entry;
+					impl.values = resizedValues;
+				} else {
+					metadata.add(metadata.indexOf(entry), new ElementMetadataEntryImpl(entry.getKey(), resizedValues));
+					metadata.remove(entry);
+				}
+			}
 		}
 
 		void updateDstNames(int[] map) {
@@ -750,6 +771,72 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			}
 
 			dstNames = newDstNames;
+		}
+
+		@Override
+		public List<? extends ElementMetadataEntry> getMetadata() {
+			return metadata;
+		}
+
+		@Override
+		public List<? extends ElementMetadataEntry> getMetadata(String key) {
+			return Collections.unmodifiableList(metadata.stream()
+					.filter(entry -> entry.getKey().equals(key))
+					.collect(Collectors.toList()));
+		}
+
+		@Override
+		public List<? extends ElementMetadataEntry> getMetadata(String key, int namespace) {
+			return Collections.unmodifiableList(metadata.stream()
+					.filter(entry -> entry.getKey().equals(key))
+					.filter(entry -> entry.getValue(namespace) != null)
+					.collect(Collectors.toList()));
+		}
+
+		@Override
+		public void addMetadata(ElementMetadataEntry entry) {
+			ElementMetadataEntry lastEntry;
+
+			if (metadata.isEmpty() || !(lastEntry = metadata.get(metadata.size() - 1)).getKey().equals(entry.getKey())) {
+				metadata.add(entry);
+				return;
+			}
+
+			for (int i = -1; i < entry.getValues().length - 1; i++) {
+				lastEntry = mergeMetadata(entry.getKey(), i, entry.getValue(i), lastEntry);
+			}
+		}
+
+		void visitMetadata(String key, int namespace, String value) {
+			ElementMetadataEntry lastEntry;
+
+			if (metadata.isEmpty() || !(lastEntry = metadata.get(metadata.size() - 1)).getKey().equals(key)) {
+				String[] values = new String[dstNames.length + 1];
+				values[namespace + 1] = value;
+				metadata.add(new ElementMetadataEntryImpl(key, values));
+				return;
+			}
+
+			mergeMetadata(key, namespace, value, lastEntry);
+		}
+
+		private ElementMetadataEntry mergeMetadata(String key, int namespace, String value, ElementMetadataEntry lastEntry) {
+			String[] values = lastEntry.getValues();
+
+			if (lastEntry.getValue(namespace) != null) {
+				// Can't merge, create new entry
+				values = new String[dstNames.length + 1];
+				lastEntry = new ElementMetadataEntryImpl(key, values);
+				metadata.add(lastEntry);
+			}
+
+			values[namespace + 1] = value;
+			return lastEntry;
+		}
+
+		@Override
+		public boolean removeMetadata(String key) {
+			return metadata.removeIf(entry -> entry.getKey().equals(key));
 		}
 
 		@Override
@@ -783,6 +870,44 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				return false;
 			}
 
+			List<ElementMetadataEntry> metadataToVisit = metadata;
+
+			if (visitor.getFlags().contains(MappingFlag.NEEDS_UNIQUENESS)) {
+				metadataToVisit = new LinkedList<>();
+				Set<String> addedKeys = new HashSet<>();
+
+				// Iterate last-to-first to construct a list of each key's latest occurrence.
+				for (int i = metadata.size() - 1; i >= 0; i--) {
+					ElementMetadataEntry entry = metadata.get(i);
+
+					if (!addedKeys.contains(entry.getKey())) {
+						addedKeys.add(entry.getKey());
+						metadataToVisit.add(0, entry);
+					}
+				}
+			}
+
+			String lastKey = null;
+			String[] lastValues = null;
+
+			for (ElementMetadataEntry entry : metadataToVisit) {
+				String[] values = entry.getValues();
+
+				for (int ns = -1; ns < values.length - 1; ns++) {
+					if (entry.getKey().equals(lastKey)) {
+						if (values[ns+1] == null && lastValues != null) {
+							// Fill in holes
+							values[ns+1] = lastValues[ns+1];
+						}
+					} else {
+						lastKey = entry.getKey();
+					}
+
+					lastValues = values;
+					visitor.visitElementMetadata(kind, entry.getKey(), ns, entry.getValue(ns));
+				}
+			}
+
 			if (comment != null) visitor.visitComment(kind, comment);
 
 			return true;
@@ -802,6 +927,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			// TODO: copy args+vars
 		}
 
+		private final List<ElementMetadataEntry> metadata = new ArrayList<>();
 		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;
@@ -1743,6 +1869,47 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		final String key;
 		final String value;
+	}
+
+	static final class ElementMetadataEntryImpl implements ElementMetadataEntry {
+		ElementMetadataEntryImpl(String key, String[] values) {
+			this.key = key;
+			this.values = values;
+		}
+
+		@Override
+		public String getKey() {
+			return key;
+		}
+
+		@Override
+		public String[] getValues() {
+			return values;
+		}
+
+		public String getValue(int namespace) {
+			return values[namespace + 1];
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other == this) return true;
+
+			if (!(other instanceof ElementMetadataEntryImpl)) {
+				return false;
+			}
+
+			ElementMetadataEntryImpl entry = (ElementMetadataEntryImpl) other;
+			return this.key.equals(entry.key) && this.values.equals(entry.values);
+		}
+
+		@Override
+		public int hashCode() {
+			return key.hashCode() | values.hashCode();
+		}
+
+		final String key;
+		String[] values;
 	}
 
 	static final class GlobalMemberKey {

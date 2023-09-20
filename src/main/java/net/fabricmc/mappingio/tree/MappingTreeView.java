@@ -186,6 +186,16 @@ public interface MappingTreeView {
 		String getValue();
 	}
 
+	interface ElementMetadataEntryView {
+		String getKey();
+
+		/**
+		 * @return Values by namespace, offset by +1 (value for namespace x is at index x+1).
+		 */
+		String[] getValues();
+		String getValue(int namespace);
+	}
+
 	interface ElementMappingView {
 		MappingTreeView getTree();
 
@@ -210,6 +220,9 @@ public interface MappingTreeView {
 			}
 		}
 
+		List<? extends ElementMetadataEntryView> getMetadata();
+		List<? extends ElementMetadataEntryView> getMetadata(String key);
+		List<? extends ElementMetadataEntryView> getMetadata(String key, int namespace);
 		String getComment();
 	}
 

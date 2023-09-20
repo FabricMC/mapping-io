@@ -16,13 +16,17 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
+
+import net.fabricmc.mappingio.MappedElementKind;
 
 public final class StandardProperties {
 	private StandardProperties() {
@@ -47,6 +51,10 @@ public final class StandardProperties {
 	public static final StandardProperty NEXT_INTERMEDIARY_COMPONENT;
 	public static final StandardProperty MISSING_LVT_INDICES;
 	public static final StandardProperty ESCAPED_NAMES;
+	public static final StandardProperty MODIFIED_ACCESS;
+	public static final StandardProperty IS_STATIC;
+	public static final StandardProperty START_LINE_NUMBER;
+	public static final StandardProperty END_LINE_NUMBER;
 	private static final Set<StandardProperty> values = new HashSet<>();
 	private static final Map<String, StandardProperty> valuesByName = new HashMap<>();
 	private static final Map<String, StandardProperty> valuesById = new HashMap<>();
@@ -68,6 +76,19 @@ public final class StandardProperties {
 				.addMapping(MappingFormat.TINY_2_FILE, "missing-lvt-indices");
 		ESCAPED_NAMES = register("escaped-names")
 				.addMapping(MappingFormat.TINY_2_FILE, "escaped-names");
+		MODIFIED_ACCESS = register("modified-access")
+				.addMapping(MappingFormat.ENIGMA_FILE, MappedElementKind.CLASS, "ACC:")
+				.addMapping(MappingFormat.ENIGMA_FILE, MappedElementKind.FIELD, "ACC:")
+				.addMapping(MappingFormat.ENIGMA_FILE, MappedElementKind.METHOD, "ACC:")
+				.addMapping(MappingFormat.ENIGMA_DIR, MappedElementKind.CLASS, "ACC:")
+				.addMapping(MappingFormat.ENIGMA_DIR, MappedElementKind.FIELD, "ACC:")
+				.addMapping(MappingFormat.ENIGMA_DIR, MappedElementKind.METHOD, "ACC:");
+		IS_STATIC = register("is-static")
+				.addMapping(MappingFormat.TSRG_2_FILE, MappedElementKind.METHOD, "static");
+		START_LINE_NUMBER = register("start-line-number")
+				.addMapping(MappingFormat.PROGUARD_FILE, MappedElementKind.METHOD, null);
+		END_LINE_NUMBER = register("end-line-number")
+				.addMapping(MappingFormat.PROGUARD_FILE, MappedElementKind.METHOD, null);
 	}
 
 	private static StandardPropertyImpl register(String id) {
@@ -82,24 +103,56 @@ public final class StandardProperties {
 		}
 
 		private StandardPropertyImpl addMapping(MappingFormat format, String name) {
-			nameByFormat.put(format, name);
+			filePropNameByFormat.put(format, name);
+			valuesByName.put(name, this);
+			return this;
+		}
+
+		private StandardPropertyImpl addMapping(MappingFormat format, MappedElementKind elementKind, String name) {
+			propElementKindByFormat.put(format, elementKind);
+			elementPropNameByFormat.put(new SimpleEntry<>(format, elementKind), name);
 			valuesByName.put(name, this);
 			return this;
 		}
 
 		@Override
+		public boolean isFileProperty() {
+			return !filePropNameByFormat.isEmpty();
+		}
+
+		@Override
+		public boolean isElementProperty() {
+			return !elementPropNameByFormat.isEmpty();
+		}
+
+		@Override
 		public Set<MappingFormat> getApplicableFormats() {
-			return nameByFormat.keySet();
+			return filePropNameByFormat.keySet();
+		}
+
+		@Override
+		public Map<MappingFormat, MappedElementKind> getApplicableElementKinds() {
+			return propElementKindByFormat;
 		}
 
 		@Override
 		public boolean isApplicableTo(MappingFormat format) {
-			return nameByFormat.containsKey(format);
+			return filePropNameByFormat.containsKey(format);
+		}
+
+		@Override
+		public boolean isApplicableTo(MappingFormat format, MappedElementKind elementKind) {
+			return elementPropNameByFormat.containsKey(new SimpleEntry<>(format, elementKind));
 		}
 
 		@Override
 		public String getNameFor(MappingFormat format) {
-			return nameByFormat.get(format);
+			return filePropNameByFormat.get(format);
+		}
+
+		@Override
+		public String getNameFor(MappingFormat format, MappedElementKind elementKind) {
+			return elementPropNameByFormat.get(new SimpleEntry<>(format, elementKind));
 		}
 
 		@Override
@@ -108,6 +161,8 @@ public final class StandardProperties {
 		}
 
 		private final String id;
-		private final Map<MappingFormat, String> nameByFormat = new HashMap<>(4);
+		private final Map<MappingFormat, String> filePropNameByFormat = new HashMap<>(4);
+		private final Map<Entry<MappingFormat, MappedElementKind>, String> elementPropNameByFormat = new HashMap<>(4);
+		private final Map<MappingFormat, MappedElementKind> propElementKindByFormat = new HashMap<>(4);
 	}
 }

@@ -108,6 +108,11 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String key, int namespace, String value) throws IOException {
+		next.visitElementMetadata(targetKind, key, namespace, value);
+	}
+
+	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		next.visitComment(targetKind, comment);
 	}

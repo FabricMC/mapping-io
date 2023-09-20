@@ -27,6 +27,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.StandardProperties;
 
 public final class ProGuardFileReader {
 	private ProGuardFileReader() {
@@ -115,6 +116,8 @@ public final class ProGuardFileReader {
 							// lineStart, lineEndIncl, rtype
 							String part0 = parts[0];
 							int pos = part0.indexOf(':');
+							String lineStart = null;
+							String lineEnd = null;
 
 							String retType;
 
@@ -124,6 +127,8 @@ public final class ProGuardFileReader {
 								int pos2 = part0.indexOf(':', pos + 1);
 								assert pos2 != -1;
 
+								lineStart = part0.substring(0, pos);
+								lineEnd = part0.substring(pos + 1, pos2);
 								retType = part0.substring(pos2 + 1);
 							}
 
@@ -141,7 +146,11 @@ public final class ProGuardFileReader {
 								if (visitor.visitMethod(name, desc)) {
 									String mappedName = parts[3];
 									visitor.visitDstName(MappedElementKind.METHOD, 0, mappedName);
-									visitor.visitElementContent(MappedElementKind.METHOD);
+
+									if (visitor.visitElementContent(MappedElementKind.METHOD) && lineStart != null) {
+										visitor.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.START_LINE_NUMBER.getId(), 0, lineStart);
+										visitor.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.END_LINE_NUMBER.getId(), 0, lineEnd);
+									}
 								}
 							}
 						}

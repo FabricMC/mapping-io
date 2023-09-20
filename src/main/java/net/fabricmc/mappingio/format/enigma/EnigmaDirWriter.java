@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
@@ -58,6 +59,11 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 				}
 			});
 		}
+	}
+
+	@Override
+	protected MappingFormat getFormat() {
+		return MappingFormat.ENIGMA_DIR;
 	}
 
 	@Override
@@ -128,16 +134,9 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 
 				writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			}
-
-			writeMismatchedOrMissingClasses();
-		} else if (targetKind == MappedElementKind.FIELD || targetKind == MappedElementKind.METHOD) {
-			writer.write(' ');
-			writer.write(desc);
-			writer.write('\n');
-		} else {
-			writer.write('\n');
 		}
 
+		super.visitElementContent(targetKind);
 		return true;
 	}
 

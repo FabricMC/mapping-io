@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -41,17 +42,22 @@ public final class TestHelper {
 
 		tree.visitClass("class_1");
 		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1");
+		tree.visitElementMetadata(MappedElementKind.CLASS, StandardProperties.MODIFIED_ACCESS.getId(), 0, "public");
 
 		tree.visitField("field_1", "I");
 		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField");
+		tree.visitElementMetadata(MappedElementKind.FIELD, StandardProperties.MODIFIED_ACCESS.getId(), 0, "protected");
 
 		tree.visitMethod("method_1", "(F)I");
 		tree.visitDstName(MappedElementKind.METHOD, 0, "renamedMethod");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.MODIFIED_ACCESS.getId(), 0, "private");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.START_LINE_NUMBER.getId(), 0, "20");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.END_LINE_NUMBER.getId(), 0, "25");
 
 		tree.visitMethodArg(0, 0, "param_1");
 		tree.visitDstName(MappedElementKind.METHOD_ARG, 0, "renamedParameter");
 
-		tree.visitMethodVar(0, 0, 0, 0, "param_1");
+		tree.visitMethodVar(0, 0, 0, 0, "var_1");
 		tree.visitDstName(MappedElementKind.METHOD_VAR, 0, "renamedVariable");
 
 		tree.visitClass("class_1$class_2");
