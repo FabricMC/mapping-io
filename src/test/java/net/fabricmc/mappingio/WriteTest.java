@@ -52,8 +52,14 @@ public class WriteTest {
 		tree.visitMethodVar(0, 0, 0, 0, "param_1");
 		tree.visitDstName(MappedElementKind.METHOD_VAR, 0, "renamedVariable");
 
-		tree.visitClass("class_2");
-		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass2");
+		tree.visitClass("class_1$class_2");
+		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1$RenamedInnerClass2");
+
+		tree.visitField("field_1", "I");
+		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField2");
+
+		tree.visitClass("class_3");
+		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass3");
 	}
 
 	@Test
