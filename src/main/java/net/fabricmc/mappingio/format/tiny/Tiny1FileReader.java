@@ -138,7 +138,7 @@ public final class Tiny1FileReader {
 					} else {
 						String line = reader.nextCol();
 
-						if (line.startsWith("#") && line.length() >= 4) { // Metadata
+						if (line.startsWith("# ") && line.length() >= 3 && line.charAt(3) != ' ') { // Metadata
 							line = line.substring(2);
 							String[] parts = line.split(" ");
 							String value = parts[parts.length - 1];
