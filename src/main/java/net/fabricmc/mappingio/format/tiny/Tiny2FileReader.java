@@ -102,6 +102,7 @@ public final class Tiny2FileReader {
 						StandardProperty property = StandardProperties.getByName(key);
 
 						if (property != null) {
+							if (!property.isApplicableTo(format)) continue; // How did it get there?
 							key = property.getId();
 
 							if (property == StandardProperties.ESCAPED_NAMES) {
