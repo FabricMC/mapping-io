@@ -57,8 +57,8 @@ public interface MappingTreeView {
 		return getDstNamespaces().get(id);
 	}
 
-	Collection<Entry<String, String>> getMetadata();
-	String getMetadata(String key);
+	List<Entry<String, String>> getMetadata();
+	List<String> getMetadata(String key);
 
 	Collection<? extends ClassMappingView> getClasses();
 	ClassMappingView getClass(String srcName);
