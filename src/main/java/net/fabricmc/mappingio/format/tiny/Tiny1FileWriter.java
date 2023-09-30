@@ -61,7 +61,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
+	public void visitMetadata(String key, String value) throws IOException {
 		StandardProperty property = StandardProperties.getById(key);
 
 		if (property != null) {
@@ -181,7 +181,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 		writer.write('\t');
 	}
 
-	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 	private static final MappingFormat format = MappingFormat.TINY_FILE;
 
 	private final Writer writer;
