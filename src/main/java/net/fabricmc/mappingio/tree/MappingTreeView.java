@@ -184,12 +184,6 @@ public interface MappingTreeView {
 	interface MetadataEntryView {
 		String getKey();
 		String getValue();
-
-		/**
-		 * @return Whether or not existing entries with the same key
-		 * should get deleted once this entry gets added.
-		 */
-		boolean overridesExisting();
 	}
 
 	interface ElementMappingView {

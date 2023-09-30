@@ -58,7 +58,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
+	public void visitMetadata(String key, String value) throws IOException {
 		switch (key) {
 		case Tiny1FileReader.nextIntermediaryClassProperty:
 		case Tiny1FileReader.nextIntermediaryFieldProperty:
@@ -190,7 +190,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 		writer.write('\t');
 	}
 
-	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
 	private String classSrcName;

@@ -154,7 +154,7 @@ public final class Tiny1FileReader {
 							}
 
 							if (property != null) {
-								visitor.visitMetadata(property, parts[1], true);
+								visitor.visitMetadata(property, parts[1]);
 							}
 						}
 					}

@@ -59,8 +59,8 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) throws IOException {
-		next.visitMetadata(key, value, overrideExisting);
+	public void visitMetadata(String key, String value) throws IOException {
+		next.visitMetadata(key, value);
 	}
 
 	@Override

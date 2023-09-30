@@ -22,8 +22,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -217,10 +219,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public void addMetadata(MetadataEntryView entry) {
-		if (entry.overridesExisting()) {
-			removeMetadata(entry.getKey());
-		}
-
 		metadata.add(entry);
 	}
 
@@ -292,11 +290,29 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	@Override
 	public void accept(MappingVisitor visitor, VisitOrder order) throws IOException {
 		do {
+			boolean needsUniqueness = visitor.getFlags().contains(MappingFlag.NEEDS_UNIQUENESS);
+
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
+				List<MetadataEntryView> metadataToVisit = metadata;
 
-				for (MetadataEntryView entry : metadata) {
-					visitor.visitMetadata(entry.getKey(), entry.getValue(), entry.overridesExisting());
+				if (needsUniqueness) {
+					metadataToVisit = new LinkedList<>();
+					Set<String> addedKeys = new HashSet<>();
+
+					// Iterate last-to-first to construct a list of each key's latest occurrence.
+					for (int i = metadata.size() - 1; i >= 0; i--) {
+						MetadataEntryView entry = metadata.get(i);
+
+						if (!addedKeys.contains(entry.getKey())) {
+							addedKeys.add(entry.getKey());
+							metadataToVisit.add(0, entry);
+						}
+					}
+				}
+
+				for (MetadataEntryView entry : metadataToVisit) {
+					visitor.visitMetadata(entry.getKey(), entry.getValue());
 				}
 			}
 
@@ -381,8 +397,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value, boolean overrideExisting) {
-		MetadataEntry entry = new MetadataEntry(key, value, overrideExisting);
+	public void visitMetadata(String key, String value) {
+		MetadataEntry entry = new MetadataEntry(key, value);
 		addMetadata(entry);
 	}
 
@@ -1692,10 +1708,9 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	static final class MetadataEntry implements MetadataEntryView {
-		MetadataEntry(String key, String value, boolean overrideExisting) {
+		MetadataEntry(String key, String value) {
 			this.key = key;
 			this.value = value;
-			this.overrideExisting = overrideExisting;
 		}
 
 		@Override
@@ -1706,11 +1721,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		@Override
 		public String getValue() {
 			return value;
-		}
-
-		@Override
-		public boolean overridesExisting() {
-			return overrideExisting;
 		}
 
 		@Override
@@ -1733,7 +1743,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		final String key;
 		final String value;
-		final boolean overrideExisting;
 	}
 
 	static final class GlobalMemberKey {
