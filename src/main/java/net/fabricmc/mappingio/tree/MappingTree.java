@@ -28,7 +28,7 @@ public interface MappingTree extends MappingTreeView {
 	 * The list's order is equal to the order in which the entries have been originally added.
 	 */
 	@Override
-	List<? extends MetadataEntryView> getMetadata();
+	List<? extends MetadataEntry> getMetadata();
 
 	/**
 	 * @return An unmodifiable list of all metadata entries currently present
@@ -36,9 +36,9 @@ public interface MappingTree extends MappingTreeView {
 	 * The list's order is equal to the order in which the entries have been originally added.
 	 */
 	@Override
-	List<? extends MetadataEntryView> getMetadata(String key);
+	List<? extends MetadataEntry> getMetadata(String key);
 
-	void addMetadata(MetadataEntryView entry);
+	void addMetadata(MetadataEntry entry);
 
 	/**
 	 * Removes all metadata entries whose key is equal to the passed one.
@@ -77,6 +77,9 @@ public interface MappingTree extends MappingTreeView {
 	@Override
 	default MethodMapping getMethod(String ownerName, String name, String desc, int namespace) {
 		return (MethodMapping) MappingTreeView.super.getMethod(ownerName, name, desc, namespace);
+	}
+
+	interface MetadataEntry extends MetadataEntryView {
 	}
 
 	interface ElementMapping extends ElementMappingView {
