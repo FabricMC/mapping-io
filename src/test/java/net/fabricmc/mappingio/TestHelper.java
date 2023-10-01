@@ -20,9 +20,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
 import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class TestHelper {
 	public static Path getResource(String slashPrefixedResourcePath) {
@@ -31,6 +34,42 @@ public final class TestHelper {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static MemoryMappingTree createTestTree() {
+		MemoryMappingTree tree = new MemoryMappingTree();
+		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
+
+		tree.visitClass("class_1");
+		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1");
+		tree.visitElementMetadata(MappedElementKind.CLASS, StandardProperties.MODIFIED_ACCESS.getId(), 0, "public");
+
+		tree.visitField("field_1", "I");
+		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField");
+		tree.visitElementMetadata(MappedElementKind.FIELD, StandardProperties.MODIFIED_ACCESS.getId(), 0, "protected");
+
+		tree.visitMethod("method_1", "(F)I");
+		tree.visitDstName(MappedElementKind.METHOD, 0, "renamedMethod");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.MODIFIED_ACCESS.getId(), 0, "private");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.START_LINE_NUMBER.getId(), 0, "20");
+		tree.visitElementMetadata(MappedElementKind.METHOD, StandardProperties.END_LINE_NUMBER.getId(), 0, "25");
+
+		tree.visitMethodArg(0, 0, "param_1");
+		tree.visitDstName(MappedElementKind.METHOD_ARG, 0, "renamedParameter");
+
+		tree.visitMethodVar(0, 0, 0, 0, "var_1");
+		tree.visitDstName(MappedElementKind.METHOD_VAR, 0, "renamedVariable");
+
+		tree.visitClass("class_1$class_2");
+		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1$RenamedInnerClass");
+
+		tree.visitField("field_1", "I");
+		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField2");
+
+		tree.visitClass("class_3");
+		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass2");
+
+		return tree;
 	}
 
 	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {

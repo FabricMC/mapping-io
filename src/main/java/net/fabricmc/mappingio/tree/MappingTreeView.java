@@ -19,7 +19,6 @@ package net.fabricmc.mappingio.tree;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
@@ -57,8 +56,8 @@ public interface MappingTreeView {
 		return getDstNamespaces().get(id);
 	}
 
-	Collection<Entry<String, String>> getMetadata();
-	String getMetadata(String key);
+	List<? extends MetadataEntryView> getMetadata();
+	List<? extends MetadataEntryView> getMetadata(String key);
 
 	Collection<? extends ClassMappingView> getClasses();
 	ClassMappingView getClass(String srcName);
@@ -182,6 +181,21 @@ public interface MappingTreeView {
 		return ret.toString();
 	}
 
+	interface MetadataEntryView {
+		String getKey();
+		String getValue();
+	}
+
+	interface ElementMetadataEntryView {
+		String getKey();
+
+		/**
+		 * @return Values by namespace, offset by +1 (value for namespace x is at index x+1).
+		 */
+		String[] getValues();
+		String getValue(int namespace);
+	}
+
 	interface ElementMappingView {
 		MappingTreeView getTree();
 
@@ -206,6 +220,9 @@ public interface MappingTreeView {
 			}
 		}
 
+		List<? extends ElementMetadataEntryView> getMetadata();
+		List<? extends ElementMetadataEntryView> getMetadata(String key);
+		List<? extends ElementMetadataEntryView> getMetadata(String key, int namespace);
 		String getComment();
 	}
 

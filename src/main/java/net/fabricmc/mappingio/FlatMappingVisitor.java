@@ -57,16 +57,23 @@ public interface FlatMappingVisitor {
 	}
 
 	boolean visitClass(String srcName, String[] dstNames) throws IOException;
+	void visitClassMetadata(String srcName, String[] dstNames, String propertyKey, String[] propertyValues) throws IOException;
 	void visitClassComment(String srcName, String[] dstNames, String comment) throws IOException;
 
 	boolean visitField(String srcClsName, String srcName, String srcDesc,
 			String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException;
+	void visitFieldMetadata(String srcClsName, String srcName, String srcDesc,
+			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+			String propertyKey, String[] propertyValues) throws IOException;
 	void visitFieldComment(String srcClsName, String srcName, String srcDesc,
 			String[] dstClsNames, String[] dstNames, String[] dstDescs,
 			String comment) throws IOException;
 
 	boolean visitMethod(String srcClsName, String srcName, String srcDesc,
 			String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException;
+	void visitMethodMetadata(String srcClsName, String srcName, String srcDesc,
+			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+			String propertyKey, String[] propertyValues) throws IOException;
 	void visitMethodComment(String srcClsName, String srcName, String srcDesc,
 			String[] dstClsNames, String[] dstNames, String[] dstDescs,
 			String comment) throws IOException;
@@ -74,6 +81,10 @@ public interface FlatMappingVisitor {
 	boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames) throws IOException;
+	void visitMethodArgMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int argPosition, int lvIndex, String srcArgName,
+			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames,
+			String propertyKey, String[] propertyValues) throws IOException;
 	void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames,
@@ -82,6 +93,10 @@ public interface FlatMappingVisitor {
 	boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames) throws IOException;
+	void visitMethodVarMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
+			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
+			String propertyKey, String[] propertyValues) throws IOException;
 	void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
@@ -135,37 +150,53 @@ public interface FlatMappingVisitor {
 
 	// convenience / potentially higher efficiency visit methods for only one dst name
 
+	// Class
 	default boolean visitClass(String srcName, String dstName) throws IOException {
 		return visitClass(srcName, toArray(dstName));
 	}
-
+	default void visitClassMetadata(String srcName, String propertyKey, String[] propertyValues) throws IOException {
+		visitClassMetadata(srcName, (String) null, propertyKey, propertyValues);
+	}
+	default void visitClassMetadata(String srcName, String dstName, String propertyKey, String[] propertyValues) throws IOException {
+		visitClassMetadata(srcName, toArray(dstName), propertyKey, propertyValues);
+	}
 	default void visitClassComment(String srcName, String comment) throws IOException {
 		visitClassComment(srcName, (String) null, comment);
 	}
-
 	default void visitClassComment(String srcName, String dstName, String comment) throws IOException {
 		visitClassComment(srcName, toArray(dstName), comment);
 	}
 
+	// Field
 	default boolean visitField(String srcClsName, String srcName, String srcDesc,
 			String dstName) throws IOException {
 		return visitField(srcClsName, srcName, srcDesc,
 				null, dstName, null);
 	}
-
 	default boolean visitField(String srcClsName, String srcName, String srcDesc,
 			String dstClsName, String dstName, String dstDesc) throws IOException {
 		return visitField(srcClsName, srcName, srcDesc,
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc));
 	}
-
+	default void visitFieldMetadata(String srcClsName, String srcName, String srcDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitFieldMetadata(srcClsName, srcName, srcDesc,
+				(String) null, null, null,
+				propertyKey, propertyValues);
+	}
+	default void visitFieldMetadata(String srcClsName, String srcName, String srcDesc,
+			String dstClsName, String dstName, String dstDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitFieldMetadata(srcClsName, srcName, srcDesc,
+				toArray(dstClsName), toArray(dstName), toArray(dstDesc),
+				propertyKey, propertyValues);
+	}
 	default void visitFieldComment(String srcClsName, String srcName, String srcDesc,
 			String comment) throws IOException {
 		visitFieldComment(srcClsName, srcName, srcDesc,
 				(String) null, null, null,
 				comment);
 	}
-
 	default void visitFieldComment(String srcClsName, String srcName, String srcDesc,
 			String dstClsName, String dstName, String dstDesc,
 			String comment) throws IOException {
@@ -174,25 +205,36 @@ public interface FlatMappingVisitor {
 				comment);
 	}
 
+	// Method
 	default boolean visitMethod(String srcClsName, String srcName, String srcDesc,
 			String dstName) throws IOException {
 		return visitMethod(srcClsName, srcName, srcDesc,
 				null, dstName, null);
 	}
-
 	default boolean visitMethod(String srcClsName, String srcName, String srcDesc,
 			String dstClsName, String dstName, String dstDesc) throws IOException {
 		return visitMethod(srcClsName, srcName, srcDesc,
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc));
 	}
-
+	default void visitMethodMetadata(String srcClsName, String srcName, String srcDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodMetadata(srcClsName, srcName, srcDesc,
+				(String) null, null, null,
+				propertyKey, propertyValues);
+	}
+	default void visitMethodMetadata(String srcClsName, String srcName, String srcDesc,
+			String dstClsName, String dstName, String dstDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodMetadata(srcClsName, srcName, srcDesc,
+				toArray(dstClsName), toArray(dstName), toArray(dstDesc),
+				propertyKey, propertyValues);
+	}
 	default void visitMethodComment(String srcClsName, String srcName, String srcDesc,
 			String comment) throws IOException {
 		visitMethodComment(srcClsName, srcName, srcDesc,
 				(String) null, null, null,
 				comment);
 	}
-
 	default void visitMethodComment(String srcClsName, String srcName, String srcDesc,
 			String dstClsName, String dstName, String dstDesc,
 			String comment) throws IOException {
@@ -201,6 +243,7 @@ public interface FlatMappingVisitor {
 				comment);
 	}
 
+	// Method Arg
 	default boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String dstArgName) throws IOException {
@@ -208,7 +251,6 @@ public interface FlatMappingVisitor {
 				argPosition, lvIndex, srcArgName,
 				null, null, null, dstArgName);
 	}
-
 	default boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName) throws IOException {
@@ -216,7 +258,22 @@ public interface FlatMappingVisitor {
 				argPosition, lvIndex, srcArgName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstArgName));
 	}
-
+	default void visitMethodArgMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int argPosition, int lvIndex, String srcArgName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodArgMetadata(srcClsName, srcMethodName, srcMethodDesc,
+				argPosition, lvIndex, srcArgName,
+				(String) null, null, null, null,
+				propertyKey, propertyValues);
+	}
+	default void visitMethodArgMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int argPosition, int lvIndex, String srcArgName,
+			String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodArgMetadata(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
+				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstArgName),
+				propertyKey, propertyValues);
+	}
 	default void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String comment) throws IOException {
@@ -225,7 +282,6 @@ public interface FlatMappingVisitor {
 				(String) null, null, null, null,
 				comment);
 	}
-
 	default void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int argPosition, int lvIndex, String srcArgName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName,
@@ -235,6 +291,7 @@ public interface FlatMappingVisitor {
 				comment);
 	}
 
+	// Method Var
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstVarName) throws IOException {
@@ -242,7 +299,6 @@ public interface FlatMappingVisitor {
 				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, dstVarName);
 	}
-
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName) throws IOException {
@@ -250,7 +306,23 @@ public interface FlatMappingVisitor {
 				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstVarName));
 	}
-
+	default void visitMethodVarMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodVarMetadata(srcClsName, srcMethodName, srcMethodDesc,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
+				(String) null, null, null, null,
+				propertyKey, propertyValues);
+	}
+	default void visitMethodVarMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
+			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		visitMethodVarMetadata(srcClsName, srcMethodName, srcMethodDesc,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
+				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstVarName),
+				propertyKey, propertyValues);
+	}
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String comment) throws IOException {
@@ -259,7 +331,6 @@ public interface FlatMappingVisitor {
 				(String) null, null, null, null,
 				comment);
 	}
-
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,

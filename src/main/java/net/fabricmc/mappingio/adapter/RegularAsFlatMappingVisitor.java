@@ -90,6 +90,18 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
+	public void visitClassMetadata(String srcName, String[] dstNames, String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitClass(srcName, dstNames, null)) return;
+		visitElementMetadata(MappedElementKind.CLASS, propertyKey, propertyValues);
+	}
+
+	@Override
+	public void visitClassMetadata(String srcName, String dstName, String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitClass(srcName, null, dstName)) return;
+		visitElementMetadata(MappedElementKind.CLASS, propertyKey, propertyValues);
+	}
+
+	@Override
 	public void visitClassComment(String srcName, String[] dstNames, String comment) throws IOException {
 		if (!visitClass(srcName, dstNames, null)) return;
 		next.visitComment(MappedElementKind.CLASS, comment);
@@ -126,6 +138,22 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		}
 
 		return relayLastMember;
+	}
+
+	@Override
+	public void visitFieldMetadata(String srcClsName, String srcName, String srcDesc,
+			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitField(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null)) return;
+		visitElementMetadata(MappedElementKind.FIELD, propertyKey, propertyValues);
+	}
+
+	@Override
+	public void visitFieldMetadata(String srcClsName, String srcName, String srcDesc,
+			String dstClsName, String dstName, String dstDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitField(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc)) return;
+		visitElementMetadata(MappedElementKind.FIELD, propertyKey, propertyValues);
 	}
 
 	@Override
@@ -169,6 +197,22 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		}
 
 		return relayLastMember;
+	}
+
+	@Override
+	public void visitMethodMetadata(String srcClsName, String srcName, String srcDesc,
+			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethod(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null)) return;
+		visitElementMetadata(MappedElementKind.METHOD, propertyKey, propertyValues);
+	}
+
+	@Override
+	public void visitMethodMetadata(String srcClsName, String srcName, String srcDesc,
+			String dstClsName, String dstName, String dstDesc,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethod(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc)) return;
+		visitElementMetadata(MappedElementKind.METHOD, propertyKey, propertyValues);
 	}
 
 	@Override
@@ -220,6 +264,30 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
+	public void visitMethodArgMetadata(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition, int lvIndex, String srcArgName,
+			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
+				dstClsNames, dstMethodNames, dstMethodDescs, dstArgNames, null, null, null, null)) {
+			return;
+		}
+
+		visitElementMetadata(MappedElementKind.METHOD_ARG, propertyKey, propertyValues);
+	}
+
+	@Override
+	public void visitMethodArgMetadata(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition,
+			int lvIndex, String srcArgName, String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
+				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstArgName)) {
+			return;
+		}
+
+		visitElementMetadata(MappedElementKind.METHOD_ARG, propertyKey, propertyValues);
+	}
+
+	@Override
 	public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition, int lvIndex, String srcArgName,
 			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames,
 			String comment) throws IOException {
@@ -233,8 +301,8 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 
 	@Override
 	public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition,
-			int lvIndex, String srcArgName, String dstClsName, String dstMethodName, String dstMethodDesc,
-			String dstArgName, String comment) throws IOException {
+			int lvIndex, String srcArgName, String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName,
+			String comment) throws IOException {
 		if (!visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstArgName)) {
 			return;
@@ -272,6 +340,32 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		}
 
 		return relayLastMethodSub;
+	}
+
+	@Override
+	public void visitMethodVarMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
+			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
+				dstClsNames, dstMethodNames, dstMethodDescs, dstVarNames, null, null, null, null)) {
+			return;
+		}
+
+		visitElementMetadata(MappedElementKind.METHOD_VAR, propertyKey, propertyValues);
+	}
+
+	@Override
+	public void visitMethodVarMetadata(String srcClsName, String srcMethodName, String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
+			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,
+			String propertyKey, String[] propertyValues) throws IOException {
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
+				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstVarName)) {
+			return;
+		}
+
+		visitElementMetadata(MappedElementKind.METHOD_VAR, propertyKey, propertyValues);
 	}
 
 	@Override
@@ -342,6 +436,15 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		}
 
 		return next.visitElementContent(targetKind);
+	}
+
+	private void visitElementMetadata(MappedElementKind targetKind, String key, String[] values) throws IOException {
+		if (values != null) {
+			for (int i = 0; i < values.length; i++) {
+				String value = values[i];
+				if (value != null) next.visitElementMetadata(targetKind, key, i-1, value);
+			}
+		}
 	}
 
 	private final MappingVisitor next;
