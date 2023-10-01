@@ -19,12 +19,16 @@ package net.fabricmc.mappingio.format.enigma;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.StandardProperties;
 
 abstract class EnigmaWriterBase implements MappingWriter {
 	EnigmaWriterBase(Writer writer) throws IOException {
@@ -46,12 +50,14 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
+		writePendingElementMetadata();
 		srcClassName = srcName;
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
+		writePendingElementMetadata();
 		writeIndent(0);
 		writer.write("FIELD ");
 		writer.write(srcName);
@@ -63,6 +69,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+		writePendingElementMetadata();
 		writeIndent(0);
 		writer.write("METHOD ");
 		writer.write(srcName);
@@ -74,6 +81,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+		writePendingElementMetadata();
 		writeIndent(1);
 		writer.write("ARG ");
 		writer.write(Integer.toString(lvIndex));
@@ -82,12 +90,14 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+		writePendingElementMetadata();
 		return false;
 	}
 
 	@Override
 	public boolean visitEnd() throws IOException {
+		writePendingElementMetadata();
 		close();
 
 		return true;
@@ -108,6 +118,11 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	@Override
 	public abstract boolean visitElementContent(MappedElementKind targetKind) throws IOException;
 
+	@Override
+	public void visitElementMetadata(MappedElementKind target, String key, int namespace, String value) {
+		if (namespace == 0) elementMetadata.put(key, value);
+	}
+
 	protected static int getNextOuterEnd(String name, int startPos) {
 		int pos;
 
@@ -121,6 +136,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		writePendingElementMetadata();
 		int start = 0;
 		int pos;
 
@@ -203,15 +219,38 @@ abstract class EnigmaWriterBase implements MappingWriter {
 		dstName = null;
 	}
 
+	protected void writePendingElementMetadata() throws IOException {
+		if (!elementMetadata.isEmpty()) {
+			for (Map.Entry<String, String> entry : elementMetadata.entrySet()) {
+				String key = entry.getKey();
+				if (StandardProperties.getById(key) != StandardProperties.MODIFIED_ACCESS) continue;
+
+				writer.write(key);
+				writer.write(" ACC:");
+				writer.write(entry.getValue().toUpperCase(Locale.ROOT));
+				break;
+			}
+
+			elementMetadata.clear();
+		}
+
+		writer.write('\n');
+	}
+
 	protected void writeIndent(int extra) throws IOException {
 		for (int i = 0; i < indent + extra; i++) {
 			writer.write('\t');
 		}
 	}
 
-	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	protected static final Set<MappingFlag> flags = EnumSet.of(
+			MappingFlag.NEEDS_HEADER_METADATA,
+			MappingFlag.NEEDS_UNIQUENESS,
+			MappingFlag.NEEDS_SRC_FIELD_DESC,
+			MappingFlag.NEEDS_SRC_METHOD_DESC);
 	protected static final String toEscape = "\\\n\r\0\t";
 	protected static final String escaped = "\\nr0t";
+	protected static final LinkedHashMap<String, String> elementMetadata = new LinkedHashMap<>();
 
 	protected Writer writer;
 	protected int indent;
@@ -220,7 +259,6 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	protected String currentClass;
 	protected String lastWrittenClass = "";
 	protected String dstName;
-	protected String[] dstNames;
 
 	protected String desc;
 }

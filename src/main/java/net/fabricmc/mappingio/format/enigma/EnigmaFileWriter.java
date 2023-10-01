@@ -33,9 +33,6 @@ public final class EnigmaFileWriter extends EnigmaWriterBase {
 		} else if (targetKind == MappedElementKind.FIELD || targetKind == MappedElementKind.METHOD) {
 			writer.write(' ');
 			writer.write(desc);
-			writer.write('\n');
-		} else {
-			writer.write('\n');
 		}
 
 		return true;

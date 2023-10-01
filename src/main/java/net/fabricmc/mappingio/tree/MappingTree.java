@@ -64,6 +64,9 @@ public interface MappingTree extends MappingTreeView {
 		MappingTree getTree();
 
 		void setDstName(String name, int namespace);
+
+		void addMetadata(String key, int namespace, String value);
+		String[] removeMetadata(String key);
 		void setComment(String comment);
 	}
 

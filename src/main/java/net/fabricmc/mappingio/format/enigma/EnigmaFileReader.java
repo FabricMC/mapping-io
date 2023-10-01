@@ -19,13 +19,17 @@ package net.fabricmc.mappingio.format.enigma;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.StandardProperties;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -61,7 +65,7 @@ public final class EnigmaFileReader {
 			final MappingVisitor finalVisitor = visitor;
 
 			do {
-				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
+				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>] [<access-modifier>]
 					readClass(reader, 0, null, null, commentSb, finalVisitor);
 				}
 			} while (reader.nextLine(0));
@@ -75,8 +79,11 @@ public final class EnigmaFileReader {
 	}
 
 	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
-		String srcInnerName = reader.nextCol();
-		if (srcInnerName == null || srcInnerName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+		String line = reader.nextCols(false);
+		String[] parts = line.split(" ");
+
+		if (parts.length == 0 || parts[0].isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+		String srcInnerName = parts[0];
 
 		String srcName = srcInnerName;
 
@@ -84,7 +91,22 @@ public final class EnigmaFileReader {
 			srcName = String.format("%s$%s", outerSrcClass, srcInnerName);
 		}
 
-		String dstInnerName = reader.nextCol();
+		String dstInnerName = null;
+		String accessModifier = null;
+
+		if (parts.length == 2) { // <name-b> | <access-modifier>
+			String parsedModifier = parseModifier(parts[1]);
+
+			if (parsedModifier == null) {
+				dstInnerName = parts[1];
+			} else {
+				accessModifier = parsedModifier;
+			}
+		} else {
+			dstInnerName = parts[1];
+			accessModifier = parts[2];
+		}
+
 		String dstName = dstInnerName;
 
 		// merge with outer name if available
@@ -96,19 +118,20 @@ public final class EnigmaFileReader {
 			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
 
-		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
+		readClassBody(reader, indent, srcName, dstName, accessModifier, commentSb, visitor);
 	}
 
-	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass,
+			String classAccess, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		boolean visited = false;
 		int state = 0; // 0=invalid 1=visit -1=skip
 
 		while (reader.nextLine(indent + 1)) {
 			boolean isMethod;
 
-			if (reader.nextCol("CLASS")) { // nested class: CLASS <name-a> [<name-b>]
+			if (reader.nextCol("CLASS")) { // nested class: CLASS <name-a> [<name-b>] [<access-modifier>]
 				if (!visited || commentSb.length() > 0) {
-					visitClass(srcClass, dstClass, state, commentSb, visitor);
+					visitClass(srcClass, dstClass, state, classAccess, commentSb, visitor);
 					visited = true;
 				}
 
@@ -116,46 +139,64 @@ public final class EnigmaFileReader {
 				state = 0;
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
 				readComment(reader, commentSb);
-			} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD <name-a> [<name-b>] <desc-a> or field: FIELD <name-a> [<name-b>] <desc-a>
-				state = visitClass(srcClass, dstClass, state, commentSb, visitor);
+			} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // METHOD|FIELD <name-a> [<name-b>] [<access-modifier>] <desc-a>
+				state = visitClass(srcClass, dstClass, state, classAccess, commentSb, visitor);
 				visited = true;
 				if (state < 0) continue;
 
-				String srcName = reader.nextCol();
-				if (srcName == null || srcName.isEmpty()) throw new IOException("missing field-name-a in line "+reader.getLineNumber());
+				String line = reader.nextCols(false);
+				String[] parts = line.split(" ");
 
-				String dstNameOrSrcDesc = reader.nextCol();
-				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing field-desc-b in line "+reader.getLineNumber());
+				if (parts.length == 0 || parts[0].isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
+				if (parts.length == 1 || parts[1].isEmpty()) throw new IOException("missing member-desc-a in line "+reader.getLineNumber());
+				String srcName = parts[0];
+				String dstName = null;
+				String modifier = null;
+				String srcDesc;
 
-				String srcDesc = reader.nextCol();
-				String dstName;
+				if (parts.length == 2) { // <name-a> <desc-a>
+					srcDesc = parts[1];
+				} else if (parts.length == 3) { // <name-a> <name-b> <desc-a> | <name-a> <desc-a> <access-modifier>
+					String parsedModifier = parseModifier(parts[2]);
 
-				if (srcDesc == null) {
-					dstName = null;
-					srcDesc = dstNameOrSrcDesc;
-				} else {
-					dstName = dstNameOrSrcDesc;
+					if (parsedModifier == null) {
+						dstName = parts[1];
+						srcDesc = parts[2];
+					} else {
+						srcDesc = parts[1];
+						modifier = parsedModifier;
+					}
+				} else { // <name-a> <name-b> <desc-a> <access-modifier>
+					dstName = parts[1];
+					srcDesc = parts[2];
+					modifier = parts[3];
 				}
 
-				if (isMethod && visitor.visitMethod(srcName, srcDesc)) {
-					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-					readMethod(reader, indent, commentSb, visitor);
-				} else if (!isMethod && visitor.visitField(srcName, srcDesc)) {
-					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor);
+				MappedElementKind targetKind = isMethod && visitor.visitMethod(srcName, srcDesc) ? MappedElementKind.METHOD
+						: !isMethod && visitor.visitField(srcName, srcDesc) ? MappedElementKind.FIELD : null;
+
+				if (targetKind != null) {
+					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(targetKind, 0, dstName);
+					if (modifier != null) visitAccessModifier(targetKind, modifier, visitor);
+
+					if (targetKind == MappedElementKind.METHOD) {
+						readMethod(reader, indent, commentSb, visitor);
+					} else {
+						readElement(reader, targetKind, indent, commentSb, visitor);
+					}
 				}
 			}
 		}
 
 		if (!visited || commentSb.length() > 0) {
-			visitClass(srcClass, dstClass, state, commentSb, visitor);
+			visitClass(srcClass, dstClass, state, classAccess, commentSb, visitor);
 		}
 	}
 
 	/**
 	 * Re-visit a class if necessary and visit its comment if available.
 	 */
-	private static int visitClass(String srcClass, String dstClass, int state, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static int visitClass(String srcClass, String dstClass, int state, String accessModifier, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		// state: 0=invalid 1=visit -1=skip
 
 		if (state == 0) {
@@ -168,6 +209,10 @@ public final class EnigmaFileReader {
 
 			state = visitContent ? 1 : -1;
 
+			if (accessModifier != null) {
+				visitAccessModifier(MappedElementKind.CLASS, accessModifier, visitor);
+			}
+
 			if (commentSb.length() > 0) {
 				if (state > 0) visitor.visitComment(MappedElementKind.CLASS, commentSb.toString());
 
@@ -176,6 +221,10 @@ public final class EnigmaFileReader {
 		}
 
 		return state;
+	}
+
+	private static void visitAccessModifier(MappedElementKind targetKind, String modifier, MappingVisitor visitor) throws IOException {
+		visitor.visitElementMetadata(targetKind, StandardProperties.MODIFIED_ACCESS.getId(), 0, modifier);
 	}
 
 	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
@@ -232,5 +281,14 @@ public final class EnigmaFileReader {
 
 		visitor.visitComment(kind, commentSb.toString());
 		commentSb.setLength(0);
+	}
+
+	@Nullable
+	private static String parseModifier(String token) {
+		if (!token.startsWith("ACC:")) {
+			return null;
+		}
+
+		return token.substring(4).toLowerCase(Locale.ROOT);
 	}
 }

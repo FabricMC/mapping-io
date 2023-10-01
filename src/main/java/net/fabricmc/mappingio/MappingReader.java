@@ -29,6 +29,7 @@ import java.util.List;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.match.MatchFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -75,6 +76,8 @@ public final class MappingReader {
 		case "MD:":
 		case "FD:":
 			return MappingFormat.SRG_FILE;
+		case "Mat":
+			return MappingFormat.MATCH_FILE;
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -199,6 +202,9 @@ public final class MappingReader {
 			break;
 		case PROGUARD_FILE:
 			ProGuardFileReader.read(reader, visitor);
+			break;
+		case MATCH_FILE:
+			MatchFileReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();

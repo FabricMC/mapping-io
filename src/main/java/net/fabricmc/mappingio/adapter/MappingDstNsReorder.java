@@ -66,6 +66,15 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 		}
 	}
 
+	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String key, int namespace, String value) throws IOException {
+		if (namespace >= 0) namespace = nsMap[namespace];
+
+		if (namespace >= 0) {
+			super.visitElementMetadata(targetKind, key, namespace, value);
+		}
+	}
+
 	private final List<String> newDstNs;
 	private int[] nsMap;
 }

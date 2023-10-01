@@ -17,19 +17,21 @@
 package net.fabricmc.mappingio.format;
 
 public enum MappingFormat {
-	TINY_FILE("Tiny file", "tiny", true, true, false, false, false),
-	TINY_2_FILE("Tiny v2 file", "tiny", true, true, true, true, true),
-	ENIGMA_FILE("Enigma file", "mappings", false, true, true, true, false),
-	ENIGMA_DIR("Enigma directory", null, false, true, true, true, false),
-	MCP_DIR("MCP directory", null, false, false, true, true, false),
-	SRG_FILE("SRG file", "srg", false, false, false, false, false),
-	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false),
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false),
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false);
+	TINY_FILE("Tiny file", "tiny", true, true, false, false, false, MetadataSupport.ARBITRARY, MetadataSupport.NONE),
+	TINY_2_FILE("Tiny v2 file", "tiny", true, true, true, true, true, MetadataSupport.ARBITRARY, MetadataSupport.NONE),
+	ENIGMA_FILE("Enigma file", "mappings", false, true, true, true, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
+	ENIGMA_DIR("Enigma directory", null, false, true, true, true, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
+	MCP_DIR("MCP directory", null, false, false, true, true, false, MetadataSupport.NONE, MetadataSupport.NONE),
+	SRG_FILE("SRG file", "srg", false, false, false, false, false, MetadataSupport.NONE, MetadataSupport.NONE),
+	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, MetadataSupport.NONE, MetadataSupport.NONE),
+	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
+	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false, MetadataSupport.NONE, MetadataSupport.HARDCODED),
+	MATCH_FILE("Match file", "match", false, true, false, true, true, MetadataSupport.HARDCODED, MetadataSupport.HARDCODED);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
-			boolean supportsComments, boolean supportsArgs, boolean supportsLocals) {
+			boolean supportsComments, boolean supportsArgs, boolean supportsLocals,
+			MetadataSupport fileMetadataSupport, MetadataSupport elementMetadataSupport) {
 		this.name = name;
 		this.fileExt = fileExt;
 		this.hasNamespaces = hasNamespaces;
@@ -37,6 +39,8 @@ public enum MappingFormat {
 		this.supportsComments = supportsComments;
 		this.supportsArgs = supportsArgs;
 		this.supportsLocals = supportsLocals;
+		this.fileMetadataSupport = fileMetadataSupport;
+		this.elementMetadataSupport = elementMetadataSupport;
 	}
 
 	public boolean hasSingleFile() {
@@ -56,4 +60,17 @@ public enum MappingFormat {
 	public final boolean supportsComments;
 	public final boolean supportsArgs;
 	public final boolean supportsLocals;
+	public final MetadataSupport fileMetadataSupport;
+	public final MetadataSupport elementMetadataSupport;
+
+	public enum MetadataSupport {
+		/** No metadata at all. */
+		NONE,
+
+		/** Only some select properties.  */
+		HARDCODED,
+
+		/** Arbitrary metadata may be attached. */
+		ARBITRARY
+	}
 }

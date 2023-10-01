@@ -17,14 +17,12 @@
 package net.fabricmc.mappingio.tree;
 
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,36 +204,22 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public Collection<Map.Entry<String, String>> getMetadata() {
-		return metadata;
+		return Collections.unmodifiableSet(metadata.entrySet());
 	}
 
 	@Override
 	public String getMetadata(String key) {
-		for (Map.Entry<String, String> entry : metadata) {
-			if (entry.getKey().equals(key)) return entry.getValue();
-		}
-
-		return null;
+		return metadata.get(key);
 	}
 
 	@Override
 	public void addMetadata(String key, String value) {
-		metadata.add(new AbstractMap.SimpleEntry<>(key, value));
+		metadata.put(key, value);
 	}
 
 	@Override
 	public String removeMetadata(String key) {
-		for (Iterator<Map.Entry<String, String>> it = metadata.iterator(); it.hasNext(); ) {
-			Map.Entry<String, String> entry = it.next();
-
-			if (entry.getKey().equals(key)) {
-				it.remove();
-
-				return entry.getValue();
-			}
-		}
-
-		return null;
+		return metadata.remove(key);
 	}
 
 	@Override
@@ -304,7 +288,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 
-				for (Map.Entry<String, String> entry : metadata) {
+				for (Map.Entry<String, String> entry : metadata.entrySet()) {
 					visitor.visitMetadata(entry.getKey(), entry.getValue());
 				}
 			}
@@ -391,7 +375,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public void visitMetadata(String key, String value) {
-		this.metadata.add(new AbstractMap.SimpleEntry<>(key, value));
+		addMetadata(key, value);
 	}
 
 	@Override
@@ -671,7 +655,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	public void visitElementMetadata(MappedElementKind targetKind, String propertyKey, int namespace, String propertyValue) {
+		getCurrentEntry(targetKind).addMetadata(propertyKey, namespace, propertyValue);
+	}
+
+	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) {
+		getCurrentEntry(targetKind).setComment(comment);
+	}
+
+	private Entry<?> getCurrentEntry(MappedElementKind targetKind) {
 		Entry<?> entry;
 
 		switch (targetKind) {
@@ -686,7 +679,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		if (entry == null) throw new UnsupportedOperationException("Tried to visit comment before owning target");
-		entry.setComment(comment);
+		return entry;
 	}
 
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
@@ -745,6 +738,33 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		public Collection<Map.Entry<String, String[]>> getMetadata() {
+			return Collections.unmodifiableSet(metadata.entrySet());
+		}
+
+		@Override
+		public String[] getMetadata(String key) {
+			return metadata.get(key);
+		}
+
+		@Override
+		public String getMetadata(String key, int namespace) {
+			return metadata.get(key)[namespace];
+		}
+
+		@Override
+		public void addMetadata(String key, int namespace, String value) {
+			String[] values = metadata.getOrDefault(key, new String[dstNames.length + 1]);
+			values[namespace] = value;
+			metadata.put(key, values);
+		}
+
+		@Override
+		public String[] removeMetadata(String key) {
+			return metadata.remove(key);
+		}
+
+		@Override
 		public final String getComment() {
 			return comment;
 		}
@@ -794,6 +814,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			// TODO: copy args+vars
 		}
 
+		private final Map<String, String[]> metadata = new HashMap<>();
 		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;
@@ -1739,7 +1760,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private boolean indexByDstNames;
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
-	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
+	private final Map<String, String> metadata = new HashMap<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
 
