@@ -200,7 +200,12 @@ public final class Tiny2FileWriter implements MappingWriter {
 		}
 	}
 
-	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_HEADER_METADATA, MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final Set<MappingFlag> flags = EnumSet.of(
+			MappingFlag.NEEDS_HEADER_METADATA,
+			MappingFlag.NEEDS_METADATA_UNIQUENESS,
+			MappingFlag.NEEDS_ELEMENT_UNIQUENESS,
+			MappingFlag.NEEDS_SRC_FIELD_DESC,
+			MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
 	private boolean escapeNames;

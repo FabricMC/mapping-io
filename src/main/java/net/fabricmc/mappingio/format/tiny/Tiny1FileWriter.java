@@ -190,7 +190,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 		writer.write('\t');
 	}
 
-	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_METADATA_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
 	private String classSrcName;

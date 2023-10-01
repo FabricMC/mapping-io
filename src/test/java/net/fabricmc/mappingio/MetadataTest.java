@@ -70,7 +70,7 @@ public class MetadataTest {
 		tree.accept(new NopMappingVisitor(true) {
 			@Override
 			public Set<MappingFlag> getFlags() {
-				return EnumSet.of(MappingFlag.NEEDS_UNIQUENESS);
+				return EnumSet.of(MappingFlag.NEEDS_METADATA_UNIQUENESS);
 			}
 
 			@Override

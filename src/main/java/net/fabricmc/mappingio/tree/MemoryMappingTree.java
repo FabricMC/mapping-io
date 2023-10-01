@@ -290,13 +290,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	@Override
 	public void accept(MappingVisitor visitor, VisitOrder order) throws IOException {
 		do {
-			boolean needsUniqueness = visitor.getFlags().contains(MappingFlag.NEEDS_UNIQUENESS);
-
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 				List<MetadataEntry> metadataToVisit = metadata;
 
-				if (needsUniqueness) {
+				if (visitor.getFlags().contains(MappingFlag.NEEDS_METADATA_UNIQUENESS)) {
 					metadataToVisit = new LinkedList<>();
 					Set<String> addedKeys = new HashSet<>();
 
