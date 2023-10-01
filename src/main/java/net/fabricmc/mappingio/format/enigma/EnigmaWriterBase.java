@@ -136,7 +136,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 		StandardProperty property = StandardProperties.getById(key);
 		if (property == null) return;
-		if (!property.isApplicableTo(getFormat(), target)) return; // How did it get there?
+		if (!property.isApplicableTo(getFormat(), target)) return;
 
 		key = property.getNameFor(getFormat(), target);
 		elementMetadata.put(property, value);
