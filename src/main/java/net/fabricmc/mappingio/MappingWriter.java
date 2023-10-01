@@ -52,4 +52,10 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		default: throw new UnsupportedOperationException("format "+format+" is not implemented");
 		}
 	}
+
+	@Override
+	default boolean visitEnd() throws IOException {
+		close();
+		return true;
+	}
 }
