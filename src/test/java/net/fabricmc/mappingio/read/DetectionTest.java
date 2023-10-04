@@ -37,21 +37,40 @@ public class DetectionTest {
 
 	@Test
 	public void enigmaFile() throws Exception {
-		assertEquals(MappingFormat.ENIGMA_FILE, MappingReader.detectFormat(dir.resolve("enigma.mappings")));
+		check("enigma.mappings", MappingFormat.ENIGMA_FILE);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
-		assertEquals(MappingFormat.ENIGMA_DIR, MappingReader.detectFormat(dir.resolve("enigma-dir")));
+		check("enigma-dir", MappingFormat.ENIGMA_DIR);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
-		assertEquals(MappingFormat.TINY_FILE, MappingReader.detectFormat(dir.resolve("tiny.tiny")));
+		check("tiny.tiny", MappingFormat.TINY_FILE);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
-		assertEquals(MappingFormat.TINY_2_FILE, MappingReader.detectFormat(dir.resolve("tinyV2.tiny")));
+		check("tinyV2.tiny", MappingFormat.TINY_2_FILE);
+	}
+
+	@Test
+	public void srgFile() throws Exception {
+		check("srg.srg", MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void tsrgFile() throws Exception {
+		check("tsrg.tsrg", MappingFormat.TSRG_FILE);
+	}
+
+	@Test
+	public void tsrg2File() throws Exception {
+		check("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
+	}
+
+	private void check(String path, MappingFormat format) throws Exception {
+		assertEquals(format, MappingReader.detectFormat(dir.resolve(path)));
 	}
 }

@@ -41,7 +41,7 @@ public final class TestHelper {
 		writer.close();
 	}
 
-	// Has to be kept in synch with /resources/read/valid/* test mappings!
+	// Has to be kept in sync with /resources/read/valid/* test mappings!
 	public static MemoryMappingTree createTestTree() {
 		MemoryMappingTree tree = new MemoryMappingTree();
 		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));

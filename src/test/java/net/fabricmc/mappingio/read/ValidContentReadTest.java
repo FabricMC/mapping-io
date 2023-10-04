@@ -47,7 +47,7 @@ import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
 	private static Path dir;
-	private static VisitableMappingTree origTree;
+	private static MappingTree origTree;
 
 	@BeforeAll
 	public static void setup() throws Exception {
@@ -76,6 +76,11 @@ public class ValidContentReadTest {
 	}
 
 	@Test
+	public void srgFile() throws Exception {
+		checkCommonContent("srg.srg", MappingFormat.SRG_FILE);
+	}
+
+	@Test
 	public void tsrgFile() throws Exception {
 		checkCommonContent("tsrg.tsrg", MappingFormat.TSRG_FILE);
 	}
@@ -85,12 +90,12 @@ public class ValidContentReadTest {
 		checkCommonContent("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
 	}
 
-	private VisitableMappingTree checkCommonContent(String pathName, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkCommonContent(String path, MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve(pathName), format, tree);
+		MappingReader.read(dir.resolve(path), format, tree);
 
-		assertSubset(tree, format, TestHelper.createTestTree(), null);
-		assertSubset(TestHelper.createTestTree(), null, tree, format);
+		assertSubset(tree, format, origTree, null);
+		assertSubset(origTree, null, tree, format);
 		return tree;
 	}
 
