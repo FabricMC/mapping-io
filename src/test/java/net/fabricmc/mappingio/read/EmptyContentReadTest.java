@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio;
+package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -32,7 +32,7 @@ import net.fabricmc.mappingio.format.tsrg.TsrgFileReader;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
-public class ReadTest {
+public class EmptyContentReadTest {
 	private static final VisitableMappingTree tree = new MemoryMappingTree();
 
 	@Test

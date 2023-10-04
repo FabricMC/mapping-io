@@ -101,11 +101,7 @@ public final class TsrgFileReader {
 
 					String srcName = reader.nextCol();
 					if (srcName == null || srcName.endsWith("/")) continue;
-
-					if (srcName.isEmpty()) {
-						if (!reader.nextLine(0)) break; // Empty file
-						throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-					}
+					if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
 					if (visitor.visitClass(srcName)) {
 						readClass(reader, isTsrg2, dstNsCount, nameTmp, visitor);

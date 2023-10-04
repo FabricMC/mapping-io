@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio;
+package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 public class DetectionTest {

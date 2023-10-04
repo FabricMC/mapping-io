@@ -250,8 +250,6 @@ public final class ColumnFileReader implements Closeable {
 			}
 		} while (fillBuffer(1));
 
-		eol = eof = true;
-
 		return false;
 	}
 
@@ -310,7 +308,11 @@ public final class ColumnFileReader implements Closeable {
 
 		do {
 			int read = reader.read(buffer, bufferLimit, buffer.length - bufferLimit);
-			if (read < 0) return false; // eof
+
+			if (read < 0) {
+				eof = eol = true;
+				return false;
+			}
 
 			bufferLimit += read;
 		} while (bufferLimit < reqLimit);

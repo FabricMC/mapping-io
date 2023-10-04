@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio;
+package net.fabricmc.mappingio.write;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class WriteTest {
@@ -34,32 +33,7 @@ public class WriteTest {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = new MemoryMappingTree();
-		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
-
-		tree.visitClass("class_1");
-		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1");
-
-		tree.visitField("field_1", "I");
-		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField");
-
-		tree.visitMethod("method_1", "(F)I");
-		tree.visitDstName(MappedElementKind.METHOD, 0, "renamedMethod");
-
-		tree.visitMethodArg(0, 0, "param_1");
-		tree.visitDstName(MappedElementKind.METHOD_ARG, 0, "renamedParameter");
-
-		tree.visitMethodVar(0, 0, 0, 0, "param_1");
-		tree.visitDstName(MappedElementKind.METHOD_VAR, 0, "renamedVariable");
-
-		tree.visitClass("class_1$class_2");
-		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass1$RenamedInnerClass2");
-
-		tree.visitField("field_1", "I");
-		tree.visitDstName(MappedElementKind.FIELD, 0, "renamedField2");
-
-		tree.visitClass("class_3");
-		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass3");
+		tree = TestHelper.createTestTree();
 	}
 
 	@Test
