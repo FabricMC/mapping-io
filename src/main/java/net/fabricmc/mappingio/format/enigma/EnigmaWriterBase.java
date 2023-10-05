@@ -87,13 +87,6 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitEnd() throws IOException {
-		close();
-
-		return true;
-	}
-
-	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		if (namespace != 0) return;
 
