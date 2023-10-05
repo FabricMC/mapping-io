@@ -17,6 +17,7 @@
 package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,6 +27,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.TestHelper;
@@ -62,6 +64,16 @@ public class DetectionTest {
 	@Test
 	public void srgFile() throws Exception {
 		check("srg.srg", MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xrgFile() throws Exception {
+		check("xsrg.xsrg", MappingFormat.XSRG_FILE);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		assertThrows(AssertionFailedError.class, () -> check("csrg.csrg", MappingFormat.CSRG_FILE));
 	}
 
 	@Test

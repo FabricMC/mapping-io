@@ -74,7 +74,7 @@ public final class MappingReader {
 		case "CL:":
 		case "MD:":
 		case "FD:":
-			return MappingFormat.SRG_FILE;
+			return detectSrgOrXsrg(reader);
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -85,7 +85,37 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
+		// TODO: CSRG
+
 		return null; // unknown format or corrupted
+	}
+
+	private static MappingFormat detectSrgOrXsrg(Reader reader) throws IOException {
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+		String line;
+
+		while ((line = br.readLine()) != null) {
+			if (line.startsWith("FD:")) {
+				String[] parts = line.split(" ");
+
+				if (parts.length >= 5) {
+					if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
+						continue;
+					}
+
+					return MappingFormat.XSRG_FILE;
+				} else {
+					break;
+				}
+			}
+		}
+
+		return MappingFormat.SRG_FILE;
+	}
+
+	private static boolean isEmptyOrStartsWithHash(String string) {
+		if (string.isEmpty() || string.startsWith("#")) return true;
+		return false;
 	}
 
 	public static List<String> getNamespaces(Path file) throws IOException {
@@ -189,8 +219,10 @@ public final class MappingReader {
 			EnigmaFileReader.read(reader, visitor);
 			break;
 		case SRG_FILE:
+		case XSRG_FILE:
 			SrgFileReader.read(reader, visitor);
 			break;
+		case CSRG_FILE:
 		case TSRG_FILE:
 		case TSRG_2_FILE:
 			TsrgFileReader.read(reader, visitor);
