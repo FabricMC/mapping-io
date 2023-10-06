@@ -16,50 +16,128 @@
 
 package net.fabricmc.mappingio.write;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import cuchaz.enigma.ProgressListener;
+import cuchaz.enigma.translation.mapping.serde.MappingFileNameFormat;
+import cuchaz.enigma.translation.mapping.serde.MappingSaveParameters;
+import net.minecraftforge.srgutils.IMappingFile;
+import net.minecraftforge.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.MappingNsCompleter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class WriteTest {
 	@TempDir
 	private static Path dir;
 	private static VisitableMappingTree tree;
+	private static Map<String, String> treeNsAltMap = new HashMap<>();
 	private static VisitableMappingTree treeWithHoles;
+	private static Map<String, String> treeWithHolesNsAltMap = new HashMap<>();
 
 	@BeforeAll
 	public static void setup() throws Exception {
 		tree = TestHelper.createTestTree();
+		treeNsAltMap.put(tree.getDstNamespaces().get(0), tree.getSrcNamespace());
+		treeNsAltMap.put(tree.getDstNamespaces().get(1), tree.getSrcNamespace());
+
 		treeWithHoles = TestHelper.createTestTreeWithHoles();
+		treeWithHolesNsAltMap.put(treeWithHoles.getDstNamespaces().get(0), treeWithHoles.getSrcNamespace());
+		treeWithHolesNsAltMap.put(treeWithHoles.getDstNamespaces().get(1), treeWithHoles.getSrcNamespace());
 	}
 
 	@Test
 	public void enigmaFile() throws Exception {
-		write(MappingFormat.ENIGMA_FILE);
+		check(MappingFormat.ENIGMA_FILE);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
-		write(MappingFormat.ENIGMA_DIR);
+		check(MappingFormat.ENIGMA_DIR);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
-		write(MappingFormat.TINY_FILE);
+		check(MappingFormat.TINY_FILE);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
-		write(MappingFormat.TINY_2_FILE);
+		check(MappingFormat.TINY_2_FILE);
 	}
 
-	private void write(MappingFormat format) throws Exception {
-		TestHelper.writeToDir(tree, format, dir);
-		TestHelper.writeToDir(treeWithHoles, format, dir);
+	private void check(MappingFormat format) throws Exception {
+		Path path = TestHelper.writeToDir(tree, format, dir);
+		readWithLorenz(path, format);
+		readWithSrgUtils(tree, format, treeNsAltMap);
+		readWithEnigma(tree, format, treeNsAltMap);
+
+		path = TestHelper.writeToDir(treeWithHoles, format, dir);
+		readWithLorenz(path, format);
+		readWithSrgUtils(treeWithHoles, format, treeWithHolesNsAltMap);
+		readWithEnigma(treeWithHoles, format, treeWithHolesNsAltMap);
+	}
+
+	private void readWithLorenz(Path path, MappingFormat format) throws Exception {
+		org.cadixdev.lorenz.io.MappingFormat lorenzFormat = TestHelper.toLorenzFormat(format);
+		if (lorenzFormat == null) return;
+		lorenzFormat.read(path);
+	}
+
+	private void readWithSrgUtils(MappingTree tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
+		IMappingFile.Format srgUtilsFormat = TestHelper.toSrgUtilsFormat(format);
+		if (srgUtilsFormat == null) return;
+
+		// SrgUtils can't handle empty dst names
+		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
+		tree.accept(new MappingNsCompleter(new Tiny2FixingVisitor(dstNsCompTree, format), nsAltMap));
+
+		Path path = TestHelper.writeToDir(dstNsCompTree, format, dir);
+		INamedMappingFile.load(path.toFile());
+	}
+
+	private void readWithEnigma(MappingTree tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
+		cuchaz.enigma.translation.mapping.serde.MappingFormat enigmaFormat = TestHelper.toEnigmaFormat(format);
+		if (enigmaFormat == null) return;
+
+		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
+		MappingVisitor visitor = new Tiny2FixingVisitor(dstNsCompTree, format);
+
+		if (format == MappingFormat.ENIGMA_FILE || format == MappingFormat.ENIGMA_DIR) {
+			visitor = new MappingNsCompleter(visitor, nsAltMap);
+		}
+
+		tree.accept(visitor);
+		Path path = TestHelper.writeToDir(dstNsCompTree, format, dir);
+		enigmaFormat.getReader().read(path, ProgressListener.none(), new MappingSaveParameters(MappingFileNameFormat.BY_OBF));
+	}
+
+	private class Tiny2FixingVisitor extends ForwardingMappingVisitor {
+		Tiny2FixingVisitor(MappingVisitor next, MappingFormat format) {
+			super(next);
+			this.format = format;
+		}
+
+		@Override
+		public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+			// SrgUtil's Tiny v2 reader crashes on var sub-elements
+			// Enigma's Tiny v2 reader crashes on vars
+			return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
+		}
+
+		private final MappingFormat format;
 	}
 }

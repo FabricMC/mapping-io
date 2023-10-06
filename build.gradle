@@ -7,8 +7,15 @@ plugins {
 	id "me.modmuss50.remotesign" version "0.4.0"
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+compileJava {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+}
+
+compileTestJava {
+	sourceCompatibility = 17
+	targetCompatibility = 17
+}
 
 group "net.fabricmc"
 archivesBaseName = "mapping-io"
@@ -17,10 +24,6 @@ def ENV = System.getenv()
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
-
-	if (JavaVersion.current().isJava9Compatible()) {
-		it.options.release = 8
-	}
 }
 
 checkstyle {
@@ -34,6 +37,10 @@ repositories {
 		url = 'https://maven.fabricmc.net/'
 	}
 	mavenCentral()
+	maven {
+		name = 'NeoForged'
+		url = 'https://maven.neoforged.net/'
+	}
 }
 
 dependencies {
@@ -41,6 +48,10 @@ dependencies {
 	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
 
+	testImplementation "cuchaz:enigma:${enigma_version}"
+	testImplementation "net.minecraftforge:srgutils:${srgutils_version}"
+	testImplementation "org.cadixdev:lorenz:${lorenz_version}"
+	testImplementation "org.cadixdev:lorenz-io-enigma:${lorenz_version}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junit_jupiter_version}"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit_jupiter_version}"
 }

@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.minecraftforge.srgutils.IMappingFile;
+
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -36,10 +38,12 @@ public final class TestHelper {
 		}
 	}
 
-	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
-		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
+	public static Path writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
+		Path path = dir.resolve(format.name() + (format.hasSingleFile() ? "."+format.fileExt : ""));
+		MappingWriter writer = MappingWriter.create(path, format);
 		tree.accept(writer);
 		writer.close();
+		return path;
 	}
 
 	// Has to be kept in sync with /resources/read/valid/* test mappings!
@@ -143,6 +147,60 @@ public final class TestHelper {
 		visitComment(tree);
 
 		return tree;
+	}
+
+	public static cuchaz.enigma.translation.mapping.serde.MappingFormat toEnigmaFormat(MappingFormat format) {
+		switch (format) {
+		case TINY_FILE:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.TINY_FILE;
+		case TINY_2_FILE:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.TINY_V2;
+		case ENIGMA_FILE:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.ENIGMA_FILE;
+		case ENIGMA_DIR:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.ENIGMA_DIRECTORY;
+		case SRG_FILE:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.SRG_FILE;
+		case PROGUARD_FILE:
+			return cuchaz.enigma.translation.mapping.serde.MappingFormat.PROGUARD;
+		default:
+			return null;
+		}
+	}
+
+	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
+		switch (format) {
+		case SRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.SRG;
+		case TSRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.TSRG;
+		case ENIGMA_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.byId("enigma");
+		default:
+			return null;
+		}
+	}
+
+	public static IMappingFile.Format toSrgUtilsFormat(MappingFormat format) {
+		switch (format) {
+		case TINY_FILE:
+			return IMappingFile.Format.TINY1;
+		case TINY_2_FILE:
+			return IMappingFile.Format.TINY;
+		case SRG_FILE:
+			return IMappingFile.Format.SRG;
+		case TSRG_FILE:
+			return IMappingFile.Format.TSRG;
+		case TSRG_2_FILE:
+			return IMappingFile.Format.TSRG2;
+		case PROGUARD_FILE:
+			return IMappingFile.Format.PG;
+		case ENIGMA_FILE:
+		case ENIGMA_DIR:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
+		}
 	}
 
 	private static void visitClass(MemoryMappingTree tree, int... dstNs) {
