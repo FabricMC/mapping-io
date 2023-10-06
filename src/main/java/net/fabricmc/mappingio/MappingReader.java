@@ -157,8 +157,6 @@ public final class MappingReader {
 			case ENIGMA_DIR:
 				EnigmaDirReader.read(file, visitor);
 				break;
-			case MCP_DIR:
-				throw new UnsupportedOperationException(); // TODO: implement
 			default:
 				throw new IllegalStateException();
 			}
