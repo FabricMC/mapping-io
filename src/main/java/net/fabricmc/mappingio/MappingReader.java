@@ -56,7 +56,7 @@ public final class MappingReader {
 					return MappingFormat.ENIGMA_FILE;
 				case "srg":
 					return MappingFormat.SRG_FILE;
-				case "map":
+				case "map": // Erroneously used by Mapping-IO <0.5
 					return MappingFormat.PROGUARD_FILE;
 				default:
 					break;
