@@ -93,7 +93,7 @@ public final class SrgFileReader {
 
 						if (isMethod) {
 							srcDesc = reader.nextCol();
-							if (src == null || src.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
+							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
 						} else {
 							srcDesc = null;
 						}
