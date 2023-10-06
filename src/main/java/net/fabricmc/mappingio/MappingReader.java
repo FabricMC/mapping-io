@@ -43,6 +43,26 @@ public final class MappingReader {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
 		} else {
+			String fileName = file.getFileName().toString();
+			int dotIdx = fileName.lastIndexOf('.');
+
+			if (dotIdx >= 0) {
+				String ext = fileName.substring(dotIdx + 1);
+
+				switch (ext) {
+				case "mapping": // Standard name
+				case "mappings": // Sometimes used for standalone (non-dir) files
+				case "enigma": // Erroneously used by Lorenz <0.6
+					return MappingFormat.ENIGMA_FILE;
+				case "srg":
+					return MappingFormat.SRG_FILE;
+				case "map":
+					return MappingFormat.PROGUARD_FILE;
+				default:
+					break;
+				}
+			}
+
 			try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
 				return detectFormat(reader);
 			}
