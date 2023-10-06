@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format.tsrg;
+package net.fabricmc.mappingio.format.srg;
 
 import java.io.IOException;
 import java.io.Reader;
