@@ -133,8 +133,7 @@ public enum MappingFormat {
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false),
-	MCP_DIR("MCP directory", null, false, false, true, true, false);
+	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
