@@ -25,7 +25,7 @@ public enum MappingFormat {
 	SRG_FILE("SRG file", "srg", false, false, false, false, false),
 	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false),
 	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false),
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false);
+	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
