@@ -118,9 +118,9 @@ public final class TsrgFileReader {
 					String line = reader.nextCols(false);
 					if (line == null && reader.isAtEof()) continue;
 					reader.reset();
-					String[] parts = line.split(" ");
+					String[] parts = line.split("((?<= )|(?= ))"); // Split on spaces, but keep them
 
-					if (format != MappingFormat.TSRG_2_FILE && parts.length >= 3 && parts[2].indexOf('#') < 0) { // CSRG
+					if (format != MappingFormat.TSRG_2_FILE && parts.length >= 4 && !parts[3].startsWith("#")) { // CSRG
 						format = MappingFormat.CSRG_FILE;
 						String clsName = parts[0];
 						if (clsName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
@@ -131,18 +131,31 @@ public final class TsrgFileReader {
 						}
 
 						if (!visitLastClass) continue;
+						String dstName;
 
-						if (parts.length >= 4 && parts[3].indexOf('#') < 0) { // method
-							if (visitor.visitMethod(parts[1], parts[2])) {
-								visitor.visitDstName(MappedElementKind.METHOD, 0, parts[3]);
+						if (parts.length >= 6 && !parts[5].startsWith("#")) { // method
+							dstName = parts.length == 6 ? null : parts[6];
+
+							if (dstName == null || !dstName.startsWith("#")) {
+								if (visitor.visitMethod(parts[2], parts[4])) {
+									visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+								}
+
+								continue;
 							}
-						} else { // field
-							if (visitor.visitField(parts[1], null)) {
-								visitor.visitDstName(MappedElementKind.FIELD, 0, parts[2]);
+						} else if (parts.length >= 4) { // field
+							dstName = parts.length == 4 ? null : parts[4];
+
+							if (dstName == null || !dstName.startsWith("#")) {
+								if (visitor.visitField(parts[2], null)) {
+									visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+								}
+
+								continue;
 							}
 						}
 
-						continue;
+						throw new IllegalStateException("invalid CSRG line: "+line);
 					}
 
 					String srcName = reader.nextCol();
