@@ -1,0 +1,6 @@
+CL: class_1 RenamedClass1
+FD: class_1/field_1 class_1/renamedField
+MD: class_1/method_1 (F)I class_1/renamedMethod
+CL: class_1$class_2 RenamedClass1$RenamedInnerClass
+FD: class_1$class_2/field_1 class_1$class_2/renamedField2
+CL: class_3 RenamedClass2
