@@ -1,0 +1,9 @@
+tiny	2	0	source	target
+c	class_1	RenamedClass1
+	f	I	field_1	renamedField
+	m	(F)I	method_1	renamedMethod
+		p	0	param_1	renamedParameter
+		v	0	0	0	param_1	renamedVariable
+c	class_1$class_2	RenamedClass1$RenamedInnerClass
+	f	I	field_1	renamedField2
+c	class_3	RenamedClass2

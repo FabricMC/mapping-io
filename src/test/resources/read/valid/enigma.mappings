@@ -1,0 +1,7 @@
+CLASS class_1 RenamedClass1
+	FIELD field_1 renamedField I
+	METHOD method_1 renamedMethod (F)I
+		ARG 0 renamedParameter
+	CLASS class_2 RenamedInnerClass
+		FIELD field_1 renamedField2 I
+CLASS class_3 RenamedClass2

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class NopMappingVisitor implements MappingVisitor {
-	NopMappingVisitor(boolean visitSubVisitors) {
+	public NopMappingVisitor(boolean visitSubVisitors) {
 		this.visitSubVisitors = visitSubVisitors;
 	}
 

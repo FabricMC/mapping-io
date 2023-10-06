@@ -1,0 +1,8 @@
+tsrg2 source target
+class_1 RenamedClass1
+	field_1 I renamedField
+	method_1 (F)I renamedMethod
+		0 param_1 renamedParameter
+class_1$class_2 RenamedClass1$RenamedInnerClass
+	field_1 I renamedField2
+class_3 RenamedClass2

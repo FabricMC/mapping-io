@@ -1,0 +1,6 @@
+class_1 RenamedClass1
+	field_1 renamedField
+	method_1 (F)I renamedMethod
+class_1$class_2 RenamedClass1$RenamedInnerClass
+	field_1 renamedField2
+class_3 RenamedClass2

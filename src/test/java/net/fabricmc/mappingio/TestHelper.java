@@ -35,6 +35,13 @@ public final class TestHelper {
 		}
 	}
 
+	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
+		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
+		tree.accept(writer);
+		writer.close();
+	}
+
+	// Has to be kept in sync with /resources/read/valid/* test mappings!
 	public static MemoryMappingTree createTestTree() {
 		MemoryMappingTree tree = new MemoryMappingTree();
 		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK));
@@ -64,11 +71,5 @@ public final class TestHelper {
 		tree.visitDstName(MappedElementKind.CLASS, 0, "RenamedClass2");
 
 		return tree;
-	}
-
-	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
-		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
-		tree.accept(writer);
-		writer.close();
 	}
 }
