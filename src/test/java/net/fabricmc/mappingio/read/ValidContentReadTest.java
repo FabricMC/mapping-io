@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,6 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.FlatMappingVisitor;
 import net.fabricmc.mappingio.MappingReader;
@@ -47,60 +47,94 @@ import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
 	private static Path dir;
-	private static MappingTree origTree;
+	private static MappingTree testTree;
+	private static MappingTree testTreeWithHoles;
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		dir = TestHelper.getResource("/read/valid/");
-		origTree = TestHelper.createTestTree();
+		dir = TestHelper.getResource("/read/");
+		testTree = TestHelper.createTestTree();
+		testTreeWithHoles = TestHelper.createTestTreeWithHoles();
 	}
 
 	@Test
 	public void enigmaFile() throws Exception {
-		checkCommonContent("enigma.mappings", MappingFormat.ENIGMA_FILE);
+		MappingFormat format = MappingFormat.ENIGMA_FILE;
+		String filename = "enigma.mappings";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
-		checkCommonContent("enigma-dir", MappingFormat.ENIGMA_DIR);
+		MappingFormat format = MappingFormat.ENIGMA_DIR;
+		String filename = "enigma-dir";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
-		checkCommonContent("tiny.tiny", MappingFormat.TINY_FILE);
+		MappingFormat format = MappingFormat.TINY_FILE;
+		String filename = "tiny.tiny";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
-		checkCommonContent("tinyV2.tiny", MappingFormat.TINY_2_FILE);
+		MappingFormat format = MappingFormat.TINY_2_FILE;
+		String filename = "tinyV2.tiny";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void srgFile() throws Exception {
-		checkCommonContent("srg.srg", MappingFormat.SRG_FILE);
+		MappingFormat format = MappingFormat.SRG_FILE;
+		String filename = "srg.srg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void tsrgFile() throws Exception {
-		checkCommonContent("tsrg.tsrg", MappingFormat.TSRG_FILE);
+		MappingFormat format = MappingFormat.TSRG_FILE;
+		String filename = "tsrg.tsrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
 	@Test
 	public void tsrg2File() throws Exception {
-		checkCommonContent("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
+		MappingFormat format = MappingFormat.TSRG_2_FILE;
+		String filename = "tsrg2.tsrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
 	}
 
-	private VisitableMappingTree checkCommonContent(String path, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkDefault(String path, MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve(path), format, tree);
+		MappingReader.read(dir.resolve("valid/" + path), format, tree);
 
-		assertSubset(tree, format, origTree, null);
-		assertSubset(origTree, null, tree, format);
+		assertSubset(tree, format, testTree, null);
+		assertSubset(testTree, null, tree, format);
+
+		return tree;
+	}
+
+	private VisitableMappingTree checkHoles(String path, MappingFormat format) throws Exception {
+		VisitableMappingTree tree = new MemoryMappingTree();
+		MappingReader.read(dir.resolve("valid-with-holes/" + path), format, tree);
+
+		assertSubset(tree, format, testTreeWithHoles, null);
+		assertSubset(testTreeWithHoles, null, tree, format);
+
 		return tree;
 	}
 
 	private void assertSubset(MappingTree subTree, MappingFormat subFormat, MappingTree supTree, MappingFormat supFormat) throws Exception {
-		int supDstNsCount = subTree.getMaxNamespaceId();
+		int supDstNsCount = supTree.getMaxNamespaceId();
 		boolean subHasNamespaces = subFormat == null ? true : subFormat.hasNamespaces;
 		boolean supHasNamespaces = supFormat == null ? true : supFormat.hasNamespaces;
 		boolean supHasFieldDesc = supFormat == null ? true : supFormat.hasFieldDescriptors;
@@ -129,13 +163,19 @@ public class ValidContentReadTest {
 					}
 				}
 
-				if (!supHasNamespaces) throw new AssertionFailedError("SubTree namespace not contained in SupTree");
+				if (!supHasNamespaces) throw new RuntimeException("SubTree namespace not contained in SupTree");
 			}
 
 			@Override
 			public boolean visitClass(String srcName, String[] dstNames) throws IOException {
 				ClassMapping supCls = supTree.getClass(srcName);
 				Map<String, String> supDstNamesByNsName = new HashMap<>();
+
+				if (supCls == null) {
+					String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
+					if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+					throw new RuntimeException("SubTree class not contained in SupTree: " + srcName);
+				}
 
 				for (int supNs = 0; supNs < supDstNsCount; supNs++) {
 					supDstNamesByNsName.put(supTree.getNamespaceName(supNs), supCls.getDstName(supNs));
@@ -144,7 +184,7 @@ public class ValidContentReadTest {
 				for (int subNs = 0; subNs < dstNames.length; subNs++) {
 					String supDstName = supDstNamesByNsName.get(subTree.getNamespaceName(subNs));
 					if (!supHasNamespaces && supDstName == null) continue;
-					assertTrue(dstNames[subNs] == null || Objects.equals(dstNames[subNs], supDstName));
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 				}
 
 				return true;
@@ -161,6 +201,12 @@ public class ValidContentReadTest {
 					String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException {
 				FieldMapping supFld = supTree.getClass(srcClsName).getField(srcName, srcDesc);
 				Map<String, String[]> supDstDataByNsName = new HashMap<>();
+
+				if (supFld == null) {
+					String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
+					if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+					throw new RuntimeException("SubTree field not contained in SupTree: " + srcName);
+				}
 
 				for (int supNs = 0; supNs < supDstNsCount; supNs++) {
 					supDstDataByNsName.put(supTree.getNamespaceName(supNs), new String[]{supFld.getDstName(supNs), supFld.getDstDesc(supNs)});
@@ -185,7 +231,7 @@ public class ValidContentReadTest {
 			public void visitFieldComment(String srcClsName, String srcName, String srcDesc,
 					String[] dstClsNames, String[] dstNames, String[] dstDescs, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcName).getField(srcName, srcDesc).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getField(srcName, srcDesc).getComment(), comment);
 			}
 
 			@Override
@@ -193,6 +239,12 @@ public class ValidContentReadTest {
 					String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException {
 				MethodMapping supMth = supTree.getClass(srcClsName).getMethod(srcName, srcDesc);
 				Map<String, String[]> supDstDataByNsName = new HashMap<>();
+
+				if (supMth == null) {
+					String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
+					if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+					throw new RuntimeException("SubTree method not contained in SupTree: " + srcName);
+				}
 
 				for (int supNs = 0; supNs < supDstNsCount; supNs++) {
 					supDstDataByNsName.put(supTree.getNamespaceName(supNs), new String[]{supMth.getDstName(supNs), supMth.getDstDesc(supNs)});
@@ -216,7 +268,7 @@ public class ValidContentReadTest {
 			public void visitMethodComment(String srcClsName, String srcName, String srcDesc,
 					String[] dstClsNames, String[] dstNames, String[] dstDescs, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcName).getMethod(srcName, srcDesc).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getMethod(srcName, srcDesc).getComment(), comment);
 			}
 
 			@Override
@@ -225,6 +277,12 @@ public class ValidContentReadTest {
 				if (!supHasArgs) return false;
 				MethodArgMapping supArg = supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, srcName);
 				Map<String, String> supDstNamesByNsName = new HashMap<>();
+
+				if (supArg == null) {
+					String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
+					if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+					throw new RuntimeException("SubTree arg not contained in SupTree: " + srcName);
+				}
 
 				for (int supNs = 0; supNs < supDstNsCount; supNs++) {
 					supDstNamesByNsName.put(supTree.getNamespaceName(supNs), supArg.getDstName(supNs));
@@ -253,6 +311,12 @@ public class ValidContentReadTest {
 				if (!supHasVars) return false;
 				MethodVarMapping supVar = supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 				Map<String, String> supDstNamesByNsName = new HashMap<>();
+
+				if (supVar == null) {
+					String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
+					if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+					throw new RuntimeException("SubTree var not contained in SupTree: " + srcName);
+				}
 
 				for (int supNs = 0; supNs < supDstNsCount; supNs++) {
 					supDstNamesByNsName.put(supTree.getNamespaceName(supNs), supVar.getDstName(supNs));

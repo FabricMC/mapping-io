@@ -18,6 +18,10 @@ package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -70,7 +74,14 @@ public class DetectionTest {
 		check("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
 	}
 
-	private void check(String path, MappingFormat format) throws Exception {
-		assertEquals(format, MappingReader.detectFormat(dir.resolve(path)));
+	private void check(String file, MappingFormat format) throws Exception {
+		Path path = dir.resolve(file);
+		assertEquals(format, MappingReader.detectFormat(path));
+
+		if (!format.hasSingleFile()) return;
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+			assertEquals(format, MappingReader.detectFormat(reader));
+		}
 	}
 }
