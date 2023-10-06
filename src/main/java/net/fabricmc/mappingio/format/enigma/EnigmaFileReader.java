@@ -193,8 +193,7 @@ public final class EnigmaFileReader {
 
 					if (visitor.visitMethodArg(-1, lvIndex, null)) {
 						String dstName = reader.nextCol();
-						if (dstName == null) throw new IOException("missing var-name-b column in line "+reader.getLineNumber());
-						if (!dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
+						if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 
 						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor);
 					}
