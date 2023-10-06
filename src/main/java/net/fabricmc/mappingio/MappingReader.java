@@ -54,47 +54,51 @@ public final class MappingReader {
 		int pos = 0;
 		int len;
 
-		while (pos < buffer.length
-				&& (len = reader.read(buffer, pos, buffer.length - pos)) >= 0) {
-			pos += len;
+		try (BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader)) {
+			br.mark(DETECT_HEADER_LEN);
+
+			while (pos < buffer.length
+					&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
+				pos += len;
+			}
+
+			br.reset();
+			if (pos < 3) return null;
+
+			switch (String.valueOf(buffer, 0, 3)) {
+			case "v1\t":
+				return MappingFormat.TINY_FILE;
+			case "tin":
+				return MappingFormat.TINY_2_FILE;
+			case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
+				return MappingFormat.TSRG_2_FILE;
+			case "CLA":
+				return MappingFormat.ENIGMA_FILE;
+			case "PK:":
+			case "CL:":
+			case "MD:":
+			case "FD:":
+				return detectSrgOrXsrg(br);
+			}
+
+			String headerStr = String.valueOf(buffer, 0, pos);
+
+			if (headerStr.contains(" -> ")) {
+				return MappingFormat.PROGUARD_FILE;
+			} else if (headerStr.contains("\n\t")) {
+				return MappingFormat.TSRG_FILE;
+			}
+
+			// TODO: CSRG
+
+			return null; // unknown format or corrupted
 		}
-
-		if (pos < 3) return null;
-
-		switch (String.valueOf(buffer, 0, 3)) {
-		case "v1\t":
-			return MappingFormat.TINY_FILE;
-		case "tin":
-			return MappingFormat.TINY_2_FILE;
-		case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
-			return MappingFormat.TSRG_2_FILE;
-		case "CLA":
-			return MappingFormat.ENIGMA_FILE;
-		case "PK:":
-		case "CL:":
-		case "MD:":
-		case "FD:":
-			return detectSrgOrXsrg(reader);
-		}
-
-		String headerStr = String.valueOf(buffer, 0, pos);
-
-		if (headerStr.contains(" -> ")) {
-			return MappingFormat.PROGUARD_FILE;
-		} else if (headerStr.contains("\n\t")) {
-			return MappingFormat.TSRG_FILE;
-		}
-
-		// TODO: CSRG
-
-		return null; // unknown format or corrupted
 	}
 
-	private static MappingFormat detectSrgOrXsrg(Reader reader) throws IOException {
-		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
 		String line;
 
-		while ((line = br.readLine()) != null) {
+		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("FD:")) {
 				String[] parts = line.split(" ");
 
