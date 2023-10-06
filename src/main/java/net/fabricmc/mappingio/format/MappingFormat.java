@@ -19,13 +19,13 @@ package net.fabricmc.mappingio.format;
 public enum MappingFormat {
 	TINY_FILE("Tiny file", "tiny", true, true, false, false, false),
 	TINY_2_FILE("Tiny v2 file", "tiny", true, true, true, true, true),
-	ENIGMA_FILE("Enigma file", "mappings", false, true, true, true, false),
+	ENIGMA_FILE("Enigma file", "mapping", false, true, true, true, false),
 	ENIGMA_DIR("Enigma directory", null, false, true, true, true, false),
 	MCP_DIR("MCP directory", null, false, false, true, true, false),
 	SRG_FILE("SRG file", "srg", false, false, false, false, false),
 	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false),
 	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false),
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false);
+	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
