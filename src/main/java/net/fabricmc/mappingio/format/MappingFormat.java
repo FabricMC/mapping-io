@@ -108,7 +108,7 @@ public enum MappingFormat {
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_FILE("Enigma file", "mappings", false, true, true, true, false),
+	ENIGMA_FILE("Enigma file", "mapping", false, true, true, true, false),
 
 	/**
 	 * Enigma's mapping format (in directory form), as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
@@ -133,7 +133,7 @@ public enum MappingFormat {
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "map", false, true, false, false, false);
+	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
 
 	MappingFormat(String name, String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
