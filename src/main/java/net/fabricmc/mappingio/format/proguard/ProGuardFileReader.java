@@ -29,9 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.format.MappingFileReader;
 
 public final class ProGuardFileReader implements MappingFileReader {
 	private ProGuardFileReader() {

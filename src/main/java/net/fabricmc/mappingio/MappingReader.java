@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
@@ -109,5 +110,29 @@ public interface MappingReader {
 
 	default List<String> getNamespaces(Reader reader) throws IOException {
 		return Arrays.asList(MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK);
+	}
+
+	@ApiStatus.Internal
+	interface MappingFileReader extends MappingReader {
+		/**
+		 * Read mappings from the passed reader.
+		 * @param reader the reader to read from
+		 * @param visitor the visitor receiving the mappings
+		 * @throws IOException if an I/O error occurs
+		 */
+		default void read(Reader reader, MappingVisitor visitor) throws IOException {
+			read(reader, null, visitor);
+		}
+	}
+
+	@ApiStatus.Internal
+	interface MappingDirReader extends MappingReader {
+		@Override
+		default void read(Path dir, MappingVisitor visitor) throws IOException {
+			read(null, dir, visitor);
+		}
+
+		@Override
+		void read(@Nullable Reader reader, @NotNull Path dir, MappingVisitor visitor) throws IOException;
 	}
 }

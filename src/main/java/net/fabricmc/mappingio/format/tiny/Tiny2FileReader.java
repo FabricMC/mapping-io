@@ -27,9 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
-import net.fabricmc.mappingio.format.MappingFileReader;
 
 public final class Tiny2FileReader implements MappingFileReader {
 	private Tiny2FileReader() {

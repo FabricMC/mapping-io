@@ -26,9 +26,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Objects;
 
+import net.fabricmc.mappingio.MappingReader.MappingDirReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.format.MappingDirReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 public final class EnigmaDirReader implements MappingDirReader {
