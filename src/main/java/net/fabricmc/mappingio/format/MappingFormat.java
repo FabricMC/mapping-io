@@ -22,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
@@ -180,6 +182,7 @@ public enum MappingFormat {
 		return "*."+fileExt;
 	}
 
+	@Nullable
 	public MappingWriter newWriter(Path path) throws IOException {
 		Objects.requireNonNull(path, "path must not be null");
 
@@ -188,11 +191,12 @@ public enum MappingFormat {
 		} else {
 			switch (this) {
 			case ENIGMA_DIR: return new EnigmaDirWriter(path, true);
-			default: throw new UnsupportedOperationException("format "+this+" is not implemented");
+			default: return null;
 			}
 		}
 	}
 
+	@Nullable
 	public MappingWriter newWriter(Writer writer) throws IOException {
 		if (!hasSingleFile()) throw new IllegalArgumentException("format "+this+" is not applicable to a single writer");
 		Objects.requireNonNull(writer, "writer must not be null");
@@ -202,7 +206,7 @@ public enum MappingFormat {
 		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
 		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
 		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
-		default: throw new UnsupportedOperationException("format "+this+" is not implemented");
+		default: return null;
 		}
 	}
 
