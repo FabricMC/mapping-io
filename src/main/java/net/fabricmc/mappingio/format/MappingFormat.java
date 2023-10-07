@@ -182,30 +182,42 @@ public enum MappingFormat {
 		return "*."+fileExt;
 	}
 
+	/**
+	 * Create a new writer instance for this format.
+	 * @param path the path to write to
+	 * @return the new writer instance, or null if no writer supports this format
+	 */
 	@Nullable
 	public MappingWriter newWriter(Path path) throws IOException {
 		Objects.requireNonNull(path, "path must not be null");
 
 		if (hasSingleFile()) {
-			return newWriter(Files.newBufferedWriter(path));
-		} else {
-			switch (this) {
-			case ENIGMA_DIR: return new EnigmaDirWriter(path, true);
-			default: return null;
-			}
+			return newWriter(Files.newBufferedWriter(path), path);
 		}
+
+		return newWriter(null, path);
 	}
 
+	/**
+	 * Create a new writer instance for this format.
+	 * @param writer the writer to write to, used if the format is single-file based
+	 * @param path the path to write to, used if the format is directory based
+	 * @return the new writer instance, or null if no writer supports this format
+	 */
 	@Nullable
-	public MappingWriter newWriter(Writer writer) throws IOException {
-		if (!hasSingleFile()) throw new IllegalArgumentException("format "+this+" is not applicable to a single writer");
-		Objects.requireNonNull(writer, "writer must not be null");
+	public MappingWriter newWriter(Writer writer, @Nullable Path path) throws IOException {
+		if (hasSingleFile()) {
+			Objects.requireNonNull(writer, "writer must not be null for single-file based formats");
+		} else if (path == null) {
+			throw new IllegalArgumentException("format "+this+" is not applicable to a single writer. Use the Path based API instead.");
+		}
 
 		switch (this) {
 		case TINY_FILE: return new Tiny1FileWriter(writer);
 		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
 		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
 		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
+		case ENIGMA_DIR: return new EnigmaDirWriter(path, true);
 		default: return null;
 		}
 	}
