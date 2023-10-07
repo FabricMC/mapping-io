@@ -21,6 +21,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -29,6 +30,7 @@ import net.fabricmc.mappingio.MappingWriter;
 
 public final class Tiny1FileWriter implements MappingWriter {
 	public Tiny1FileWriter(Writer writer) {
+		Objects.requireNonNull(writer, "writer must not be null");
 		this.writer = writer;
 	}
 

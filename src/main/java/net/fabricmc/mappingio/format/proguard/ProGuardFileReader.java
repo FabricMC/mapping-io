@@ -20,29 +20,40 @@ import java.io.BufferedReader;
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.MappingFileReader;
 
-public final class ProGuardFileReader {
+public final class ProGuardFileReader implements MappingFileReader {
 	private ProGuardFileReader() {
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	public static ProGuardFileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public void read(Reader reader, @Nullable Path path, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
 
 		read(br, sourceNs, targetNs, visitor);
 	}
 
-	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		CharArrayReader parentReader = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -227,4 +238,6 @@ public final class ProGuardFileReader {
 			out.append(';');
 		}
 	}
+
+	private static final ProGuardFileReader INSTANCE = new ProGuardFileReader();
 }

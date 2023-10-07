@@ -18,30 +18,42 @@ package net.fabricmc.mappingio.format.enigma;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public final class EnigmaFileReader {
+public final class EnigmaFileReader implements MappingFileReader {
 	private EnigmaFileReader() {
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	public static EnigmaFileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public void read(Reader reader, @Nullable Path dir, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
+
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -74,7 +86,7 @@ public final class EnigmaFileReader {
 		}
 	}
 
-	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		String srcInnerName = reader.nextCol();
 		if (srcInnerName == null || srcInnerName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
@@ -99,7 +111,7 @@ public final class EnigmaFileReader {
 		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
 	}
 
-	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		boolean visited = false;
 		int state = 0; // 0=invalid 1=visit -1=skip
 
@@ -155,7 +167,7 @@ public final class EnigmaFileReader {
 	/**
 	 * Re-visit a class if necessary and visit its comment if available.
 	 */
-	private static int visitClass(String srcClass, String dstClass, int state, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private int visitClass(String srcClass, String dstClass, int state, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		// state: 0=invalid 1=visit -1=skip
 
 		if (state == 0) {
@@ -178,7 +190,7 @@ public final class EnigmaFileReader {
 		return state;
 	}
 
-	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
 		while (reader.nextLine(indent + 2)) {
@@ -204,7 +216,7 @@ public final class EnigmaFileReader {
 		submitComment(MappedElementKind.METHOD, commentSb, visitor);
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private void readElement(ColumnFileReader reader, MappedElementKind kind, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		if (!visitor.visitElementContent(kind)) return;
 
 		while (reader.nextLine(indent + kind.level + 1)) {
@@ -216,7 +228,7 @@ public final class EnigmaFileReader {
 		submitComment(kind, commentSb, visitor);
 	}
 
-	private static void readComment(ColumnFileReader reader, StringBuilder commentSb) throws IOException {
+	private void readComment(ColumnFileReader reader, StringBuilder commentSb) throws IOException {
 		if (commentSb.length() > 0) commentSb.append('\n');
 
 		String comment = reader.nextCols(true);
@@ -226,10 +238,12 @@ public final class EnigmaFileReader {
 		}
 	}
 
-	private static void submitComment(MappedElementKind kind, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private void submitComment(MappedElementKind kind, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
 		if (commentSb.length() == 0) return;
 
 		visitor.visitComment(kind, commentSb.toString());
 		commentSb.setLength(0);
 	}
+
+	private static final EnigmaFileReader INSTANCE = new EnigmaFileReader();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 FabricMC
+ * Copyright (c) 2023 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio;
+package net.fabricmc.mappingio.format;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.Reader;
 
 import org.jetbrains.annotations.ApiStatus;
 
-@ApiStatus.NonExtendable
-public interface MappingWriter extends Closeable, MappingVisitor {
-	@Override
-	default boolean visitEnd() throws IOException {
-		close();
-		return true;
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingVisitor;
+
+@ApiStatus.Internal
+public interface MappingFileReader extends MappingReader {
+	/**
+	 * Read mappings from the passed reader.
+	 * @param reader the reader to read from
+	 * @param visitor the visitor receiving the mappings
+	 * @throws IOException if an I/O error occurs
+	 */
+	default void read(Reader reader, MappingVisitor visitor) throws IOException {
+		read(reader, null, visitor);
 	}
 }
