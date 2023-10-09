@@ -30,6 +30,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
 import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -197,6 +198,9 @@ public final class MappingReader {
 			break;
 		case PROGUARD_FILE:
 			ProGuardFileReader.read(reader, visitor);
+			break;
+		case RECAF_SIMPLE_FILE:
+			RecafSimpleFileReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();

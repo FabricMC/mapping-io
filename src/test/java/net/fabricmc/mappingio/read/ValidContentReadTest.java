@@ -113,6 +113,14 @@ public class ValidContentReadTest {
 		checkHoles(filename, format);
 	}
 
+	@Test
+	public void recafSimpleFile() throws Exception {
+		MappingFormat format = MappingFormat.RECAF_SIMPLE_FILE;
+		String filename = "recaf-simple.txt";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
+	}
+
 	private VisitableMappingTree checkDefault(String path, MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
 		MappingReader.read(dir.resolve("valid/" + path), format, tree);
