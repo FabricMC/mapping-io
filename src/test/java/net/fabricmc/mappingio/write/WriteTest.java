@@ -58,6 +58,11 @@ public class WriteTest {
 		write(MappingFormat.TINY_2_FILE);
 	}
 
+	@Test
+	public void recafSimpleFile() throws Exception {
+		write(MappingFormat.RECAF_SIMPLE_FILE);
+	}
+
 	private void write(MappingFormat format) throws Exception {
 		TestHelper.writeToDir(tree, format, dir);
 		TestHelper.writeToDir(treeWithHoles, format, dir);
