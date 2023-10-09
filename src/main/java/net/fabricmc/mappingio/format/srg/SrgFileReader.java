@@ -45,7 +45,7 @@ public final class SrgFileReader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {

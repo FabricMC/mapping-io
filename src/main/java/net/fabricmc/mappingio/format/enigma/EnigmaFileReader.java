@@ -45,7 +45,7 @@ public final class EnigmaFileReader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		}
