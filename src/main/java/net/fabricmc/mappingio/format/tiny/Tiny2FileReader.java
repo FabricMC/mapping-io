@@ -18,23 +18,33 @@ package net.fabricmc.mappingio.format.tiny;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 
-public final class Tiny2FileReader {
+public final class Tiny2FileReader implements MappingFileReader {
 	private Tiny2FileReader() {
 	}
 
-	public static List<String> getNamespaces(Reader reader) throws IOException {
+	public static Tiny2FileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, '\t'));
 	}
 
-	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
+	private List<String> getNamespaces(ColumnFileReader reader) throws IOException {
 		if (!reader.nextCol("tiny") // magic
 				|| reader.nextIntCol() != 2 // major version
 				|| reader.nextIntCol() < 0) { // minor version
@@ -51,11 +61,13 @@ public final class Tiny2FileReader {
 		return ret;
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	@Override
+	public void read(Reader reader, @Nullable Path path, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
 		read(new ColumnFileReader(reader, '\t'), visitor);
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	private void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
 		if (!reader.nextCol("tiny") // magic
 				|| reader.nextIntCol() != 2 // major version
 				|| reader.nextIntCol() < 0) { // minor version
@@ -126,7 +138,7 @@ public final class Tiny2FileReader {
 		}
 	}
 
-	private static void readClass(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private void readClass(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, MappedElementKind.CLASS, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.CLASS)) return;
 
@@ -155,7 +167,7 @@ public final class Tiny2FileReader {
 		}
 	}
 
-	private static void readMethod(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private void readMethod(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, MappedElementKind.METHOD, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
@@ -189,7 +201,7 @@ public final class Tiny2FileReader {
 		}
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, kind, dstNsCount, escapeNames, visitor);
 		if (!visitor.visitElementContent(kind)) return;
 
@@ -200,14 +212,14 @@ public final class Tiny2FileReader {
 		}
 	}
 
-	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
+	private void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
 		String comment = reader.nextEscapedCol();
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 
 		visitor.visitComment(subjectKind, comment);
 	}
 
-	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
+	private void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
 		for (int dstNs = 0; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol(escapeNames);
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
@@ -215,4 +227,6 @@ public final class Tiny2FileReader {
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
+
+	private static final Tiny2FileReader INSTANCE = new Tiny2FileReader();
 }

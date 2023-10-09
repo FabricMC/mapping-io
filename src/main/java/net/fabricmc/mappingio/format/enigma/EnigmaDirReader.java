@@ -16,31 +16,43 @@
 
 package net.fabricmc.mappingio.format.enigma;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Objects;
 
+import net.fabricmc.mappingio.MappingReader.MappingDirReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 
-public final class EnigmaDirReader {
+public final class EnigmaDirReader implements MappingDirReader {
 	private EnigmaDirReader() {
 	}
 
-	public static void read(Path dir, MappingVisitor visitor) throws IOException {
+	public static EnigmaDirReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public void read(Reader reader, Path dir, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(dir, "dir path must not be null");
 		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
-					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
+					try (BufferedReader reader = Files.newBufferedReader(file)) {
+						EnigmaFileReader.getInstance().read(reader, sourceNs, targetNs, visitor);
+					}
 				}
 
 				return FileVisitResult.CONTINUE;
@@ -48,4 +60,6 @@ public final class EnigmaDirReader {
 		});
 		visitor.visitEnd();
 	}
+
+	private static final EnigmaDirReader INSTANCE = new EnigmaDirReader();
 }

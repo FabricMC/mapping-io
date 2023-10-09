@@ -18,26 +18,34 @@ package net.fabricmc.mappingio.format.srg;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 
-public final class TsrgFileReader {
+public final class TsrgFileReader implements MappingFileReader {
 	private TsrgFileReader() {
 	}
 
-	public static List<String> getNamespaces(Reader reader) throws IOException {
+	public static TsrgFileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, ' '));
 	}
 
-	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
+	private List<String> getNamespaces(ColumnFileReader reader) throws IOException {
 		if (reader.nextCol("tsrg2")) { // tsrg2 magic
 			List<String> ret = new ArrayList<>();
 			String ns;
@@ -52,15 +60,17 @@ public final class TsrgFileReader {
 		}
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	@Override
+	public void read(Reader reader, Path path, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
 		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		boolean isTsrg2 = reader.nextCol("tsrg2");
 		String srcNamespace;
 		List<String> dstNamespaces;
@@ -115,7 +125,7 @@ public final class TsrgFileReader {
 		}
 	}
 
-	private static void readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor) throws IOException {
+	private void readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, MappedElementKind.CLASS, 0, dstNsCount, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.CLASS)) return;
 
@@ -178,7 +188,7 @@ public final class TsrgFileReader {
 		}
 	}
 
-	private static void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, MappedElementKind.METHOD, 0, dstNsCount, visitor);
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
@@ -202,12 +212,12 @@ public final class TsrgFileReader {
 		}
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
 		readDstNames(reader, kind, dstNsOffset, dstNsCount, visitor);
 		visitor.visitElementContent(kind);
 	}
 
-	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
 		for (int dstNs = dstNsOffset; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol();
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
@@ -215,4 +225,6 @@ public final class TsrgFileReader {
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
+
+	private static final TsrgFileReader INSTANCE = new TsrgFileReader();
 }

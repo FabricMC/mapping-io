@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.FlatMappingVisitor;
-import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
@@ -92,7 +91,7 @@ public class ValidContentReadTest {
 
 	private VisitableMappingTree checkCommonContent(String path, MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve(path), format, tree);
+		format.reader.read(dir.resolve(path), tree);
 
 		assertSubset(tree, format, origTree, null);
 		assertSubset(origTree, null, tree, format);

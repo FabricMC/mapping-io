@@ -18,30 +18,42 @@ package net.fabricmc.mappingio.format.srg;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public final class SrgFileReader {
+public final class SrgFileReader implements MappingFileReader {
 	private SrgFileReader() {
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	public static SrgFileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public void read(Reader reader, @Nullable Path path, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
+
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -139,4 +151,6 @@ public final class SrgFileReader {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
 	}
+
+	private static final SrgFileReader INSTANCE = new SrgFileReader();
 }

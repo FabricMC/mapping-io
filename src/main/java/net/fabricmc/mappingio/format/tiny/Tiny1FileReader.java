@@ -18,26 +18,36 @@ package net.fabricmc.mappingio.format.tiny;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingReader.MappingFileReader;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public final class Tiny1FileReader {
+public final class Tiny1FileReader implements MappingFileReader {
 	private Tiny1FileReader() {
 	}
 
-	public static List<String> getNamespaces(Reader reader) throws IOException {
+	public static Tiny1FileReader getInstance() {
+		return INSTANCE;
+	}
+
+	@Override
+	public List<String> getNamespaces(Reader reader) throws IOException {
 		return getNamespaces(new ColumnFileReader(reader, '\t'));
 	}
 
-	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
+	private List<String> getNamespaces(ColumnFileReader reader) throws IOException {
 		if (!reader.nextCol("v1")) { // magic/version
 			throw new IOException("invalid/unsupported tiny file: no tiny 1 header");
 		}
@@ -52,11 +62,14 @@ public final class Tiny1FileReader {
 		return ret;
 	}
 
-	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
+	@Override
+	public void read(Reader reader, @Nullable Path path, MappingVisitor visitor) throws IOException {
+		Objects.requireNonNull(reader, "reader must not be null");
+
 		read(new ColumnFileReader(reader, '\t'), visitor);
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	private void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
 		if (!reader.nextCol("v1")) { // magic/version
 			throw new IOException("invalid/unsupported tiny file: no tiny 1 header");
 		}
@@ -171,7 +184,7 @@ public final class Tiny1FileReader {
 		}
 	}
 
-	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor) throws IOException {
 		for (int dstNs = 0; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol();
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
@@ -183,4 +196,5 @@ public final class Tiny1FileReader {
 	static final String nextIntermediaryClassProperty = "next-intermediary-class";
 	static final String nextIntermediaryFieldProperty = "next-intermediary-field";
 	static final String nextIntermediaryMethodProperty = "next-intermediary-method";
+	private static final Tiny1FileReader INSTANCE = new Tiny1FileReader();
 }

@@ -36,7 +36,7 @@ public final class TestHelper {
 	}
 
 	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
-		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
+		MappingWriter writer = format.newWriter(dir.resolve(format.name() + "." + format.fileExt));
 		tree.accept(writer);
 		writer.close();
 	}

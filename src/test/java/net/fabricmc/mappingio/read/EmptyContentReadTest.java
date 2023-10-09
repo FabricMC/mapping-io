@@ -37,31 +37,31 @@ public class EmptyContentReadTest {
 
 	@Test
 	public void emptyEnigmaFile() throws Exception {
-		EnigmaFileReader.read(new StringReader(""), tree);
+		EnigmaFileReader.getInstance().read(new StringReader(""), tree);
 	}
 
 	@Test
 	public void emptyTinyFile() throws Exception {
-		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(""), tree));
+		assertThrows(IOException.class, () -> Tiny1FileReader.getInstance().read(new StringReader(""), tree));
 	}
 
 	@Test
 	public void emptyTinyV2File() throws Exception {
-		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(""), tree));
+		assertThrows(IOException.class, () -> Tiny2FileReader.getInstance().read(new StringReader(""), tree));
 	}
 
 	@Test
 	public void emptyProguardFile() throws Exception {
-		ProGuardFileReader.read(new StringReader(""), tree);
+		ProGuardFileReader.getInstance().read(new StringReader(""), tree);
 	}
 
 	@Test
 	public void emptySrgFile() throws Exception {
-		SrgFileReader.read(new StringReader(""), tree);
+		SrgFileReader.getInstance().read(new StringReader(""), tree);
 	}
 
 	@Test
 	public void emptyTsrgFile() throws Exception {
-		TsrgFileReader.read(new StringReader(""), tree);
+		TsrgFileReader.getInstance().read(new StringReader(""), tree);
 	}
 }
