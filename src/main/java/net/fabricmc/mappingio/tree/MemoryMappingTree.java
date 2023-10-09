@@ -17,15 +17,16 @@
 package net.fabricmc.mappingio.tree;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -292,10 +293,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		do {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
-				List<MetadataEntry> metadataToVisit = metadata;
+				Collection<MetadataEntry> metadataToVisit = metadata;
 
 				if (visitor.getFlags().contains(MappingFlag.NEEDS_METADATA_UNIQUENESS)) {
-					metadataToVisit = new LinkedList<>();
+					Deque<MetadataEntry> uniqueMetadata = new ArrayDeque<>();
 					Set<String> addedKeys = new HashSet<>();
 
 					// Iterate last-to-first to construct a list of each key's latest occurrence.
@@ -304,9 +305,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 						if (!addedKeys.contains(entry.getKey())) {
 							addedKeys.add(entry.getKey());
-							metadataToVisit.add(0, entry);
+							uniqueMetadata.addFirst(entry);
 						}
 					}
+
+					metadataToVisit = uniqueMetadata;
 				}
 
 				for (MetadataEntry entry : metadataToVisit) {
@@ -1737,6 +1740,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		@Override
 		public int hashCode() {
 			return key.hashCode() | value.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return key + ":" + value;
 		}
 
 		final String key;
