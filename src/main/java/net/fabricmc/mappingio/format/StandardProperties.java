@@ -88,11 +88,6 @@ public final class StandardProperties {
 		}
 
 		@Override
-		public Set<MappingFormat> getApplicableFormats() {
-			return nameByFormat.keySet();
-		}
-
-		@Override
 		public boolean isApplicableTo(MappingFormat format) {
 			return nameByFormat.containsKey(format);
 		}
