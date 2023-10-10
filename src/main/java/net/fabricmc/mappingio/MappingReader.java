@@ -31,9 +31,9 @@ import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
+import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
-import net.fabricmc.mappingio.format.tsrg.TsrgFileReader;
 
 public final class MappingReader {
 	private MappingReader() {
@@ -177,8 +177,6 @@ public final class MappingReader {
 			case ENIGMA_DIR:
 				EnigmaDirReader.read(file, visitor);
 				break;
-			case MCP_DIR:
-				throw new UnsupportedOperationException(); // TODO: implement
 			default:
 				throw new IllegalStateException();
 			}

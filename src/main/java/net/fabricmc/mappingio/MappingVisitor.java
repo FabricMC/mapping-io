@@ -44,7 +44,7 @@ import java.util.Set;
  * Subsequent visitation passes need to use the same namespaces and data, only a new independent visitation may use
  * something else after a {@link #reset()}.
  *
- * <p>The same element may be visited more than once unless the flags contain {@link MappingFlag#NEEDS_UNIQUENESS}.
+ * <p>The same element may be visited more than once unless the flags contain {@link MappingFlag#NEEDS_ELEMENT_UNIQUENESS}.
  */
 public interface MappingVisitor {
 	default Set<MappingFlag> getFlags() {

@@ -54,7 +54,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		dstNames = new String[count];
 		Set<MappingFlag> flags = next.getFlags();
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			dstClassNames = new String[count];
 			dstMemberNames = new String[count];
 		} else {
