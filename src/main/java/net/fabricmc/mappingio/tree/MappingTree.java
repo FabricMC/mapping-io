@@ -23,8 +23,28 @@ public interface MappingTree extends MappingTreeView {
 	String setSrcNamespace(String namespace);
 	List<String> setDstNamespaces(List<String> namespaces);
 
-	void addMetadata(String key, String value);
-	String removeMetadata(String key);
+	/**
+	 * @return A modifiable list of all metadata entries currently present in the tree.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
+	@Override
+	List<? extends MetadataEntry> getMetadata();
+
+	/**
+	 * @return An unmodifiable list of all metadata entries currently present
+	 * in the tree whose key is equal to the passed one.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
+	@Override
+	List<? extends MetadataEntry> getMetadata(String key);
+
+	void addMetadata(MetadataEntry entry);
+
+	/**
+	 * Removes all metadata entries whose key is equal to the passed one.
+	 * @return Whether or not any entries have been removed.
+	 */
+	boolean removeMetadata(String key);
 
 	@Override
 	Collection<? extends ClassMapping> getClasses();
@@ -57,6 +77,9 @@ public interface MappingTree extends MappingTreeView {
 	@Override
 	default MethodMapping getMethod(String ownerName, String name, String desc, int namespace) {
 		return (MethodMapping) MappingTreeView.super.getMethod(ownerName, name, desc, namespace);
+	}
+
+	interface MetadataEntry extends MetadataEntryView {
 	}
 
 	interface ElementMapping extends ElementMappingView {

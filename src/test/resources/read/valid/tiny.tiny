@@ -1,0 +1,7 @@
+v1	source	target
+CLASS	class_1	RenamedClass1
+FIELD	class_1	I	field_1	renamedField
+METHOD	class_1	(F)I	method_1	renamedMethod
+CLASS	class_1$class_2	RenamedClass1$RenamedInnerClass
+FIELD	class_1$class_2	I	field_1	renamedField2
+CLASS	class_3	RenamedClass2

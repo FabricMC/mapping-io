@@ -45,7 +45,7 @@ public final class SrgFileReader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -93,7 +93,7 @@ public final class SrgFileReader {
 
 						if (isMethod) {
 							srcDesc = reader.nextCol();
-							if (src == null || src.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
+							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
 						} else {
 							srcDesc = null;
 						}

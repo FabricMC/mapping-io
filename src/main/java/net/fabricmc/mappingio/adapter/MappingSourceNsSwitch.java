@@ -69,7 +69,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 			Set<MappingFlag> ret = EnumSet.noneOf(MappingFlag.class);
 			ret.addAll(next.getFlags());
 			ret.add(MappingFlag.NEEDS_MULTIPLE_PASSES);
-			ret.add(MappingFlag.NEEDS_UNIQUENESS);
+			ret.add(MappingFlag.NEEDS_ELEMENT_UNIQUENESS);
 
 			return ret;
 		}

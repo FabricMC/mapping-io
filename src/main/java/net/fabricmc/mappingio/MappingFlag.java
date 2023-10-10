@@ -30,12 +30,17 @@ public enum MappingFlag {
 	 */
 	NEEDS_HEADER_METADATA,
 	/**
+	 * Requirement that only one metadata visit per property key can happen within a given pass.
+	 * The property value passed via this visit has to be the latest one associated with the given key.
+	 */
+	NEEDS_METADATA_UNIQUENESS,
+	/**
 	 * Requirement that an element has to be visited only once within a pass.
 	 *
 	 * <p>This means that e.g. all members and properties of a class have to be visited after the same single
 	 * visitClass invocation and no other visitClass invocation with the same srcName may occur.
 	 */
-	NEEDS_UNIQUENESS,
+	NEEDS_ELEMENT_UNIQUENESS,
 	/**
 	 * Requirement that source field descriptors have to be supplied.
 	 */

@@ -87,13 +87,6 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitEnd() throws IOException {
-		close();
-
-		return true;
-	}
-
-	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		if (namespace != 0) return;
 
@@ -209,7 +202,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 		}
 	}
 
-	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_ELEMENT_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 	protected static final String toEscape = "\\\n\r\0\t";
 	protected static final String escaped = "\\nr0t";
 

@@ -250,8 +250,6 @@ public final class ColumnFileReader implements Closeable {
 			}
 		} while (fillBuffer(1));
 
-		eol = eof = true;
-
 		return false;
 	}
 
@@ -273,6 +271,9 @@ public final class ColumnFileReader implements Closeable {
 			System.arraycopy(buffer, bufferPos, buffer, 0, available);
 			bufferPos = 0;
 			bufferLimit = available;
+			markedLineNumber = lineNumber;
+			markedEol = eol;
+			markedEof = eof;
 		}
 
 		mark = bufferPos;
@@ -282,6 +283,9 @@ public final class ColumnFileReader implements Closeable {
 		if (mark < 0) throw new IllegalStateException("not marked");
 
 		bufferPos = mark;
+		lineNumber = markedLineNumber;
+		eol = markedEol;
+		eof = markedEof;
 	}
 
 	private boolean fillBuffer(int count) throws IOException {
@@ -310,7 +314,11 @@ public final class ColumnFileReader implements Closeable {
 
 		do {
 			int read = reader.read(buffer, bufferLimit, buffer.length - bufferLimit);
-			if (read < 0) return false; // eof
+
+			if (read < 0) {
+				eof = eol = true;
+				return false;
+			}
 
 			bufferLimit += read;
 		} while (bufferLimit < reqLimit);
@@ -327,4 +335,7 @@ public final class ColumnFileReader implements Closeable {
 	private int lineNumber = 1;
 	private boolean eol; // tracks whether the last column has been read, otherwise ambiguous if the last col is empty
 	private boolean eof;
+	private int markedLineNumber;
+	private boolean markedEol;
+	private boolean markedEof;
 }
