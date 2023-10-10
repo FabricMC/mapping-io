@@ -71,6 +71,7 @@ public class DetectionTest {
 	}
 
 	private void check(String path, MappingFormat format) throws Exception {
-		assertEquals(format, MappingReader.detectFormat(dir.resolve(path)));
+		assertEquals(format, MappingReader.detectFormat(dir.resolve(path), true));
+		assertEquals(format, MappingReader.detectFormat(dir.resolve(path), false));
 	}
 }
