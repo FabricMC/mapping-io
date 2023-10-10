@@ -19,6 +19,8 @@ package net.fabricmc.mappingio.tree;
 import java.util.Collection;
 import java.util.List;
 
+import net.fabricmc.mappingio.format.StandardProperty;
+
 public interface MappingTree extends MappingTreeView {
 	String setSrcNamespace(String namespace);
 	List<String> setDstNamespaces(List<String> namespaces);
@@ -37,6 +39,14 @@ public interface MappingTree extends MappingTreeView {
 	 */
 	@Override
 	List<? extends MetadataEntry> getMetadata(String key);
+
+	/**
+	 * @return An unmodifiable list of all metadata entries currently present
+	 * in the tree whose key is equal to the passed {@link StandardProperty}'s ID.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
+	@Override
+	List<? extends MetadataEntry> getMetadata(StandardProperty property);
 
 	void addMetadata(MetadataEntry entry);
 

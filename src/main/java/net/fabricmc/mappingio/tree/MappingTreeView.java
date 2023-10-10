@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 public interface MappingTreeView {
 	String getSrcNamespace();
@@ -58,6 +59,7 @@ public interface MappingTreeView {
 
 	List<? extends MetadataEntryView> getMetadata();
 	List<? extends MetadataEntryView> getMetadata(String key);
+	List<? extends MetadataEntryView> getMetadata(StandardProperty property);
 
 	Collection<? extends ClassMappingView> getClasses();
 	ClassMappingView getClass(String srcName);
