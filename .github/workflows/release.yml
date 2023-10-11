@@ -7,7 +7,7 @@ jobs:
       image: openjdk:21-jdk
       options: --user root
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - uses: gradle/wrapper-validation-action@v1
       - run: ./gradlew checkVersion build signJar publish --stacktrace
         env:
