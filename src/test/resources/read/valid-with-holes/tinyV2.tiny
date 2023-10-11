@@ -1,0 +1,67 @@
+tiny	2	0	source	target	target2
+c	class_1		
+c	class_2	class2Ns0Rename	
+c	class_3		class3Ns1Rename
+c	class_4		
+	c	This is a comment
+c	class_5	class5Ns0Rename	
+	c	This is a comment
+c	class_6		class6Ns1Rename
+	c	This is a comment
+c	class_7		
+c	class_7$class_8	class_7$class8Ns0Rename	
+c	class_9$class_10		class_9$class10Ns1Rename
+c	class_11$class_12		
+	c	This is a comment
+c	class_13$class_14	class_13$class14Ns0Rename	
+	c	This is a comment
+c	class_15$class_16		class_15$class16Ns1Rename
+	c	This is a comment
+c	class_17		
+c	class_17$class_18$class_19	class_17$class_18$class19Ns0Rename	
+c	class_20$class_21$class_22		class_20$class_21$class22Ns1Rename
+c	class_23$class_24$class_25		
+	c	This is a comment
+c	class_26$class_27$class_28	class_26$class_27$class28Ns0Rename	
+	c	This is a comment
+c	class_29$class_30$class_31		class_29$class_30$class31Ns1Rename
+	c	This is a comment
+c	class_32		
+	f	I	field_1		
+	f	I	field_2	field2Ns0Rename	
+	f	I	field_3		field3Ns1Rename
+	f	I	field_4		
+		c	This is a comment
+	f	I	field_5	field5Ns0Rename	
+		c	This is a comment
+	f	I	field_6		field6Ns1Rename
+		c	This is a comment
+	m	()I	method_1		
+	m	()I	method_2	method2Ns0Rename	
+	m	()I	method_3		method3Ns1Rename
+	m	()I	method_4		
+		c	This is a comment
+	m	()I	method_5	method5Ns0Rename	
+		c	This is a comment
+	m	()I	method_6		method6Ns1Rename
+		c	This is a comment
+	m	()I	method_7		
+		p	5	param_1		
+		p	7	param_2		param2Ns1Rename
+		p	9	param_3	param3Ns0Rename	
+		p	11	param_4		
+			c	This is a comment
+		p	13	param_5	param5Ns0Rename	
+			c	This is a comment
+		p	15	param_6		param6Ns1Rename
+			c	This is a comment
+	m	()I	method_8		
+		v	16	16	16	var_1		
+		v	18	18	18	var_2		var2Ns1Rename
+		v	20	20	20	var_3	var3Ns0Rename	
+		v	22	22	22	var_4		
+			c	This is a comment
+		v	24	24	24	var_5	var5Ns0Rename	
+			c	This is a comment
+		v	26	26	26	var_6		var6Ns1Rename
+			c	This is a comment
