@@ -10,3 +10,6 @@ pluginManagement {
 }
 
 rootProject.name = 'mapping-io'
+
+include 'extras'
+project(":extras").name = "mapping-io-extras"
