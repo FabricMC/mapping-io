@@ -149,25 +149,6 @@ public final class TestHelper {
 		return tree;
 	}
 
-	public static cuchaz.enigma.translation.mapping.serde.MappingFormat toEnigmaFormat(MappingFormat format) {
-		switch (format) {
-		case TINY_FILE:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.TINY_FILE;
-		case TINY_2_FILE:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.TINY_V2;
-		case ENIGMA_FILE:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.ENIGMA_FILE;
-		case ENIGMA_DIR:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.ENIGMA_DIRECTORY;
-		case SRG_FILE:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.SRG_FILE;
-		case PROGUARD_FILE:
-			return cuchaz.enigma.translation.mapping.serde.MappingFormat.PROGUARD;
-		default:
-			return null;
-		}
-	}
-
 	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
 		switch (format) {
 		case SRG_FILE:

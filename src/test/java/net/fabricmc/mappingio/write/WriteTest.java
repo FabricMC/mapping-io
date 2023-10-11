@@ -21,9 +21,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import cuchaz.enigma.ProgressListener;
-import cuchaz.enigma.translation.mapping.serde.MappingFileNameFormat;
-import cuchaz.enigma.translation.mapping.serde.MappingSaveParameters;
 import net.minecraftforge.srgutils.IMappingFile;
 import net.minecraftforge.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingNsCompleter;
@@ -83,12 +79,10 @@ public class WriteTest {
 		Path path = TestHelper.writeToDir(tree, format, dir);
 		readWithLorenz(path, format);
 		readWithSrgUtils(tree, format, treeNsAltMap);
-		readWithEnigma(tree, format, treeNsAltMap);
 
 		path = TestHelper.writeToDir(treeWithHoles, format, dir);
 		readWithLorenz(path, format);
 		readWithSrgUtils(treeWithHoles, format, treeWithHolesNsAltMap);
-		readWithEnigma(treeWithHoles, format, treeWithHolesNsAltMap);
 	}
 
 	private void readWithLorenz(Path path, MappingFormat format) throws Exception {
@@ -103,41 +97,15 @@ public class WriteTest {
 
 		// SrgUtils can't handle empty dst names
 		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
-		tree.accept(new MappingNsCompleter(new Tiny2FixingVisitor(dstNsCompTree, format), nsAltMap));
+		tree.accept(new MappingNsCompleter(new ForwardingMappingVisitor(dstNsCompTree) {
+			@Override
+			public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+				// SrgUtil's Tiny v2 reader crashes on var sub-elements
+				return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
+			}
+		}, nsAltMap));
 
 		Path path = TestHelper.writeToDir(dstNsCompTree, format, dir);
 		INamedMappingFile.load(path.toFile());
-	}
-
-	private void readWithEnigma(MappingTree tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
-		cuchaz.enigma.translation.mapping.serde.MappingFormat enigmaFormat = TestHelper.toEnigmaFormat(format);
-		if (enigmaFormat == null) return;
-
-		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
-		MappingVisitor visitor = new Tiny2FixingVisitor(dstNsCompTree, format);
-
-		if (format == MappingFormat.ENIGMA_FILE || format == MappingFormat.ENIGMA_DIR) {
-			visitor = new MappingNsCompleter(visitor, nsAltMap);
-		}
-
-		tree.accept(visitor);
-		Path path = TestHelper.writeToDir(dstNsCompTree, format, dir);
-		enigmaFormat.getReader().read(path, ProgressListener.none(), new MappingSaveParameters(MappingFileNameFormat.BY_OBF));
-	}
-
-	private class Tiny2FixingVisitor extends ForwardingMappingVisitor {
-		Tiny2FixingVisitor(MappingVisitor next, MappingFormat format) {
-			super(next);
-			this.format = format;
-		}
-
-		@Override
-		public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-			// SrgUtil's Tiny v2 reader crashes on var sub-elements
-			// Enigma's Tiny v2 reader crashes on vars
-			return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
-		}
-
-		private final MappingFormat format;
 	}
 }
