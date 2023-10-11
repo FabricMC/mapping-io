@@ -76,7 +76,7 @@ package net.fabricmc.mappingio.format;
  *   <tr>
  *     <td>TSRG2</td>
  *     <td>✔</td>
- *     <td>✖</td>
+ *     <td>✔</td>
  *     <td>✖</td>
  *     <td>✔</td>
  *     <td>✖</td>
@@ -128,7 +128,7 @@ public enum MappingFormat {
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, false, false, true, false),
+	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
