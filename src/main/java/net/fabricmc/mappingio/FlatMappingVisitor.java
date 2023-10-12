@@ -97,11 +97,11 @@ public interface FlatMappingVisitor {
 
 	// regular <-> flat visitor adaptation methods
 
-	default MappingVisitor asMethodVisitor() {
+	default MappingVisitor asRegularVisitor() {
 		return new FlatAsRegularMappingVisitor(this);
 	}
 
-	static FlatMappingVisitor fromMethodVisitor(MappingVisitor visitor) {
+	static FlatMappingVisitor fromRegularVisitor(MappingVisitor visitor) {
 		return new RegularAsFlatMappingVisitor(visitor);
 	}
 
