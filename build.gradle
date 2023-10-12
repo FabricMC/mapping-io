@@ -38,10 +38,11 @@ repositories {
 
 dependencies {
 	implementation "org.ow2.asm:asm:${project.asm_version}"
-	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
+	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junit_jupiter_version}"
+	testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit_jupiter_version}"
 }
 

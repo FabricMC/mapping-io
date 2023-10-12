@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappingVisitor;
 
 public interface MappingTreeView {
@@ -74,32 +76,29 @@ public interface MappingTreeView {
 	/**
 	 * @see MappingTreeView#getField(String, String, String, int)
 	 */
-	default FieldMappingView getField(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMappingView owner = getClass(srcOwnerName);
+	default FieldMappingView getField(String srcClsName, String srcName, @Nullable String srcDesc) {
+		ClassMappingView owner = getClass(srcClsName);
 		return owner != null ? owner.getField(srcName, srcDesc) : null;
 	}
 
-	/**
-	 * @param desc Nullable.
-	 */
-	default FieldMappingView getField(String ownerName, String name, String desc, int namespace) {
-		ClassMappingView owner = getClass(ownerName, namespace);
+	default FieldMappingView getField(String clsName, String name, @Nullable String desc, int namespace) {
+		ClassMappingView owner = getClass(clsName, namespace);
 		return owner != null ? owner.getField(name, desc, namespace) : null;
 	}
 
 	/**
 	 * @see MappingTreeView#getMethod(String, String, String, int)
 	 */
-	default MethodMappingView getMethod(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMappingView owner = getClass(srcOwnerName);
+	default MethodMappingView getMethod(String srcClsName, String srcName, @Nullable String srcDesc) {
+		ClassMappingView owner = getClass(srcClsName);
 		return owner != null ? owner.getMethod(srcName, srcDesc) : null;
 	}
 
 	/**
-	 * @param desc Nullable. Can be either complete desc or parameter-only desc.
+	 * @param desc Can be either complete desc or parameter-only desc.
 	 */
-	default MethodMappingView getMethod(String ownerName, String name, String desc, int namespace) {
-		ClassMappingView owner = getClass(ownerName, namespace);
+	default MethodMappingView getMethod(String clsName, String name, @Nullable String desc, int namespace) {
+		ClassMappingView owner = getClass(clsName, namespace);
 		return owner != null ? owner.getMethod(name, desc, namespace) : null;
 	}
 
@@ -219,12 +218,12 @@ public interface MappingTreeView {
 		/**
 		 * @see MappingTreeView#getField(String, String, String, int)
 		 */
-		FieldMappingView getField(String srcName, String srcDesc);
+		FieldMappingView getField(String srcName, @Nullable String srcDesc);
 
 		/**
 		 * @see MappingTreeView#getField(String, String, String, int)
 		 */
-		default FieldMappingView getField(String name, String desc, int namespace) {
+		default FieldMappingView getField(String name, @Nullable String desc, int namespace) {
 			if (namespace < 0) return getField(name, desc);
 
 			for (FieldMappingView field : getFields()) {
@@ -243,12 +242,12 @@ public interface MappingTreeView {
 		/**
 		 * @see MappingTreeView#getMethod(String, String, String, int)
 		 */
-		MethodMappingView getMethod(String srcName, String srcDesc);
+		MethodMappingView getMethod(String srcName, @Nullable String srcDesc);
 
 		/**
 		 * @see MappingTreeView#getMethod(String, String, String, int)
 		 */
-		default MethodMappingView getMethod(String name, String desc, int namespace) {
+		default MethodMappingView getMethod(String name, @Nullable String desc, int namespace) {
 			if (namespace < 0) return getMethod(name, desc);
 
 			for (MethodMappingView method : getMethods()) {
@@ -299,10 +298,10 @@ public interface MappingTreeView {
 
 	interface MethodMappingView extends MemberMappingView {
 		Collection<? extends MethodArgMappingView> getArgs();
-		MethodArgMappingView getArg(int argPosition, int lvIndex, String srcName);
+		MethodArgMappingView getArg(int argPosition, int lvIndex, @Nullable String srcName);
 
 		Collection<? extends MethodVarMappingView> getVars();
-		MethodVarMappingView getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
+		MethodVarMappingView getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 	}
 
 	interface MethodArgMappingView extends ElementMappingView {
