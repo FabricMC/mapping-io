@@ -102,11 +102,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	@Nullable
 	public String getSrcNamespace() {
 		return srcNamespace;
 	}
 
 	@Override
+	@Nullable
 	public String setSrcNamespace(String namespace) {
 		String ret = srcNamespace;
 		srcNamespace = namespace;
@@ -236,11 +238,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping getClass(String srcName) {
 		return classesBySrcName.get(srcName);
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping getClass(String name, int namespace) {
 		if (namespace < 0 || !indexByDstNames) {
 			return VisitableMappingTree.super.getClass(name, namespace);
@@ -277,6 +281,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping removeClass(String srcName) {
 		ClassEntry ret = classesBySrcName.remove(srcName);
 
@@ -728,6 +733,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public final String getDstName(int namespace) {
 			return dstNames[namespace];
 		}
@@ -756,6 +762,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public final String getComment() {
 			return comment;
 		}
@@ -869,11 +876,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public FieldEntry getField(String srcName, @Nullable String srcDesc) {
 			return getMember(srcName, srcDesc, fields, flags, FLAG_HAS_ANY_FIELD_DESC, FLAG_MISSES_ANY_FIELD_DESC);
 		}
 
 		@Override
+		@Nullable
 		public FieldEntry getField(String name, @Nullable String desc, int namespace) {
 			return (FieldEntry) ClassMapping.super.getField(name, desc, namespace);
 		}
@@ -888,6 +897,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public FieldEntry removeField(String srcName, @Nullable String srcDesc) {
 			FieldEntry ret = getField(srcName, srcDesc);
 			if (ret != null) fields.remove(ret.key);
@@ -903,11 +913,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodEntry getMethod(String srcName, @Nullable String srcDesc) {
 			return getMember(srcName, srcDesc, methods, flags, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
 		}
 
 		@Override
+		@Nullable
 		public MethodEntry getMethod(String name, @Nullable String desc, int namespace) {
 			return (MethodEntry) ClassMapping.super.getMethod(name, desc, namespace);
 		}
@@ -922,6 +934,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodEntry removeMethod(String srcName, @Nullable String srcDesc) {
 			MethodEntry ret = getMethod(srcName, srcDesc);
 			if (ret != null) methods.remove(ret.key);
@@ -1144,6 +1157,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public final String getSrcDesc() {
 			return srcDesc;
 		}
@@ -1264,6 +1278,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodArgEntry getArg(int argPosition, int lvIndex, @Nullable String srcName) {
 			if (args == null) return null;
 
@@ -1312,6 +1327,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodArgEntry removeArg(int argPosition, int lvIndex, @Nullable String srcName) {
 			MethodArgEntry ret = getArg(argPosition, lvIndex, srcName);
 			if (ret != null) args.remove(ret);
@@ -1327,6 +1343,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 			if (vars == null) return null;
 
@@ -1426,6 +1443,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
+		@Nullable
 		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			if (ret != null) vars.remove(ret);

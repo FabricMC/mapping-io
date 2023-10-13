@@ -32,6 +32,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Locale;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -142,7 +143,7 @@ public final class ClassAnalysisDescCompleter {
 	}
 
 	private static final class AnalyzingVisitor extends ClassVisitor {
-		AnalyzingVisitor(String namespace, MappingTree mappingTree) {
+		AnalyzingVisitor(@Nullable String namespace, MappingTree mappingTree) {
 			super(Integer.getInteger("mappingIo.asmApiVersion", Opcodes.ASM9));
 
 			this.namespace = namespace != null ? mappingTree.getNamespaceId(namespace) : MappingTreeView.SRC_NAMESPACE_ID;
@@ -157,6 +158,7 @@ public final class ClassAnalysisDescCompleter {
 		}
 
 		@Override
+		@Nullable
 		public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 			if (cls != null) {
 				FieldMapping field = cls.getField(name, descriptor, namespace);
@@ -170,6 +172,7 @@ public final class ClassAnalysisDescCompleter {
 		}
 
 		@Override
+		@Nullable
 		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 			if (cls != null) {
 				MethodMapping method = cls.getMethod(name, descriptor, namespace);

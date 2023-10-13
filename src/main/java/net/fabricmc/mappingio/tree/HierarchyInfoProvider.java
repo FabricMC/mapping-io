@@ -25,10 +25,23 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
 public interface HierarchyInfoProvider<T> {
 	String getNamespace();
-	String resolveField(String owner, String name, @Nullable String desc); // returns actual owner or null
-	String resolveMethod(String owner, String name, @Nullable String desc); // returns actual owner or null
+
+	/**
+	 * @return The internal name of the owner class highest up in the hierarchy.
+	 */
+	@Nullable
+	String resolveField(String owner, String name, @Nullable String desc);
+
+	/**
+	 * @return The internal name of the owner class highest up in the hierarchy.
+	 */
+	@Nullable
+	String resolveMethod(String owner, String name, @Nullable String desc);
+
+	@Nullable
 	T getMethodHierarchy(String owner, String name, @Nullable String desc);
 
+	@Nullable
 	default T getMethodHierarchy(MethodMappingView method) {
 		int nsId = method.getTree().getNamespaceId(getNamespace());
 		if (nsId == MappingTreeView.NULL_NAMESPACE_ID) throw new IllegalArgumentException("disassociated namespace");
