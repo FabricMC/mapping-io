@@ -160,6 +160,7 @@ public enum MappingFormat {
 	}
 
 	public final String name;
+	@Nullable
 	public final String fileExt;
 	public final boolean hasNamespaces;
 	public final boolean hasFieldDescriptors;
