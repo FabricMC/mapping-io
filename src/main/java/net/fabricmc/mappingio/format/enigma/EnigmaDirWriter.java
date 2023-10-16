@@ -35,7 +35,11 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
 		super(null);
 		this.dir = dir.toAbsolutePath().normalize();
+		this.deleteExistingFiles = deleteExistingFiles;
+	}
 
+	@Override
+	public boolean visitHeader() throws IOException {
 		if (deleteExistingFiles && Files.exists(dir)) {
 			Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 				@Override
@@ -59,6 +63,8 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 				}
 			});
 		}
+
+		return super.visitHeader();
 	}
 
 	@Override
@@ -143,4 +149,5 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 	}
 
 	private final Path dir;
+	private final boolean deleteExistingFiles;
 }

@@ -42,6 +42,11 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitHeader() throws IOException {
+		return false;
+	}
+
+	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) { }
 
 	@Override
