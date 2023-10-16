@@ -16,6 +16,11 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.util.Locale;
+
+import net.fabricmc.mappingio.i18n.I18n;
+import net.fabricmc.mappingio.i18n.MioLocale;
+
 /**
  * Represents a supported mapping format. Feature comparison table:
  * <table>
@@ -98,53 +103,57 @@ public enum MappingFormat {
 	/**
 	 * The {@code Tiny} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny">here</a>.
 	 */
-	TINY_FILE("Tiny file", "tiny", true, true, false, false, false),
+	TINY_FILE("tiny", true, true, false, false, false),
 
 	/**
 	 * The {@code Tiny v2} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny2">here</a>.
 	 */
-	TINY_2_FILE("Tiny v2 file", "tiny", true, true, true, true, true),
+	TINY_2_FILE("tiny", true, true, true, true, true),
 
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_FILE("Enigma file", "mapping", false, true, true, true, false),
+	ENIGMA_FILE("mapping", false, true, true, true, false),
 
 	/**
 	 * Enigma's mapping format (in directory form), as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_DIR("Enigma directory", null, false, true, true, true, false),
+	ENIGMA_DIR(null, false, true, true, true, false),
 
 	/**
 	 * The {@code SRG} ({@code Searge RetroGuard}) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L69-L81">here</a>.
 	 */
-	SRG_FILE("SRG file", "srg", false, false, false, false, false),
+	SRG_FILE("srg", false, false, false, false, false),
 
 	/**
 	 * The {@code TSRG} ({@code Tiny SRG}, since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
 	 */
-	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false),
+	TSRG_FILE("tsrg", false, false, false, false, false),
 
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false),
+	TSRG_2_FILE("tsrg", true, true, false, true, false),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
+	PROGUARD_FILE("txt", false, true, false, false, false);
 
-	MappingFormat(String name, String fileExt,
-			boolean hasNamespaces, boolean hasFieldDescriptors,
+	MappingFormat(String fileExt, boolean hasNamespaces, boolean hasFieldDescriptors,
 			boolean supportsComments, boolean supportsArgs, boolean supportsLocals) {
-		this.name = name;
 		this.fileExt = fileExt;
+		this.translationKey = "format." + name().toLowerCase(Locale.ROOT);
+		this.name = getName(MioLocale.EN_US);
 		this.hasNamespaces = hasNamespaces;
 		this.hasFieldDescriptors = hasFieldDescriptors;
 		this.supportsComments = supportsComments;
 		this.supportsArgs = supportsArgs;
 		this.supportsLocals = supportsLocals;
+	}
+
+	public String getName(MioLocale locale) {
+		return I18n.translate(translationKey, locale);
 	}
 
 	public boolean hasSingleFile() {
@@ -157,6 +166,7 @@ public enum MappingFormat {
 		return "*."+fileExt;
 	}
 
+	/** @deprecated Use {@link #getName()} instead. */
 	public final String name;
 	public final String fileExt;
 	public final boolean hasNamespaces;
@@ -164,4 +174,5 @@ public enum MappingFormat {
 	public final boolean supportsComments;
 	public final boolean supportsArgs;
 	public final boolean supportsLocals;
+	private final String translationKey;
 }
