@@ -60,6 +60,10 @@ allprojects {
 
 	javadoc {
 		failOnError = false
+		options {
+			// Disable the crazy super-strict doclint tool in Java 8
+			addStringOption('Xdoclint:none', '-quiet')
+		}
 	}
 
 	assemble.dependsOn javadocJar
