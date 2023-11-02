@@ -30,7 +30,6 @@ allprojects {
 	}
 
 	dependencies {
-		implementation "org.ow2.asm:asm:${project.asm_version}"
 		compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 
 		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"

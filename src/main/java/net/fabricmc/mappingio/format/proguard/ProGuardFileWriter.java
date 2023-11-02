@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
@@ -121,20 +120,22 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		Type type = Type.getMethodType(srcDesc);
+		Objects.requireNonNull(srcDesc, "srcDesc cannot be null");
+		String returnTypeDescriptor = srcDesc.substring(srcDesc.indexOf(')') + 1);
+		String[] argumentTypeDescriptors = srcDesc.substring(1, srcDesc.indexOf(')')).split(";");
+
 		writeIndent();
-		writer.write(toJavaType(type.getReturnType().getDescriptor()));
+		writer.write(toJavaType(returnTypeDescriptor));
 		writer.write(' ');
 		writer.write(srcName);
 		writer.write('(');
-		Type[] args = type.getArgumentTypes();
 
-		for (int i = 0; i < args.length; i++) {
+		for (int i = 0; i < argumentTypeDescriptors.length; i++) {
 			if (i > 0) {
 				writer.write(',');
 			}
 
-			writer.write(toJavaType(args[i].getDescriptor()));
+			writer.write(toJavaType(argumentTypeDescriptors[i]));
 		}
 
 		writer.write(')');
