@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.tree;
+package net.fabricmc.mappingio.extras;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -28,8 +28,10 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.extras.TinyRemapperHierarchyProvider.HierarchyData;
+import net.fabricmc.mappingio.tree.HierarchyInfoProvider;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
-import net.fabricmc.mappingio.tree.TinyRemapperHierarchyProvider.HierarchyData;
 import net.fabricmc.tinyremapper.api.TrClass;
 import net.fabricmc.tinyremapper.api.TrEnvironment;
 import net.fabricmc.tinyremapper.api.TrField;

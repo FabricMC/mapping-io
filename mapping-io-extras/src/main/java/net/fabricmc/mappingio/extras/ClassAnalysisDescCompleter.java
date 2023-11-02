@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.tree;
+package net.fabricmc.mappingio.extras;
 
 import java.io.IOException;
 import java.net.URI;
@@ -39,9 +39,11 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 
 public final class ClassAnalysisDescCompleter {
 	private ClassAnalysisDescCompleter() {
