@@ -99,6 +99,22 @@ public class ValidContentReadTest {
 	}
 
 	@Test
+	public void xsrgFile() throws Exception {
+		MappingFormat format = MappingFormat.XSRG_FILE;
+		String filename = "xsrg.xsrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		MappingFormat format = MappingFormat.CSRG_FILE;
+		String filename = "csrg.csrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
+	}
+
+	@Test
 	public void tsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_FILE;
 		String filename = "tsrg.tsrg";
