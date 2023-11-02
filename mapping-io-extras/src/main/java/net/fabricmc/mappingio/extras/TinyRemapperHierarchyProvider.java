@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import net.fabricmc.mappingio.tree.HierarchyInfoProvider;
-import net.fabricmc.mappingio.tree.MappingTreeView;
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.extras.TinyRemapperHierarchyProvider.HierarchyData;
+import net.fabricmc.mappingio.tree.HierarchyInfoProvider;
+import net.fabricmc.mappingio.tree.MappingTreeView;
+import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.tinyremapper.api.TrClass;
 import net.fabricmc.tinyremapper.api.TrEnvironment;
 import net.fabricmc.tinyremapper.api.TrField;
