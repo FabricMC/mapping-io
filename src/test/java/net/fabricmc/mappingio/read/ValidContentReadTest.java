@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -133,7 +134,7 @@ public class ValidContentReadTest {
 		return tree;
 	}
 
-	private void assertSubset(MappingTree subTree, MappingFormat subFormat, MappingTree supTree, MappingFormat supFormat) throws Exception {
+	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat) throws Exception {
 		int supDstNsCount = supTree.getMaxNamespaceId();
 		boolean subHasNamespaces = subFormat == null ? true : subFormat.hasNamespaces;
 		boolean supHasNamespaces = supFormat == null ? true : supFormat.hasNamespaces;

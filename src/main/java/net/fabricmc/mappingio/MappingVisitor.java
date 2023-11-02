@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Visitor with order implied context and consecutive dst name visits.
  *
@@ -69,7 +71,7 @@ public interface MappingVisitor {
 
 	void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException;
 
-	default void visitMetadata(String key, String value) throws IOException { }
+	default void visitMetadata(String key, @Nullable String value) throws IOException { }
 
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
@@ -81,10 +83,10 @@ public interface MappingVisitor {
 	}
 
 	boolean visitClass(String srcName) throws IOException;
-	boolean visitField(String srcName, String srcDesc) throws IOException;
-	boolean visitMethod(String srcName, String srcDesc) throws IOException;
-	boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException;
-	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException;
+	boolean visitField(String srcName, @Nullable String srcDesc) throws IOException;
+	boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException;
+	boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException;
+	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException;
 
 	/**
 	 * Finish the visitation pass.

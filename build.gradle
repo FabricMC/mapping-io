@@ -35,6 +35,7 @@ allprojects {
 
 		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+		testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 	}
 
 	spotless {

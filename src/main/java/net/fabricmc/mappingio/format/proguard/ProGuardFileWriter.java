@@ -21,6 +21,7 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -109,7 +110,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		writeIndent();
 		writer.write(toJavaType(srcDesc));
 		writer.write(' ');
@@ -119,7 +120,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		Type type = Type.getMethodType(srcDesc);
 		writeIndent();
 		writer.write(toJavaType(type.getReturnType().getDescriptor()));
@@ -142,13 +143,13 @@ public final class ProGuardFileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		// ignored
 		return false;
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		// ignored
 		return false;
 	}

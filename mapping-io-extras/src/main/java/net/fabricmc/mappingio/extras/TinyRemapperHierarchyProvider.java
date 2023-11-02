@@ -28,6 +28,8 @@ import java.util.Set;
 
 import net.fabricmc.mappingio.tree.HierarchyInfoProvider;
 import net.fabricmc.mappingio.tree.MappingTreeView;
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.extras.TinyRemapperHierarchyProvider.HierarchyData;
 import net.fabricmc.tinyremapper.api.TrClass;
@@ -47,7 +49,8 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	}
 
 	@Override
-	public String resolveField(String owner, String name, String desc) {
+	@Nullable
+	public String resolveField(String owner, String name, @Nullable String desc) {
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
@@ -57,7 +60,10 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	}
 
 	@Override
-	public String resolveMethod(String owner, String name, String desc) {
+	@Nullable
+	public String resolveMethod(String owner, String name, @Nullable String desc) {
+		if (desc == null) return null; // TODO: Tiny Remapper limitation
+
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
@@ -67,7 +73,10 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	}
 
 	@Override
-	public HierarchyData getMethodHierarchy(String owner, String name, String desc) {
+	@Nullable
+	public HierarchyData getMethodHierarchy(String owner, String name, @Nullable String desc) {
+		if (desc == null) return null; // TODO: Tiny Remapper limitation
+
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
@@ -131,12 +140,12 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	}
 
 	@Override
-	public int getHierarchySize(HierarchyData hierarchy) {
+	public int getHierarchySize(@Nullable HierarchyData hierarchy) {
 		return hierarchy != null ? hierarchy.methods.size() : 0;
 	}
 
 	@Override
-	public Collection<? extends MethodMappingView> getHierarchyMethods(HierarchyData hierarchy, MappingTreeView tree) {
+	public Collection<? extends MethodMappingView> getHierarchyMethods(@Nullable HierarchyData hierarchy, MappingTreeView tree) {
 		if (hierarchy == null) return Collections.emptyList();
 
 		List<MethodMappingView> ret = new ArrayList<>(hierarchy.methods.size());

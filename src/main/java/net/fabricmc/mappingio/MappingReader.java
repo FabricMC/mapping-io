@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
@@ -39,6 +41,7 @@ public final class MappingReader {
 	private MappingReader() {
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
@@ -49,6 +52,7 @@ public final class MappingReader {
 		}
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
