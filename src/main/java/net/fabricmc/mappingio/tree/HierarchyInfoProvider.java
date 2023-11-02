@@ -18,15 +18,30 @@ package net.fabricmc.mappingio.tree;
 
 import java.util.Collection;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
 public interface HierarchyInfoProvider<T> {
 	String getNamespace();
-	String resolveField(String owner, String name, String desc); // returns actual owner or null
-	String resolveMethod(String owner, String name, String desc); // returns actual owner or null
-	T getMethodHierarchy(String owner, String name, String desc);
 
+	/**
+	 * @return The internal name of the owner class highest up in the hierarchy.
+	 */
+	@Nullable
+	String resolveField(String owner, String name, @Nullable String desc);
+
+	/**
+	 * @return The internal name of the owner class highest up in the hierarchy.
+	 */
+	@Nullable
+	String resolveMethod(String owner, String name, @Nullable String desc);
+
+	@Nullable
+	T getMethodHierarchy(String owner, String name, @Nullable String desc);
+
+	@Nullable
 	default T getMethodHierarchy(MethodMappingView method) {
 		int nsId = method.getTree().getNamespaceId(getNamespace());
 		if (nsId == MappingTreeView.NULL_NAMESPACE_ID) throw new IllegalArgumentException("disassociated namespace");
@@ -35,7 +50,7 @@ public interface HierarchyInfoProvider<T> {
 		String name = method.getName(nsId);
 		String desc = method.getDesc(nsId);
 
-		if (owner == null || name == null || desc == null) {
+		if (owner == null || name == null) {
 			return null;
 		} else {
 			return getMethodHierarchy(owner, name, desc);

@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.format;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Represents a supported mapping format. Feature comparison table:
  * <table>
@@ -135,7 +137,7 @@ public enum MappingFormat {
 	 */
 	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
 
-	MappingFormat(String name, String fileExt,
+	MappingFormat(String name, @Nullable String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
 			boolean supportsComments, boolean supportsArgs, boolean supportsLocals) {
 		this.name = name;
@@ -158,6 +160,7 @@ public enum MappingFormat {
 	}
 
 	public final String name;
+	@Nullable
 	public final String fileExt;
 	public final boolean hasNamespaces;
 	public final boolean hasFieldDescriptors;
