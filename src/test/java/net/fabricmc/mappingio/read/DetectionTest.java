@@ -32,6 +32,7 @@ import org.opentest4j.AssertionFailedError;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class DetectionTest {
 	private static Path dir;
@@ -54,11 +55,13 @@ public class DetectionTest {
 	@Test
 	public void tinyFile() throws Exception {
 		check("tiny.tiny", MappingFormat.TINY_FILE);
+		read("tiny.tiny");
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
 		check("tinyV2.tiny", MappingFormat.TINY_2_FILE);
+		read("tinyV2.tiny");
 	}
 
 	@Test
@@ -94,6 +97,17 @@ public class DetectionTest {
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
 			assertEquals(format, MappingReader.detectFormat(reader));
+		}
+	}
+
+	private void read(String file) throws Exception {
+		Path path = dir.resolve(file);
+
+		// Make sure we can read the mappings
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+			MappingReader.read(reader, mappingTree);
 		}
 	}
 }

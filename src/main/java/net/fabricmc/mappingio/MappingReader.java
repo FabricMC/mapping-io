@@ -58,45 +58,46 @@ public final class MappingReader {
 		int pos = 0;
 		int len;
 
-		try (BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader)) {
-			br.mark(DETECT_HEADER_LEN);
+		// Be careful not to close the reader, thats upto the caller.
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
 
-			while (pos < buffer.length
-					&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
-				pos += len;
-			}
+		br.mark(DETECT_HEADER_LEN);
 
-			br.reset();
-			if (pos < 3) return null;
-
-			switch (String.valueOf(buffer, 0, 3)) {
-			case "v1\t":
-				return MappingFormat.TINY_FILE;
-			case "tin":
-				return MappingFormat.TINY_2_FILE;
-			case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
-				return MappingFormat.TSRG_2_FILE;
-			case "CLA":
-				return MappingFormat.ENIGMA_FILE;
-			case "PK:":
-			case "CL:":
-			case "MD:":
-			case "FD:":
-				return detectSrgOrXsrg(br);
-			}
-
-			String headerStr = String.valueOf(buffer, 0, pos);
-
-			if (headerStr.contains(" -> ")) {
-				return MappingFormat.PROGUARD_FILE;
-			} else if (headerStr.contains("\n\t")) {
-				return MappingFormat.TSRG_FILE;
-			}
-
-			// TODO: CSRG
-
-			return null; // unknown format or corrupted
+		while (pos < buffer.length
+				&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
+			pos += len;
 		}
+
+		br.reset();
+		if (pos < 3) return null;
+
+		switch (String.valueOf(buffer, 0, 3)) {
+		case "v1\t":
+			return MappingFormat.TINY_FILE;
+		case "tin":
+			return MappingFormat.TINY_2_FILE;
+		case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
+			return MappingFormat.TSRG_2_FILE;
+		case "CLA":
+			return MappingFormat.ENIGMA_FILE;
+		case "PK:":
+		case "CL:":
+		case "MD:":
+		case "FD:":
+			return detectSrgOrXsrg(br);
+		}
+
+		String headerStr = String.valueOf(buffer, 0, pos);
+
+		if (headerStr.contains(" -> ")) {
+			return MappingFormat.PROGUARD_FILE;
+		} else if (headerStr.contains("\n\t")) {
+			return MappingFormat.TSRG_FILE;
+		}
+
+		// TODO: CSRG
+
+		return null; // unknown format or corrupted
 	}
 
 	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
