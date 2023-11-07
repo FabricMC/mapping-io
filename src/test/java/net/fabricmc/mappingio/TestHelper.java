@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -33,6 +35,33 @@ public final class TestHelper {
 			return Paths.get(TestHelper.class.getResource(slashPrefixedResourcePath).toURI());
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	@Nullable
+	public static String getFileName(MappingFormat format) {
+		switch (format) {
+		case ENIGMA_FILE:
+			return "enigma.mappings";
+		case ENIGMA_DIR:
+			return "enigma-dir";
+		case TINY_FILE:
+			return "tiny.tiny";
+		case TINY_2_FILE:
+			return "tinyV2.tiny";
+		case SRG_FILE:
+			return "srg.srg";
+		case XSRG_FILE:
+			return "xsrg.xsrg";
+		case CSRG_FILE:
+			return "csrg.csrg";
+		case TSRG_FILE:
+			return "tsrg.tsrg";
+		case TSRG_2_FILE:
+			return "tsrg2.tsrg";
+		case PROGUARD_FILE:
+		default:
+			return null;
 		}
 	}
 
@@ -320,6 +349,9 @@ public final class TestHelper {
 		private ThreadLocal<AtomicInteger> nsNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 	}
 
+	public static final Path DETECTION_DIR = getResource("/detection/");
+	public static final Path VALID_DIR = getResource("/read/valid/");
+	public static final Path VALID_WITH_HOLES_DIR = getResource("/read/valid-with-holes/");
 	private static final String fldDesc = "I";
 	private static final String mthDesc = "()I";
 	private static final String comment = "This is a comment";

@@ -17,16 +17,16 @@
 package net.fabricmc.mappingio.format.proguard;
 
 import java.io.BufferedReader;
-import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.Collections;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class ProGuardFileReader {
 	private ProGuardFileReader() {
@@ -43,121 +43,103 @@ public final class ProGuardFileReader {
 	}
 
 	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		CharArrayReader parentReader = null;
+		MappingVisitor parentVisitor = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
-			char[] buffer = new char[100_000];
-			int pos = 0;
-			int len;
-
-			while ((len = reader.read(buffer, pos, buffer.length - pos)) >= 0) {
-				pos += len;
-
-				if (pos == buffer.length) buffer = Arrays.copyOf(buffer, buffer.length * 2);
-			}
-
-			parentReader = new CharArrayReader(buffer, 0, pos);
-			reader = new BufferedReader(parentReader);
+			parentVisitor = visitor;
+			visitor = new MemoryMappingTree();
 		}
 
-		StringBuilder tmp = null;
+		if (visitor.visitHeader()) {
+			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+		}
 
-		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
+		if (visitor.visitContent()) {
+			StringBuilder descSb = new StringBuilder();
+			String line;
+			boolean visitClass = false;
 
-			if (visitHeader) {
-				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
-			}
+			while ((line = reader.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty() || line.startsWith("#")) continue;
 
-			if (visitor.visitContent()) {
-				if (tmp == null) tmp = new StringBuilder();
+				if (line.endsWith(":")) { // class: <deobf> -> <obf>:
+					int pos = line.indexOf(" -> ");
+					if (pos < 0) throw new IOException("invalid proguard line (invalid separator): "+line);
+					if (pos == 0) throw new IOException("invalid proguard line (empty src class): "+line);
+					if (pos + 4 + 1 >= line.length()) throw new IOException("invalid proguard line (empty dst class): "+line);
 
-				String line;
-				boolean visitClass = false;
+					String name = line.substring(0, pos).replace('.', '/');
+					visitClass = visitor.visitClass(name);
 
-				while ((line = reader.readLine()) != null) {
-					line = line.trim();
-					if (line.isEmpty() || line.startsWith("#")) continue;
+					if (visitClass) {
+						String mappedName = line.substring(pos + 4, line.length() - 1).replace('.', '/');
+						visitor.visitDstName(MappedElementKind.CLASS, 0, mappedName);
+						visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
+					}
+				} else if (visitClass) { // method or field: <type> <deobf> -> <obf>
+					String[] parts = line.split(" ");
 
-					if (line.endsWith(":")) { // class: <deobf> -> <obf>:
-						int pos = line.indexOf(" -> ");
-						if (pos < 0) throw new IOException("invalid proguard line (invalid separator): "+line);
-						if (pos == 0) throw new IOException("invalid proguard line (empty src class): "+line);
-						if (pos + 4 + 1 >= line.length()) throw new IOException("invalid proguard line (empty dst class): "+line);
+					if (parts.length != 4) throw new IOException("invalid proguard line (extra columns): "+line);
+					if (parts[0].isEmpty()) throw new IOException("invalid proguard line (empty type): "+line);
+					if (parts[1].isEmpty()) throw new IOException("invalid proguard line (empty src member): "+line);
+					if (!parts[2].equals("->")) throw new IOException("invalid proguard line (invalid separator): "+line);
+					if (parts[3].isEmpty()) throw new IOException("invalid proguard line (empty dst member): "+line);
 
-						String name = line.substring(0, pos).replace('.', '/');
-						visitClass = visitor.visitClass(name);
+					if (parts[1].indexOf('(') < 0) { // field: <type> <deobf> -> <obf>
+						String name = parts[1];
+						String desc = pgTypeToAsm(parts[0], descSb);
 
-						if (visitClass) {
-							String mappedName = line.substring(pos + 4, line.length() - 1).replace('.', '/');
-							visitor.visitDstName(MappedElementKind.CLASS, 0, mappedName);
-							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
+						if (visitor.visitField(name, desc)) {
+							String mappedName = parts[3];
+							visitor.visitDstName(MappedElementKind.FIELD, 0, mappedName);
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
-					} else if (visitClass) { // method or field: <type> <deobf> -> <obf>
-						String[] parts = line.split(" ");
+					} else { // method: [<lineStart>:<lineEndIncl>:]<rtype> [<clazz>.]<deobf><arg-desc>[:<deobf-lineStart>[:<deobf-lineEnd>]] -> <obf>
+						// lineStart, lineEndIncl, rtype
+						String part0 = parts[0];
+						int pos = part0.indexOf(':');
 
-						if (parts.length != 4) throw new IOException("invalid proguard line (extra columns): "+line);
-						if (parts[0].isEmpty()) throw new IOException("invalid proguard line (empty type): "+line);
-						if (parts[1].isEmpty()) throw new IOException("invalid proguard line (empty src member): "+line);
-						if (!parts[2].equals("->")) throw new IOException("invalid proguard line (invalid separator): "+line);
-						if (parts[3].isEmpty()) throw new IOException("invalid proguard line (empty dst member): "+line);
+						String retType;
 
-						if (parts[1].indexOf('(') < 0) { // field: <type> <deobf> -> <obf>
-							String name = parts[1];
-							String desc = pgTypeToAsm(parts[0], tmp);
+						if (pos == -1) { // no obf line numbers
+							retType = part0;
+						} else {
+							int pos2 = part0.indexOf(':', pos + 1);
+							assert pos2 != -1;
 
-							if (visitor.visitField(name, desc)) {
+							retType = part0.substring(pos2 + 1);
+						}
+
+						// clazz, deobf, arg-desc, obf
+						String part1 = parts[1];
+						pos = part1.indexOf('(');
+						int pos3 = part1.indexOf(')', pos + 1); // arg-desc, obf
+						assert pos3 != -1;
+
+						if (part1.lastIndexOf('.', pos - 1) < 0 && part1.length() == pos3 + 1) { // no inlined method
+							String name = part1.substring(0, pos);
+							String argDesc = part1.substring(pos, pos3 + 1);
+							String desc = pgDescToAsm(argDesc, retType, descSb);
+
+							if (visitor.visitMethod(name, desc)) {
 								String mappedName = parts[3];
-								visitor.visitDstName(MappedElementKind.FIELD, 0, mappedName);
-								visitor.visitElementContent(MappedElementKind.FIELD);
-							}
-						} else { // method: [<lineStart>:<lineEndIncl>:]<rtype> [<clazz>.]<deobf><arg-desc>[:<deobf-lineStart>[:<deobf-lineEnd>]] -> <obf>
-							// lineStart, lineEndIncl, rtype
-							String part0 = parts[0];
-							int pos = part0.indexOf(':');
-
-							String retType;
-
-							if (pos == -1) { // no obf line numbers
-								retType = part0;
-							} else {
-								int pos2 = part0.indexOf(':', pos + 1);
-								assert pos2 != -1;
-
-								retType = part0.substring(pos2 + 1);
-							}
-
-							// clazz, deobf, arg-desc, obf
-							String part1 = parts[1];
-							pos = part1.indexOf('(');
-							int pos3 = part1.indexOf(')', pos + 1); // arg-desc, obf
-							assert pos3 != -1;
-
-							if (part1.lastIndexOf('.', pos - 1) < 0 && part1.length() == pos3 + 1) { // no inlined method
-								String name = part1.substring(0, pos);
-								String argDesc = part1.substring(pos, pos3 + 1);
-								String desc = pgDescToAsm(argDesc, retType, tmp);
-
-								if (visitor.visitMethod(name, desc)) {
-									String mappedName = parts[3];
-									visitor.visitDstName(MappedElementKind.METHOD, 0, mappedName);
-									visitor.visitElementContent(MappedElementKind.METHOD);
-								}
+								visitor.visitDstName(MappedElementKind.METHOD, 0, mappedName);
+								visitor.visitElementContent(MappedElementKind.METHOD);
 							}
 						}
 					}
 				}
 			}
-
-			if (visitor.visitEnd()) break;
-
-			if (parentReader == null) {
-				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
-			} else {
-				parentReader.reset();
-				reader = new BufferedReader(parentReader);
-			}
 		}
+
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 
 	private static String pgDescToAsm(String pgArgDesc, String pgRetType, StringBuilder tmp) {

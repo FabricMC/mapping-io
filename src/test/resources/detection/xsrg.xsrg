@@ -1,2 +1,2 @@
 CL: class_1 RenamedClass
-FD: class_1/field_1 Lclass_1; renamedField LRenamedClass;
+FD: class_1/field_1 Lclass_1; RenamedClass/renamedField LRenamedClass;

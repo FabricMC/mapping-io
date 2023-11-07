@@ -16,7 +16,6 @@
 
 package net.fabricmc.mappingio.format.srg;
 
-import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -30,6 +29,8 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class TsrgFileReader {
 	private TsrgFileReader() {
@@ -58,26 +59,11 @@ public final class TsrgFileReader {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader r, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		ColumnFileReader reader;
-		CharArrayReader parentReader = null;
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+	}
 
-		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
-			char[] buffer = new char[100_000];
-			int pos = 0;
-			int len;
-
-			while ((len = r.read(buffer, pos, buffer.length - pos)) >= 0) {
-				pos += len;
-				if (pos == buffer.length) buffer = Arrays.copyOf(buffer, buffer.length * 2);
-			}
-
-			parentReader = new CharArrayReader(buffer, 0, pos);
-			reader = new ColumnFileReader(parentReader, ' ');
-		} else {
-			reader = new ColumnFileReader(r, ' ');
-		}
-
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		MappingFormat format = MappingFormat.TSRG_FILE;
 		if (reader.nextCol("tsrg2")) format = MappingFormat.TSRG_2_FILE;
 		String srcNamespace;
@@ -100,88 +86,89 @@ public final class TsrgFileReader {
 
 		int dstNsCount = dstNamespaces.size();
 		List<String> nameTmp = dstNamespaces.size() > 1 ? new ArrayList<>(dstNamespaces.size() - 1) : null;
+		MappingVisitor parentVisitor = null;
 
-		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
-
-			if (visitHeader) {
-				visitor.visitNamespaces(srcNamespace, dstNamespaces);
-			}
-
-			if (visitor.visitContent()) {
-				String lastClass = null;
-				boolean visitLastClass = false; // Only used for CSRG
-
-				do {
-					if (reader.hasExtraIndents()) continue;
-					reader.mark();
-					String line = reader.nextCols(false);
-					if (line == null && reader.isAtEof()) continue;
-					reader.reset();
-					String[] parts = line.split("((?<= )|(?= ))"); // Split on spaces, but keep them
-
-					if (format != MappingFormat.TSRG_2_FILE && parts.length >= 4 && !parts[3].startsWith("#")) { // CSRG
-						format = MappingFormat.CSRG_FILE;
-						String clsName = parts[0];
-						if (clsName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-
-						if (!clsName.equals(lastClass)) {
-							lastClass = clsName;
-							visitLastClass = visitor.visitClass(clsName) && visitor.visitElementContent(MappedElementKind.CLASS);
-						}
-
-						if (!visitLastClass) continue;
-						String dstName;
-
-						if (parts.length >= 6 && !parts[5].startsWith("#")) { // method
-							dstName = parts.length == 6 ? null : parts[6];
-
-							if (dstName == null || !dstName.startsWith("#")) {
-								if (visitor.visitMethod(parts[2], parts[4])) {
-									visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-								}
-
-								continue;
-							}
-						} else if (parts.length >= 4) { // field
-							dstName = parts.length == 4 ? null : parts[4];
-
-							if (dstName == null || !dstName.startsWith("#")) {
-								if (visitor.visitField(parts[2], null)) {
-									visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-								}
-
-								continue;
-							}
-						}
-
-						throw new IllegalStateException("invalid CSRG line: "+line);
-					}
-
-					String srcName = reader.nextCol();
-					if (srcName == null || srcName.endsWith("/")) continue;
-					if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-
-					if (!srcName.equals(lastClass)) {
-						lastClass = srcName;
-						visitLastClass = visitor.visitClass(srcName);
-
-						if (visitLastClass) {
-							visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor);
-						}
-					}
-				} while (reader.nextLine(0));
-			}
-
-			if (visitor.visitEnd()) break;
-
-			if (parentReader == null) {
-				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
-			} else {
-				parentReader.reset();
-				reader = new ColumnFileReader(parentReader, ' ');
-			}
+		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+			parentVisitor = visitor;
+			visitor = new MemoryMappingTree();
 		}
+
+		if (visitor.visitHeader()) {
+			visitor.visitNamespaces(srcNamespace, dstNamespaces);
+		}
+
+		if (visitor.visitContent()) {
+			String lastClass = null;
+			boolean visitLastClass = false; // Only used for CSRG
+
+			do {
+				if (reader.hasExtraIndents()) continue;
+				reader.mark();
+				String line = reader.nextCols(false);
+				if (line == null && reader.isAtEof()) continue;
+				reader.reset();
+				String[] parts = line.split("((?<= )|(?= ))"); // Split on spaces, but keep them
+
+				if (format != MappingFormat.TSRG_2_FILE && parts.length >= 4 && !parts[3].startsWith("#")) { // CSRG
+					format = MappingFormat.CSRG_FILE;
+					String clsName = parts[0];
+					if (clsName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+					if (!clsName.equals(lastClass)) {
+						lastClass = clsName;
+						visitLastClass = visitor.visitClass(clsName) && visitor.visitElementContent(MappedElementKind.CLASS);
+					}
+
+					if (!visitLastClass) continue;
+					String dstName;
+
+					if (parts.length >= 6 && !parts[5].startsWith("#")) { // method
+						dstName = parts.length == 6 ? null : parts[6];
+
+						if (dstName == null || !dstName.startsWith("#")) {
+							if (visitor.visitMethod(parts[2], parts[4])) {
+								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+							}
+
+							continue;
+						}
+					} else if (parts.length >= 4) { // field
+						dstName = parts.length == 4 ? null : parts[4];
+
+						if (dstName == null || !dstName.startsWith("#")) {
+							if (visitor.visitField(parts[2], null)) {
+								visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+							}
+
+							continue;
+						}
+					}
+
+					throw new IllegalStateException("invalid CSRG line: "+line);
+				}
+
+				String srcName = reader.nextCol();
+				if (srcName == null || srcName.endsWith("/")) continue;
+				if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+				if (!srcName.equals(lastClass)) {
+					lastClass = srcName;
+					visitLastClass = visitor.visitClass(srcName);
+
+					if (visitLastClass) {
+						visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor);
+					}
+				}
+			} while (reader.nextLine(0));
+		}
+
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 
 	private static boolean readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor) throws IOException {

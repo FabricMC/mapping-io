@@ -25,6 +25,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class Tiny2FileReader {
 	private Tiny2FileReader() {
@@ -71,59 +73,58 @@ public final class Tiny2FileReader {
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		MappingVisitor parentVisitor = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
-			reader.mark();
+			parentVisitor = visitor;
+			visitor = new MemoryMappingTree();
 		}
 
-		boolean firstIteration = true;
+		boolean visitHeader = visitor.visitHeader();
 		boolean escapeNames = false;
 
-		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
-
-			if (visitHeader) {
-				visitor.visitNamespaces(srcNamespace, dstNamespaces);
-			}
-
-			if (visitHeader || firstIteration) {
-				while (reader.nextLine(1)) {
-					if (!visitHeader) {
-						if (!escapeNames && reader.nextCol(Tiny2Util.escapedNamesProperty)) {
-							escapeNames = true;
-						}
-					} else {
-						String key = reader.nextCol();
-						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
-						String value = reader.nextEscapedCol(); // may be missing -> null
-
-						if (key.equals(Tiny2Util.escapedNamesProperty)) {
-							escapeNames = true;
-						}
-
-						visitor.visitMetadata(key, value);
-					}
-				}
-			}
-
-			if (visitor.visitContent()) {
-				while (reader.nextLine(0)) {
-					if (reader.nextCol("c")) { // class: c <names>...
-						String srcName = reader.nextCol(escapeNames);
-						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-
-						if (visitor.visitClass(srcName)) {
-							readClass(reader, dstNsCount, escapeNames, visitor);
-						}
-					}
-				}
-			}
-
-			if (visitor.visitEnd()) break;
-
-			reader.reset();
-			firstIteration = false;
+		if (visitHeader) {
+			visitor.visitNamespaces(srcNamespace, dstNamespaces);
 		}
+
+		while (reader.nextLine(1)) {
+			if (!visitHeader) {
+				if (!escapeNames && reader.nextCol(Tiny2Util.escapedNamesProperty)) {
+					escapeNames = true;
+				}
+			} else {
+				String key = reader.nextCol();
+				if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
+				String value = reader.nextEscapedCol(); // may be missing -> null
+
+				if (key.equals(Tiny2Util.escapedNamesProperty)) {
+					escapeNames = true;
+				}
+
+				visitor.visitMetadata(key, value);
+			}
+		}
+
+		if (visitor.visitContent()) {
+			while (reader.nextLine(0)) {
+				if (reader.nextCol("c")) { // class: c <names>...
+					String srcName = reader.nextCol(escapeNames);
+					if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+					if (visitor.visitClass(srcName)) {
+						readClass(reader, dstNsCount, escapeNames, visitor);
+					}
+				}
+			}
+		}
+
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 
 	private static void readClass(ColumnFileReader reader, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {

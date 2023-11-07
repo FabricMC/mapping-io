@@ -65,11 +65,13 @@ public final class EnigmaFileReader {
 			} while (reader.nextLine(0));
 		}
 
-		visitor.visitEnd();
+		if (visitor.visitEnd() && parentVisitor == null) return;
 
-		if (parentVisitor != null) {
-			((MappingTree) visitor).accept(parentVisitor);
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
 		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 
 	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
