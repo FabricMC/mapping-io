@@ -1,0 +1,25 @@
+base {
+	archivesName = "mapping-io-extras"
+}
+
+repositories {
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
+}
+
+dependencies {
+	implementation "org.ow2.asm:asm:${project.asm_version}"
+	api "org.ow2.asm:asm-commons:${project.asm_version}"
+	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
+
+	api project(":")
+	testImplementation project(":").sourceSets.test.output
+}
+
+jar {
+	manifest {
+		attributes("Automatic-Module-Name": "net.fabricmc.mappingio.extras")
+	}
+}

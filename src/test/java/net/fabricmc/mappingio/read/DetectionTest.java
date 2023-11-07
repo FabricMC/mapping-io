@@ -17,6 +17,7 @@
 package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,10 +27,12 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class DetectionTest {
 	private static Path dir;
@@ -52,16 +55,28 @@ public class DetectionTest {
 	@Test
 	public void tinyFile() throws Exception {
 		check("tiny.tiny", MappingFormat.TINY_FILE);
+		read("tiny.tiny");
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
 		check("tinyV2.tiny", MappingFormat.TINY_2_FILE);
+		read("tinyV2.tiny");
 	}
 
 	@Test
 	public void srgFile() throws Exception {
 		check("srg.srg", MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xrgFile() throws Exception {
+		check("xsrg.xsrg", MappingFormat.XSRG_FILE);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		assertThrows(AssertionFailedError.class, () -> check("csrg.csrg", MappingFormat.CSRG_FILE));
 	}
 
 	@Test
@@ -82,6 +97,17 @@ public class DetectionTest {
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
 			assertEquals(format, MappingReader.detectFormat(reader));
+		}
+	}
+
+	private void read(String file) throws Exception {
+		Path path = dir.resolve(file);
+
+		// Make sure we can read the mappings
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+			MappingReader.read(reader, mappingTree);
 		}
 	}
 }

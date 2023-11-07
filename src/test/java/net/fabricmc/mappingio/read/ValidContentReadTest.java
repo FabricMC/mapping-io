@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -98,6 +99,22 @@ public class ValidContentReadTest {
 	}
 
 	@Test
+	public void xsrgFile() throws Exception {
+		MappingFormat format = MappingFormat.XSRG_FILE;
+		String filename = "xsrg.xsrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		MappingFormat format = MappingFormat.CSRG_FILE;
+		String filename = "csrg.csrg";
+		checkDefault(filename, format);
+		checkHoles(filename, format);
+	}
+
+	@Test
 	public void tsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_FILE;
 		String filename = "tsrg.tsrg";
@@ -141,7 +158,7 @@ public class ValidContentReadTest {
 		return tree;
 	}
 
-	private void assertSubset(MappingTree subTree, MappingFormat subFormat, MappingTree supTree, MappingFormat supFormat) throws Exception {
+	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat) throws Exception {
 		int supDstNsCount = supTree.getMaxNamespaceId();
 		boolean subHasNamespaces = subFormat == null ? true : subFormat.hasNamespaces;
 		boolean supHasNamespaces = supFormat == null ? true : supFormat.hasNamespaces;

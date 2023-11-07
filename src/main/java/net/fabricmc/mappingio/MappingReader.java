@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
@@ -40,6 +42,7 @@ public final class MappingReader {
 	private MappingReader() {
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
@@ -50,16 +53,23 @@ public final class MappingReader {
 		}
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
 
+		// Be careful not to close the reader, thats upto the caller.
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+
+		br.mark(DETECT_HEADER_LEN);
+
 		while (pos < buffer.length
-				&& (len = reader.read(buffer, pos, buffer.length - pos)) >= 0) {
+				&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
 			pos += len;
 		}
 
+		br.reset();
 		if (pos < 3) return null;
 
 		switch (String.valueOf(buffer, 0, 3)) {
@@ -75,7 +85,7 @@ public final class MappingReader {
 		case "CL:":
 		case "MD:":
 		case "FD:":
-			return MappingFormat.SRG_FILE;
+			return detectSrgOrXsrg(br);
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -86,7 +96,36 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
+		// TODO: CSRG
+
 		return null; // unknown format or corrupted
+	}
+
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
+		String line;
+
+		while ((line = reader.readLine()) != null) {
+			if (line.startsWith("FD:")) {
+				String[] parts = line.split(" ");
+
+				if (parts.length >= 5) {
+					if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
+						continue;
+					}
+
+					return MappingFormat.XSRG_FILE;
+				} else {
+					break;
+				}
+			}
+		}
+
+		return MappingFormat.SRG_FILE;
+	}
+
+	private static boolean isEmptyOrStartsWithHash(String string) {
+		if (string.isEmpty() || string.startsWith("#")) return true;
+		return false;
 	}
 
 	public static List<String> getNamespaces(Path file) throws IOException {
@@ -190,8 +229,10 @@ public final class MappingReader {
 			EnigmaFileReader.read(reader, visitor);
 			break;
 		case SRG_FILE:
+		case XSRG_FILE:
 			SrgFileReader.read(reader, visitor);
 			break;
+		case CSRG_FILE:
 		case TSRG_FILE:
 		case TSRG_2_FILE:
 			TsrgFileReader.read(reader, visitor);
