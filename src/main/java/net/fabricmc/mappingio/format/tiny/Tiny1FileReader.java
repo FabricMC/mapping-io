@@ -73,102 +73,98 @@ public final class Tiny1FileReader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
+		if (flags.contains(MappingFlag.NEEDS_HEADER_METADATA)
+				|| flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)
+				|| flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
-		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
-			reader.mark();
 		}
 
-		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
+		if (visitor.visitHeader()) {
+			visitor.visitNamespaces(srcNamespace, dstNamespaces);
+		}
 
-			if (visitHeader) {
-				visitor.visitNamespaces(srcNamespace, dstNamespaces);
-			}
+		if (visitor.visitContent()) {
+			String lastClass = null;
+			boolean lastClassDstNamed = false;;
+			boolean visitLastClass = false;
 
-			if (visitor.visitContent()) {
-				String lastClass = null;
-				boolean lastClassDstNamed = false;;
-				boolean visitLastClass = false;
+			while (reader.nextLine(0)) {
+				boolean isMethod;
 
-				while (reader.nextLine(0)) {
-					boolean isMethod;
+				if (reader.nextCol("CLASS")) { // class: CLASS <names>...
+					String srcName = reader.nextCol();
+					if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-					if (reader.nextCol("CLASS")) { // class: CLASS <names>...
-						String srcName = reader.nextCol();
-						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-
-						if (!lastClassDstNamed || !srcName.equals(lastClass)) {
-							lastClass = srcName;
-							lastClassDstNamed = true;
-							visitLastClass = visitor.visitClass(srcName);
-
-							if (visitLastClass) {
-								readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
-						}
-					} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
-						String srcOwner = reader.nextCol();
-						if (srcOwner == null || srcOwner.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
-
-						if (!srcOwner.equals(lastClass)) {
-							lastClass = srcOwner;
-							lastClassDstNamed = false;
-							visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
-						}
+					if (!lastClassDstNamed || !srcName.equals(lastClass)) {
+						lastClass = srcName;
+						lastClassDstNamed = true;
+						visitLastClass = visitor.visitClass(srcName);
 
 						if (visitLastClass) {
-							String srcDesc = reader.nextCol();
-							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
-							String srcName = reader.nextCol();
-							if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
-
-							if (isMethod && visitor.visitMethod(srcName, srcDesc)
-									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
-								MappedElementKind kind = isMethod ? MappedElementKind.METHOD : MappedElementKind.FIELD;
-								readDstNames(reader, kind, dstNsCount, visitor);
-								visitor.visitElementContent(kind);
-							}
+							readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
+							visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
-					} else {
-						String line = reader.nextCol();
-						final String prefix = "# INTERMEDIARY-COUNTER ";
-						String[] parts;
+					}
+				} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
+					String srcOwner = reader.nextCol();
+					if (srcOwner == null || srcOwner.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-						if (line.startsWith(prefix)
-								&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
-							String property = null;
+					if (!srcOwner.equals(lastClass)) {
+						lastClass = srcOwner;
+						lastClassDstNamed = false;
+						visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
+					}
 
-							switch (parts[0]) {
-							case "class":
-								property = nextIntermediaryClassProperty;
-								break;
-							case "field":
-								property = nextIntermediaryFieldProperty;
-								break;
-							case "method":
-								property = nextIntermediaryMethodProperty;
-								break;
-							}
+					if (visitLastClass) {
+						String srcDesc = reader.nextCol();
+						if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
+						String srcName = reader.nextCol();
+						if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
 
-							if (property != null) {
-								visitor.visitMetadata(property, parts[1]);
-							}
+						if (isMethod && visitor.visitMethod(srcName, srcDesc)
+								|| !isMethod && visitor.visitField(srcName, srcDesc)) {
+							MappedElementKind kind = isMethod ? MappedElementKind.METHOD : MappedElementKind.FIELD;
+							readDstNames(reader, kind, dstNsCount, visitor);
+							visitor.visitElementContent(kind);
+						}
+					}
+				} else {
+					String line = reader.nextCol();
+					final String prefix = "# INTERMEDIARY-COUNTER ";
+					String[] parts;
+
+					if (line.startsWith(prefix)
+							&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
+						String property = null;
+
+						switch (parts[0]) {
+						case "class":
+							property = nextIntermediaryClassProperty;
+							break;
+						case "field":
+							property = nextIntermediaryFieldProperty;
+							break;
+						case "method":
+							property = nextIntermediaryMethodProperty;
+							break;
+						}
+
+						if (property != null) {
+							visitor.visitMetadata(property, parts[1]);
 						}
 					}
 				}
 			}
-
-			if (visitor.visitEnd()) break;
-
-			reader.reset();
 		}
 
-		if (parentVisitor != null) {
-			((MappingTree) visitor).accept(parentVisitor);
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
 		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 
 	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor) throws IOException {
