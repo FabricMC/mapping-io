@@ -96,7 +96,7 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		// TODO: CSRG
+		// TODO: CSRG, Recaf Simple
 
 		return null; // unknown format or corrupted
 	}

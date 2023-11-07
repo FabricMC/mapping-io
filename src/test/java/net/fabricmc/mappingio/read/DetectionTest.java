@@ -89,6 +89,11 @@ public class DetectionTest {
 		check("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
 	}
 
+	@Test
+	public void recafSimpleFile() throws Exception {
+		assertThrows(AssertionFailedError.class, () -> check("recaf-simple.txt", MappingFormat.RECAF_SIMPLE_FILE));
+	}
+
 	private void check(String file, MappingFormat format) throws Exception {
 		Path path = dir.resolve(file);
 		assertEquals(format, MappingReader.detectFormat(path));
