@@ -45,12 +45,14 @@ public class JobfFileReader {
 	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
+		boolean readerMarked = false;
 
 		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		for (;;) {
@@ -131,7 +133,12 @@ public class JobfFileReader {
 
 			if (visitor.visitEnd()) break;
 
-			reader.reset();
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 
 		if (parentVisitor != null) {

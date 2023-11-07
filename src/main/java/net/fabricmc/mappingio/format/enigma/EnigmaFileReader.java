@@ -51,31 +51,40 @@ public final class EnigmaFileReader {
 	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
+		boolean readerMarked = false;
 
-		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
+		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+			reader.mark();
+			readerMarked = true;
 		}
 
-		if (visitor.visitHeader()) {
-			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
-		}
+		for (;;) {
+			if (visitor.visitHeader()) {
+				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+			}
 
-		if (visitor.visitContent()) {
-			StringBuilder commentSb = new StringBuilder(200);
-			final MappingVisitor finalVisitor = visitor;
+			if (visitor.visitContent()) {
+				StringBuilder commentSb = new StringBuilder(200);
+				final MappingVisitor finalVisitor = visitor;
 
-			do {
-				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
-					readClass(reader, 0, null, null, commentSb, finalVisitor);
-				}
-			} while (reader.nextLine(0));
-		}
+				do {
+					if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
+						readClass(reader, 0, null, null, commentSb, finalVisitor);
+					}
+				} while (reader.nextLine(0));
+			}
 
-		if (visitor.visitEnd() && parentVisitor == null) return;
+			if (visitor.visitEnd()) break;
 
-		if (parentVisitor == null) {
-			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 
 		if (parentVisitor != null) {

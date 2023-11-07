@@ -102,8 +102,6 @@ public final class EnigmaDirReader {
 			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
 		}
 
-		if (parentVisitor != null) {
-			((MappingTree) visitor).accept(parentVisitor);
-		}
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 }

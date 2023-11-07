@@ -79,18 +79,18 @@ public final class Tiny1FileReader {
 		int dstNsCount = dstNamespaces.size();
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
+		boolean readerMarked = false;
 
 		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
-
-			if (visitHeader) {
+			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 			}
 
@@ -170,7 +170,12 @@ public final class Tiny1FileReader {
 
 			if (visitor.visitEnd()) break;
 
-			reader.reset();
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 
 		if (parentVisitor != null) {

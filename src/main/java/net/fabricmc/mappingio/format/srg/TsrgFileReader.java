@@ -73,6 +73,7 @@ public final class TsrgFileReader {
 		MappingFormat format = reader.nextCol("tsrg2") ? format = MappingFormat.TSRG_2_FILE : MappingFormat.TSRG_FILE;
 		String srcNamespace;
 		List<String> dstNamespaces;
+		boolean readerMarked = false;
 
 		if (format == MappingFormat.TSRG_2_FILE) {
 			srcNamespace = reader.nextCol();
@@ -91,6 +92,7 @@ public final class TsrgFileReader {
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		int dstNsCount = dstNamespaces.size();
@@ -177,6 +179,10 @@ public final class TsrgFileReader {
 			}
 
 			if (visitor.visitEnd()) break;
+
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
 
 			int markIdx = reader.reset();
 			assert markIdx == 1;
