@@ -45,91 +45,88 @@ public final class RecafSimpleFileReader {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
-		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
-		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
-			reader.mark();
 		}
 
-		for (;;) {
-			if (visitor.visitHeader()) {
-				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
-			}
+		if (visitor.visitHeader()) {
+			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+		}
 
-			if (visitor.visitContent()) {
-				String line;
-				String lastClass = null;
-				boolean visitClass = false;
+		if (visitor.visitContent()) {
+			String line;
+			String lastClass = null;
+			boolean visitClass = false;
 
-				do {
-					line = reader.nextCols(true);
+			do {
+				line = reader.nextCols(true);
 
-					// Skip comments and empty lines
-					if (line == null || line.trim().isEmpty() || line.trim().startsWith("#")) continue;
+				// Skip comments and empty lines
+				if (line == null || line.trim().isEmpty() || line.trim().startsWith("#")) continue;
 
-					String[] parts = line.split(" ");
-					int dotPos = parts[0].lastIndexOf('.');
-					String clsSrcName;
-					String clsDstName = null;
-					String memberSrcName = null;
-					String memberSrcDesc = null;
-					String memberDstName = null;
-					boolean isMethod = false;
+				String[] parts = line.split(" ");
+				int dotPos = parts[0].lastIndexOf('.');
+				String clsSrcName;
+				String clsDstName = null;
+				String memberSrcName = null;
+				String memberSrcDesc = null;
+				String memberDstName = null;
+				boolean isMethod = false;
 
-					if (dotPos < 0) { // class
-						clsSrcName = parts[0];
-						clsDstName = parts[1];
-					} else { // member
-						clsSrcName = parts[0].substring(0, dotPos);
-						String memberIdentifier = parts[0].substring(dotPos + 1);
-						memberDstName = parts[1];
+				if (dotPos < 0) { // class
+					clsSrcName = parts[0];
+					clsDstName = parts[1];
+				} else { // member
+					clsSrcName = parts[0].substring(0, dotPos);
+					String memberIdentifier = parts[0].substring(dotPos + 1);
+					memberDstName = parts[1];
 
-						if (parts.length >= 3) { // field with descriptor
+					if (parts.length >= 3) { // field with descriptor
+						memberSrcName = memberIdentifier;
+						memberSrcDesc = parts[1];
+						memberDstName = parts[2];
+					} else if (parts.length == 2) { // field without descriptor or method
+						int mthDescPos = memberIdentifier.lastIndexOf("(");
+
+						if (mthDescPos < 0) { // field
 							memberSrcName = memberIdentifier;
-							memberSrcDesc = parts[1];
-							memberDstName = parts[2];
-						} else if (parts.length == 2) { // field without descriptor or method
-							int mthDescPos = memberIdentifier.lastIndexOf("(");
-
-							if (mthDescPos < 0) { // field
-								memberSrcName = memberIdentifier;
-							} else { // method
-								isMethod = true;
-								memberSrcName = memberIdentifier.substring(0, mthDescPos);
-								memberSrcDesc = memberIdentifier.substring(mthDescPos);
-							}
-						} else {
-							throw new IOException("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
+						} else { // method
+							isMethod = true;
+							memberSrcName = memberIdentifier.substring(0, mthDescPos);
+							memberSrcDesc = memberIdentifier.substring(mthDescPos);
 						}
+					} else {
+						throw new IOException("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
 					}
+				}
 
-					if (!clsSrcName.equals(lastClass)) {
-						visitClass = visitor.visitClass(clsSrcName);
-						lastClass = clsSrcName;
+				if (!clsSrcName.equals(lastClass)) {
+					visitClass = visitor.visitClass(clsSrcName);
+					lastClass = clsSrcName;
 
-						if (visitClass) {
-							if (clsDstName != null) visitor.visitDstName(MappedElementKind.CLASS, 0, clsDstName);
-							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
-						}
+					if (visitClass) {
+						if (clsDstName != null) visitor.visitDstName(MappedElementKind.CLASS, 0, clsDstName);
+						visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
 					}
+				}
 
-					if (visitClass && memberSrcName != null) {
-						if (!isMethod && visitor.visitField(memberSrcName, memberSrcDesc)) {
-							visitor.visitDstName(MappedElementKind.FIELD, 0, memberDstName);
-						} else if (isMethod && visitor.visitMethod(memberSrcName, memberSrcDesc)) {
-							visitor.visitDstName(MappedElementKind.METHOD, 0, memberDstName);
-						}
+				if (visitClass && memberSrcName != null) {
+					if (!isMethod && visitor.visitField(memberSrcName, memberSrcDesc)) {
+						visitor.visitDstName(MappedElementKind.FIELD, 0, memberDstName);
+					} else if (isMethod && visitor.visitMethod(memberSrcName, memberSrcDesc)) {
+						visitor.visitDstName(MappedElementKind.METHOD, 0, memberDstName);
 					}
-				} while (reader.nextLine(0));
-			}
-
-			if (visitor.visitEnd()) break;
-			reader.reset();
+				}
+			} while (reader.nextLine(0));
 		}
 
-		if (parentVisitor != null) {
-			((MappingTree) visitor).accept(parentVisitor);
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
 		}
+
+		((MappingTree) visitor).accept(parentVisitor);
 	}
 }
