@@ -65,7 +65,11 @@ public final class EnigmaFileReader {
 			} while (reader.nextLine(0));
 		}
 
-		visitor.visitEnd();
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
 
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
