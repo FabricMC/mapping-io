@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,13 +46,11 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
-	private static Path dir;
 	private static MappingTree testTree;
 	private static MappingTree testTreeWithHoles;
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		dir = TestHelper.getResource("/read/");
 		testTree = TestHelper.createTestTree();
 		testTreeWithHoles = TestHelper.createTestTreeWithHoles();
 	}
@@ -61,78 +58,69 @@ public class ValidContentReadTest {
 	@Test
 	public void enigmaFile() throws Exception {
 		MappingFormat format = MappingFormat.ENIGMA_FILE;
-		String filename = "enigma.mappings";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
 		MappingFormat format = MappingFormat.ENIGMA_DIR;
-		String filename = "enigma-dir";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
 		MappingFormat format = MappingFormat.TINY_FILE;
-		String filename = "tiny.tiny";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
 		MappingFormat format = MappingFormat.TINY_2_FILE;
-		String filename = "tinyV2.tiny";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void srgFile() throws Exception {
 		MappingFormat format = MappingFormat.SRG_FILE;
-		String filename = "srg.srg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void xsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.XSRG_FILE;
-		String filename = "xsrg.xsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
-		String filename = "csrg.csrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_FILE;
-		String filename = "tsrg.tsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tsrg2File() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
-		String filename = "tsrg2.tsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
-	private VisitableMappingTree checkDefault(String path, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve("valid/" + path), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, tree);
 
 		assertSubset(tree, format, testTree, null);
 		assertSubset(testTree, null, tree, format);
@@ -140,9 +128,9 @@ public class ValidContentReadTest {
 		return tree;
 	}
 
-	private VisitableMappingTree checkHoles(String path, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkHoles(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve("valid-with-holes/" + path), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, tree);
 
 		assertSubset(tree, format, testTreeWithHoles, null);
 		assertSubset(testTreeWithHoles, null, tree, format);
