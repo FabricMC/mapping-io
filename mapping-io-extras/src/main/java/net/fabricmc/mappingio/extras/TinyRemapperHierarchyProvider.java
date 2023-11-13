@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.extras.TinyRemapperHierarchyProvider.HierarchyData;
@@ -37,6 +38,7 @@ import net.fabricmc.tinyremapper.api.TrEnvironment;
 import net.fabricmc.tinyremapper.api.TrField;
 import net.fabricmc.tinyremapper.api.TrMethod;
 
+@ApiStatus.Experimental
 public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvider<HierarchyData> {
 	public TinyRemapperHierarchyProvider(TrEnvironment env, String namespace) {
 		this.env = env;
