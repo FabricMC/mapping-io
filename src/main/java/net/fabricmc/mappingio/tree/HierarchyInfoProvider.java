@@ -18,11 +18,13 @@ package net.fabricmc.mappingio.tree;
 
 import java.util.Collection;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
+@ApiStatus.Experimental
 public interface HierarchyInfoProvider<T> {
 	String getNamespace();
 
