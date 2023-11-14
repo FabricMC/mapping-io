@@ -118,6 +118,13 @@ public class ValidContentReadTest {
 		checkHoles(format);
 	}
 
+	@Test
+	public void proguardFile() throws Exception {
+		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		checkDefault(format);
+		checkHoles(format);
+	}
+
 	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
 		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, tree);

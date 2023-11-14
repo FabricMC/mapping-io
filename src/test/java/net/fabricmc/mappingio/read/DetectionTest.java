@@ -90,6 +90,12 @@ public class DetectionTest {
 		check(format);
 	}
 
+	@Test
+	public void proguardFile() throws Exception {
+		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		check(format);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
 		assertEquals(format, MappingReader.detectFormat(path));
