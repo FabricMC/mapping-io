@@ -58,6 +58,16 @@ public class WriteTest {
 		write(MappingFormat.TINY_2_FILE);
 	}
 
+	@Test
+	public void srgFile() throws Exception {
+		write(MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xsrgFile() throws Exception {
+		write(MappingFormat.XSRG_FILE);
+	}
+
 	private void write(MappingFormat format) throws Exception {
 		TestHelper.writeToDir(tree, format, dir);
 		TestHelper.writeToDir(treeWithHoles, format, dir);
