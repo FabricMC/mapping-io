@@ -118,6 +118,7 @@ public class ValidContentReadTest {
 		checkHoles(format);
 	}
 
+	@Test
 	public void proguardFile() throws Exception {
 		MappingFormat format = MappingFormat.PROGUARD_FILE;
 		checkDefault(format);

@@ -90,6 +90,7 @@ public class DetectionTest {
 		check(format);
 	}
 
+	@Test
 	public void proguardFile() throws Exception {
 		MappingFormat format = MappingFormat.PROGUARD_FILE;
 		check(format);
