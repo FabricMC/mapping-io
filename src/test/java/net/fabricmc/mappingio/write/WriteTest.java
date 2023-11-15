@@ -75,7 +75,7 @@ public class WriteTest {
 
 	@Test
 	public void recafSimpleFile() throws Exception {
-		write(MappingFormat.PROGUARD_FILE);
+		write(MappingFormat.RECAF_SIMPLE_FILE);
 	}
 
 	private void write(MappingFormat format) throws Exception {
