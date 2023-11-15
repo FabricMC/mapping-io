@@ -1,0 +1,8 @@
+tsrg2 source target target2
+class_1 class1Ns0Rename class1Ns1Rename
+	field_1 I field1Ns0Rename field1Ns1Rename
+	method_1 ()I method1Ns0Rename method1Ns1Rename
+		1 param_1 param1Ns0Rename param1Ns1Rename
+class_1$class_2 class1Ns0Rename$class2Ns0Rename class1Ns1Rename$class2Ns1Rename
+	field_2 I field2Ns0Rename field2Ns1Rename
+class_3 class3Ns0Rename class3Ns1Rename

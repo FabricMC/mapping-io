@@ -1,0 +1,70 @@
+CLASS class_1
+CLASS class_2 class2Ns0Rename
+CLASS class_3
+CLASS class_4
+	COMMENT This is a comment
+CLASS class_5 class5Ns0Rename
+	COMMENT This is a comment
+CLASS class_6
+	COMMENT This is a comment
+CLASS class_7
+	CLASS class_8 class8Ns0Rename
+CLASS class_9
+	CLASS class_10
+CLASS class_11
+	CLASS class_12
+		COMMENT This is a comment
+CLASS class_13
+	CLASS class_14 class14Ns0Rename
+		COMMENT This is a comment
+CLASS class_15
+	CLASS class_16
+		COMMENT This is a comment
+CLASS class_17
+	CLASS class_18
+		CLASS class_19 class19Ns0Rename
+CLASS class_20
+	CLASS class_21
+		CLASS class_22
+CLASS class_23
+	CLASS class_24
+		CLASS class_25
+			COMMENT This is a comment
+CLASS class_26
+	CLASS class_27
+		CLASS class_28 class28Ns0Rename
+			COMMENT This is a comment
+CLASS class_29
+	CLASS class_30
+		CLASS class_31
+			COMMENT This is a comment
+CLASS class_32
+	FIELD field_1 I
+	FIELD field_2 field2Ns0Rename I
+	FIELD field_3 I
+	FIELD field_4 I
+		COMMENT This is a comment
+	FIELD field_5 field5Ns0Rename I
+		COMMENT This is a comment
+	FIELD field_6 I
+		COMMENT This is a comment
+	METHOD method_1 ()I
+	METHOD method_2 method2Ns0Rename ()I
+	METHOD method_3 ()I
+	METHOD method_4 ()I
+		COMMENT This is a comment
+	METHOD method_5 method5Ns0Rename ()I
+		COMMENT This is a comment
+	METHOD method_6 ()I
+		COMMENT This is a comment
+	METHOD method_7 ()I
+		ARG 5
+		ARG 7
+		ARG 9 param3Ns0Rename
+		ARG 11
+			COMMENT This is a comment
+		ARG 13 param5Ns0Rename
+			COMMENT This is a comment
+		ARG 15
+			COMMENT This is a comment
+	METHOD method_8 ()I

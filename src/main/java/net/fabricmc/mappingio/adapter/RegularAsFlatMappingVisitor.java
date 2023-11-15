@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.FlatMappingVisitor;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
@@ -59,7 +61,7 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		next.visitMetadata(key, value);
 	}
 
@@ -78,7 +80,7 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		return visitClass(srcName, null, dstName);
 	}
 
-	private boolean visitClass(String srcName, String[] dstNames, String dstName) throws IOException {
+	private boolean visitClass(String srcName, @Nullable String[] dstNames, @Nullable String dstName) throws IOException {
 		if (!srcName.equals(lastClass)) {
 			lastClass = srcName;
 			lastMemberName = lastMemberDesc = null;
@@ -90,31 +92,32 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitClassComment(String srcName, String[] dstNames, String comment) throws IOException {
+	public void visitClassComment(String srcName, @Nullable String[] dstNames, String comment) throws IOException {
 		if (!visitClass(srcName, dstNames, null)) return;
 		next.visitComment(MappedElementKind.CLASS, comment);
 	}
 
 	@Override
-	public void visitClassComment(String srcName, String dstName, String comment) throws IOException {
+	public void visitClassComment(String srcName, @Nullable String dstName, String comment) throws IOException {
 		if (!visitClass(srcName, null, dstName)) return;
 		next.visitComment(MappedElementKind.CLASS, comment);
 	}
 
 	@Override
-	public boolean visitField(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException {
+	public boolean visitField(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, String[] dstNames, @Nullable String[] dstDescs) throws IOException {
 		return visitField(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null);
 	}
 
 	@Override
-	public boolean visitField(String srcClsName, String srcName, String srcDesc,
-			String dstClsName, String dstName, String dstDesc) throws IOException {
+	public boolean visitField(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, String dstName, @Nullable String dstDesc) throws IOException {
 		return visitField(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc);
 	}
 
-	private boolean visitField(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs, String dstClsName, String dstName, String dstDesc) throws IOException {
+	private boolean visitField(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc) throws IOException {
 		if (!visitClass(srcClsName, dstClsNames, dstClsName)) return false;
 
 		if (!lastMemberIsField || !srcName.equals(lastMemberName) || srcDesc != null && !srcDesc.equals(lastMemberDesc)) {
@@ -129,35 +132,36 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitFieldComment(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+	public void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
 			String comment) throws IOException {
 		if (!visitField(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null)) return;
 		next.visitComment(MappedElementKind.FIELD, comment);
 	}
 
 	@Override
-	public void visitFieldComment(String srcClsName, String srcName, String srcDesc,
-			String dstClsName, String dstName, String dstDesc,
+	public void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
 			String comment) throws IOException {
 		if (!visitField(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc)) return;
 		next.visitComment(MappedElementKind.FIELD, comment);
 	}
 
 	@Override
-	public boolean visitMethod(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs) throws IOException {
+	public boolean visitMethod(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, String[] dstNames, @Nullable String[] dstDescs) throws IOException {
 		return visitMethod(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null);
 	}
 
 	@Override
-	public boolean visitMethod(String srcClsName, String srcName, String srcDesc,
-			String dstClsName, String dstName, String dstDesc) throws IOException {
+	public boolean visitMethod(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, String dstName, @Nullable String dstDesc) throws IOException {
 		return visitMethod(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc);
 	}
 
-	private boolean visitMethod(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs, String dstClsName, String dstName, String dstDesc) throws IOException {
+	private boolean visitMethod(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc) throws IOException {
 		if (!visitClass(srcClsName, dstClsNames, dstClsName)) return false;
 
 		if (lastMemberIsField || !srcName.equals(lastMemberName) || srcDesc != null && !srcDesc.equals(lastMemberDesc)) {
@@ -172,41 +176,45 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMethodComment(String srcClsName, String srcName, String srcDesc,
-			String[] dstClsNames, String[] dstNames, String[] dstDescs,
+	public void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
 			String comment) throws IOException {
 		if (!visitMethod(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, null, null, null)) return;
 		next.visitComment(MappedElementKind.METHOD, comment);
 	}
 
 	@Override
-	public void visitMethodComment(String srcClsName, String srcName, String srcDesc,
-			String dstClsName, String dstName, String dstDesc,
+	public void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
 			String comment) throws IOException {
 		if (!visitMethod(srcClsName, srcName, srcDesc, null, null, null, dstClsName, dstName, dstDesc)) return;
 		next.visitComment(MappedElementKind.METHOD, comment);
 	}
 
 	@Override
-	public boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int argPosition, int lvIndex, String srcArgName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames) throws IOException {
+	public boolean visitMethodArg(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcArgName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, String[] dstArgNames) throws IOException {
 		return visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstArgNames, null, null, null, null);
 	}
 
 	@Override
-	public boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int argPosition, int lvIndex, String srcArgName,
-			String dstClsName, String dstMethodName, String dstMethodDesc, String dstArgName) throws IOException {
+	public boolean visitMethodArg(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcArgName,
+			@Nullable String dstClsName, @Nullable String dstMethodName,
+			@Nullable String dstMethodDesc, String dstArgName) throws IOException {
 		return visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstArgName);
 	}
 
-	private boolean visitMethodArg(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int argPosition, int lvIndex, String srcName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames,
-			String dstClsName, String dstMethodName, String dstMethodDesc, String dstName) throws IOException {
+	private boolean visitMethodArg(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
+			@Nullable String dstClsName, @Nullable String dstMethodName,
+			@Nullable String dstMethodDesc, @Nullable String dstName) throws IOException {
 		if (!visitMethod(srcClsName, srcMethodName, srcMethodDesc, dstClsNames, dstMethodNames, dstMethodDescs, dstClsName, dstMethodName, dstMethodDesc)) return false;
 
 		if (!lastMethodSubIsArg || argPosition != lastArgPosition || lvIndex != lastLvIndex) {
@@ -220,9 +228,10 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition, int lvIndex, String srcArgName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstArgNames,
-			String comment) throws IOException {
+	public void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcArgName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, @Nullable String[] dstArgNames, String comment) throws IOException {
 		if (!visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstArgNames, null, null, null, null)) {
 			return;
@@ -232,9 +241,10 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition,
-			int lvIndex, String srcArgName, String dstClsName, String dstMethodName, String dstMethodDesc,
-			String dstArgName, String comment) throws IOException {
+	public void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcArgName,
+			@Nullable String dstClsName, @Nullable String dstMethodName,
+			@Nullable String dstMethodDesc, @Nullable String dstArgName, String comment) throws IOException {
 		if (!visitMethodArg(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstArgName)) {
 			return;
@@ -244,23 +254,27 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames) throws IOException {
-		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+	public boolean visitMethodVar(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, String[] dstVarNames) throws IOException {
+		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstVarNames, null, null, null, null);
 	}
 
 	@Override
-	public boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
-			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName) throws IOException {
-		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+	public boolean visitMethodVar(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
+			@Nullable String dstClsName, @Nullable String dstMethodName,
+			@Nullable String dstMethodDesc, String dstVarName) throws IOException {
+		return visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstVarName);
 	}
 
-	private boolean visitMethodVar(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames,
-			String dstClsName, String dstMethodName, String dstMethodDesc, String dstName) throws IOException {
+	private boolean visitMethodVar(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
+			@Nullable String dstClsName, @Nullable String dstMethodName, @Nullable String dstMethodDesc, @Nullable String dstName) throws IOException {
 		if (!visitMethod(srcClsName, srcMethodName, srcMethodDesc, dstClsNames, dstMethodNames, dstMethodDescs, dstClsName, dstMethodName, dstMethodDesc)) return false;
 
 		if (lastMethodSubIsArg || lvtRowIndex != lastArgPosition || lvIndex != lastLvIndex || startOpIdx != lastStartOpIdx) {
@@ -268,18 +282,18 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 			lastLvIndex = lvIndex;
 			lastStartOpIdx = startOpIdx;
 			lastMethodSubIsArg = false;
-			relayLastMethodSub = next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, srcName) && visitDstNames(MappedElementKind.METHOD_VAR, dstNames, dstName);
+			relayLastMethodSub = next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName) && visitDstNames(MappedElementKind.METHOD_VAR, dstNames, dstName);
 		}
 
 		return relayLastMethodSub;
 	}
 
 	@Override
-	public void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
-			String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstVarNames,
-			String comment) throws IOException {
-		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+	public void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs,
+			@Nullable String[] dstVarNames, String comment) throws IOException {
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				dstClsNames, dstMethodNames, dstMethodDescs, dstVarNames, null, null, null, null)) {
 			return;
 		}
@@ -288,11 +302,11 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public void visitMethodVarComment(String srcClsName, String srcMethodName, String srcMethodDesc,
-			int lvtRowIndex, int lvIndex, int startOpIdx, String srcVarName,
-			String dstClsName, String dstMethodName, String dstMethodDesc, String dstVarName,
-			String comment) throws IOException {
-		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, srcVarName,
+	public void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
+			@Nullable String dstClsName, @Nullable String dstMethodName, @Nullable String dstMethodDesc,
+			@Nullable String dstVarName, String comment) throws IOException {
+		if (!visitMethodVar(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
 				null, null, null, null, dstClsName, dstMethodName, dstMethodDesc, dstVarName)) {
 			return;
 		}
@@ -305,7 +319,7 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		return next.visitEnd();
 	}
 
-	private boolean visitDstNames(MappedElementKind targetKind, String[] dstNames, String dstName) throws IOException {
+	private boolean visitDstNames(MappedElementKind targetKind, @Nullable String[] dstNames, @Nullable String dstName) throws IOException {
 		if (dstNames != null) {
 			for (int i = 0; i < dstNames.length; i++) {
 				String name = dstNames[i];
@@ -318,7 +332,8 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 		return next.visitElementContent(targetKind);
 	}
 
-	private boolean visitDstNamesDescs(MappedElementKind targetKind, String[] dstNames, String[] dstDescs, String dstName, String dstDesc) throws IOException {
+	private boolean visitDstNamesDescs(MappedElementKind targetKind, @Nullable String[] dstNames,
+			@Nullable String[] dstDescs, @Nullable String dstName, @Nullable String dstDesc) throws IOException {
 		boolean relayMemberDesc = targetKind == MappedElementKind.FIELD && relayDstFieldDescs
 				|| targetKind != MappedElementKind.FIELD && relayDstMethodDescs;
 

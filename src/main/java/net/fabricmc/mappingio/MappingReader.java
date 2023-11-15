@@ -26,18 +26,25 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-import net.fabricmc.mappingio.format.EnigmaReader;
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.format.ProGuardReader;
-import net.fabricmc.mappingio.format.SrgReader;
-import net.fabricmc.mappingio.format.Tiny1Reader;
-import net.fabricmc.mappingio.format.Tiny2Reader;
-import net.fabricmc.mappingio.format.TsrgReader;
+import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
+import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.srg.SrgFileReader;
+import net.fabricmc.mappingio.format.srg.TsrgFileReader;
+import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 
 public final class MappingReader {
+	private MappingReader() {
+	}
+
+	@Nullable
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
-			return MappingFormat.ENIGMA;
+			return MappingFormat.ENIGMA_DIR;
 		} else {
 			try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
 				return detectFormat(reader);
@@ -45,41 +52,79 @@ public final class MappingReader {
 		}
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
 
+		// Be careful not to close the reader, thats upto the caller.
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+
+		br.mark(DETECT_HEADER_LEN);
+
 		while (pos < buffer.length
-				&& (len = reader.read(buffer, pos, buffer.length - pos)) >= 0) {
+				&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
 			pos += len;
 		}
 
+		br.reset();
 		if (pos < 3) return null;
 
 		switch (String.valueOf(buffer, 0, 3)) {
 		case "v1\t":
-			return MappingFormat.TINY;
+			return MappingFormat.TINY_FILE;
 		case "tin":
-			return MappingFormat.TINY_2;
+			return MappingFormat.TINY_2_FILE;
 		case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
-			return MappingFormat.TSRG2;
+			return MappingFormat.TSRG_2_FILE;
+		case "CLA":
+			return MappingFormat.ENIGMA_FILE;
 		case "PK:":
 		case "CL:":
 		case "MD:":
 		case "FD:":
-			return MappingFormat.SRG;
+			return detectSrgOrXsrg(br);
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
 
 		if (headerStr.contains(" -> ")) {
-			return MappingFormat.PROGUARD;
+			return MappingFormat.PROGUARD_FILE;
 		} else if (headerStr.contains("\n\t")) {
-			return MappingFormat.TSRG;
+			return MappingFormat.TSRG_FILE;
 		}
 
+		// TODO: CSRG
+
 		return null; // unknown format or corrupted
+	}
+
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
+		String line;
+
+		while ((line = reader.readLine()) != null) {
+			if (line.startsWith("FD:")) {
+				String[] parts = line.split(" ");
+
+				if (parts.length >= 5) {
+					if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
+						continue;
+					}
+
+					return MappingFormat.XSRG_FILE;
+				} else {
+					break;
+				}
+			}
+		}
+
+		return MappingFormat.SRG_FILE;
+	}
+
+	private static boolean isEmptyOrStartsWithHash(String string) {
+		if (string.isEmpty() || string.startsWith("#")) return true;
+		return false;
 	}
 
 	public static List<String> getNamespaces(Path file) throws IOException {
@@ -115,13 +160,15 @@ public final class MappingReader {
 		}
 
 		if (format.hasNamespaces) {
+			checkReaderCompatible(format);
+
 			switch (format) {
-			case TINY:
-				return Tiny1Reader.getNamespaces(reader);
-			case TINY_2:
-				return Tiny2Reader.getNamespaces(reader);
-			case TSRG2:
-				return TsrgReader.getNamespaces(reader);
+			case TINY_FILE:
+				return Tiny1FileReader.getNamespaces(reader);
+			case TINY_2_FILE:
+				return Tiny2FileReader.getNamespaces(reader);
+			case TSRG_2_FILE:
+				return TsrgFileReader.getNamespaces(reader);
 			default:
 				throw new IllegalStateException();
 			}
@@ -146,11 +193,9 @@ public final class MappingReader {
 			}
 		} else {
 			switch (format) {
-			case ENIGMA:
-				EnigmaReader.read(file, visitor);
+			case ENIGMA_DIR:
+				EnigmaDirReader.read(file, visitor);
 				break;
-			case MCP:
-				throw new UnsupportedOperationException(); // TODO: implement
 			default:
 				throw new IllegalStateException();
 			}
@@ -170,25 +215,38 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
+		checkReaderCompatible(format);
+
 		switch (format) {
-		case TINY:
-			Tiny1Reader.read(reader, visitor);
+		case TINY_FILE:
+			Tiny1FileReader.read(reader, visitor);
 			break;
-		case TINY_2:
-			Tiny2Reader.read(reader, visitor);
+		case TINY_2_FILE:
+			Tiny2FileReader.read(reader, visitor);
 			break;
-		case SRG:
-			SrgReader.read(reader, visitor);
+		case ENIGMA_FILE:
+			EnigmaFileReader.read(reader, visitor);
 			break;
-		case TSRG:
-		case TSRG2:
-			TsrgReader.read(reader, visitor);
+		case SRG_FILE:
+		case XSRG_FILE:
+			SrgFileReader.read(reader, visitor);
 			break;
-		case PROGUARD:
-			ProGuardReader.read(reader, visitor);
+		case CSRG_FILE:
+		case TSRG_FILE:
+		case TSRG_2_FILE:
+			TsrgFileReader.read(reader, visitor);
+			break;
+		case PROGUARD_FILE:
+			ProGuardFileReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();
+		}
+	}
+
+	private static void checkReaderCompatible(MappingFormat format) throws IOException {
+		if (!format.hasSingleFile()) {
+			throw new IOException("can't read mapping format "+format.name+" using a Reader, use the Path based API");
 		}
 	}
 
