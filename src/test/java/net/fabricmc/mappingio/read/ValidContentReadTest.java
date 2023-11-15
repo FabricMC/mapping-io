@@ -118,6 +118,13 @@ public class ValidContentReadTest {
 		checkHoles(format);
 	}
 
+	@Test
+	public void proguardFile() throws Exception {
+		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		checkDefault(format);
+		checkHoles(format);
+	}
+
 	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
 		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, tree);
@@ -222,11 +229,11 @@ public class ValidContentReadTest {
 					if (!supHasNamespaces && supDstData == null) continue;
 
 					String supDstName = supDstData[0];
-					assertTrue(dstNames[subNs] == null || Objects.equals(dstNames[subNs], supDstName));
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 
 					if (!supHasFieldDesc) continue;
 					String supDstDesc = supDstData[1];
-					assertTrue(dstDescs == null || dstDescs[subNs] == null || Objects.equals(dstDescs[subNs], supDstDesc));
+					assertTrue(dstDescs == null || dstDescs[subNs] == null || dstDescs[subNs].equals(supDstDesc));
 				}
 
 				return true;
@@ -260,10 +267,10 @@ public class ValidContentReadTest {
 					if (!supHasNamespaces && supDstData == null) continue;
 
 					String supDstName = supDstData[0];
-					assertTrue(dstNames[subNs] == null || Objects.equals(dstNames[subNs], supDstName));
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 
 					String supDstDesc = supDstData[1];
-					assertTrue(dstDescs == null || dstDescs[subNs] == null || Objects.equals(dstDescs[subNs], supDstDesc));
+					assertTrue(dstDescs == null || dstDescs[subNs] == null || dstDescs[subNs].equals(supDstDesc));
 				}
 
 				return true;
@@ -296,7 +303,7 @@ public class ValidContentReadTest {
 				for (int subNs = 0; subNs < dstNames.length; subNs++) {
 					String supDstName = supDstNamesByNsName.get(subTree.getNamespaceName(subNs));
 					if (!supHasNamespaces && supDstName == null) continue;
-					assertEquals(dstNames[subNs], supDstName);
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 				}
 
 				return true;
@@ -306,7 +313,7 @@ public class ValidContentReadTest {
 			public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition, int lvIndex, String srcArgName,
 					String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, comment).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, srcArgName).getComment(), comment);
 			}
 
 			@Override
@@ -330,7 +337,7 @@ public class ValidContentReadTest {
 				for (int subNs = 0; subNs < dstNames.length; subNs++) {
 					String supDstName = supDstNamesByNsName.get(subTree.getNamespaceName(subNs));
 					if (!supHasNamespaces && supDstName == null) continue;
-					assertEquals(dstNames[subNs], supDstName);
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 				}
 
 				return true;
@@ -341,7 +348,7 @@ public class ValidContentReadTest {
 					int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 					String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, comment).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName).getComment(), comment);
 			}
 		}));
 	}

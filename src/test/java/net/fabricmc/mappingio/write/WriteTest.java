@@ -68,6 +68,10 @@ public class WriteTest {
 		write(MappingFormat.XSRG_FILE);
 	}
 
+	public void proguardFile() throws Exception {
+		write(MappingFormat.PROGUARD_FILE);
+	}
+
 	private void write(MappingFormat format) throws Exception {
 		TestHelper.writeToDir(tree, format, dir);
 		TestHelper.writeToDir(treeWithHoles, format, dir);

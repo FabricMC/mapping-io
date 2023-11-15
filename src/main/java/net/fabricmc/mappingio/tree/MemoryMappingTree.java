@@ -1288,6 +1288,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				for (MethodArgEntry entry : args) {
 					if (argPosition >= 0 && entry.argPosition == argPosition
 							|| lvIndex >= 0 && entry.lvIndex == lvIndex) {
+						if (srcName != null && entry.srcName != null && !srcName.equals(entry.srcName)) continue; // both srcNames are present but not equal
 						return entry;
 					}
 				}
