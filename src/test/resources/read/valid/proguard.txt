@@ -1,0 +1,6 @@
+class_1 -> class1Ns0Rename:
+    int field_1 -> field1Ns0Rename
+    int method_1() -> method1Ns0Rename
+class_1$class_2 -> class1Ns0Rename$class2Ns0Rename:
+    int field_2 -> field2Ns0Rename
+class_3 -> class3Ns0Rename:

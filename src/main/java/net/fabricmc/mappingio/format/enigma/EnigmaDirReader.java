@@ -90,7 +90,11 @@ public final class EnigmaDirReader {
 			}
 		});
 
-		visitor.visitEnd();
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
 
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);

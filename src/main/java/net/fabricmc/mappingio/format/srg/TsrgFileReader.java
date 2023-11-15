@@ -136,23 +136,27 @@ public final class TsrgFileReader {
 						if (parts.length >= 6 && !parts[5].startsWith("#")) { // method
 							dstName = parts.length == 6 ? null : parts[6];
 
-							if (dstName == null || !dstName.startsWith("#")) {
-								if (visitor.visitMethod(parts[2], parts[4])) {
-									visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-								}
-
-								continue;
+							if (dstName == null || dstName.isEmpty() || dstName.startsWith("#")) {
+								throw new IOException("missing method-name-b in line "+reader.getLineNumber());
 							}
+
+							if (visitor.visitMethod(parts[2], parts[4])) {
+								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+							}
+
+							continue;
 						} else if (parts.length >= 4) { // field
 							dstName = parts.length == 4 ? null : parts[4];
 
-							if (dstName == null || !dstName.startsWith("#")) {
-								if (visitor.visitField(parts[2], null)) {
-									visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-								}
-
-								continue;
+							if (dstName == null || dstName.isEmpty() || dstName.startsWith("#")) {
+								throw new IOException("missing field-name-b in line "+reader.getLineNumber());
 							}
+
+							if (visitor.visitField(parts[2], null)) {
+								visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+							}
+
+							continue;
 						}
 
 						throw new IllegalStateException("invalid CSRG line: "+line);
@@ -203,13 +207,15 @@ public final class TsrgFileReader {
 				}
 			} else if (!isTsrg2) { // tsrg1 field, never has a desc: <nameA> <names>...
 				if (visitor.visitField(srcName, null)) {
-					if (!arg.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, arg);
+					if (arg.isEmpty()) throw new IOException("missing field-name-b in line "+reader.getLineNumber());
+					visitor.visitDstName(MappedElementKind.FIELD, 0, arg);
 					readElement(reader, MappedElementKind.FIELD, 1, dstNsCount, visitor);
 				}
 			} else { // tsrg2 field, may have desc
 				for (int i = 0; i < dstNsCount - 1; i++) {
 					String name = reader.nextCol();
 					if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
+					if (name.isEmpty()) throw new IOException("missing destination name in line "+reader.getLineNumber());
 					nameTmp.add(name);
 				}
 
@@ -281,9 +287,11 @@ public final class TsrgFileReader {
 	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
 		for (int dstNs = dstNsOffset; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol();
-			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
 
-			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
+			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
+			if (name.isEmpty()) throw new IOException("missing destination name in line "+reader.getLineNumber());
+
+			visitor.visitDstName(subjectKind, dstNs, name);
 		}
 	}
 }

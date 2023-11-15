@@ -1,2 +1,2 @@
 CL: class_1 RenamedClass
-FD: field_1 renamedField
+FD: class_1/field_1 RenamedClass/renamedField

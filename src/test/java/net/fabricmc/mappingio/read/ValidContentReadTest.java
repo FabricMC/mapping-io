@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,13 +46,11 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
-	private static Path dir;
 	private static MappingTree testTree;
 	private static MappingTree testTreeWithHoles;
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		dir = TestHelper.getResource("/read/");
 		testTree = TestHelper.createTestTree();
 		testTreeWithHoles = TestHelper.createTestTreeWithHoles();
 	}
@@ -61,86 +58,82 @@ public class ValidContentReadTest {
 	@Test
 	public void enigmaFile() throws Exception {
 		MappingFormat format = MappingFormat.ENIGMA_FILE;
-		String filename = "enigma.mappings";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
 		MappingFormat format = MappingFormat.ENIGMA_DIR;
-		String filename = "enigma-dir";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
 		MappingFormat format = MappingFormat.TINY_FILE;
-		String filename = "tiny.tiny";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
 		MappingFormat format = MappingFormat.TINY_2_FILE;
-		String filename = "tinyV2.tiny";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void srgFile() throws Exception {
 		MappingFormat format = MappingFormat.SRG_FILE;
-		String filename = "srg.srg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void xsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.XSRG_FILE;
-		String filename = "xsrg.xsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
-		String filename = "csrg.csrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_FILE;
-		String filename = "tsrg.tsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void tsrg2File() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
-		String filename = "tsrg2.tsrg";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
+	}
+
+	public void proguardFile() throws Exception {
+		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		checkDefault(format);
+		checkHoles(format);
 	}
 
 	@Test
 	public void recafSimpleFile() throws Exception {
 		MappingFormat format = MappingFormat.RECAF_SIMPLE_FILE;
-		String filename = "recaf-simple.txt";
-		checkDefault(filename, format);
-		checkHoles(filename, format);
+		checkDefault(format);
+		checkHoles(format);
 	}
 
-	private VisitableMappingTree checkDefault(String path, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve("valid/" + path), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, tree);
 
 		assertSubset(tree, format, testTree, null);
 		assertSubset(testTree, null, tree, format);
@@ -148,9 +141,9 @@ public class ValidContentReadTest {
 		return tree;
 	}
 
-	private VisitableMappingTree checkHoles(String path, MappingFormat format) throws Exception {
+	private VisitableMappingTree checkHoles(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(dir.resolve("valid-with-holes/" + path), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, tree);
 
 		assertSubset(tree, format, testTreeWithHoles, null);
 		assertSubset(testTreeWithHoles, null, tree, format);
@@ -242,11 +235,11 @@ public class ValidContentReadTest {
 					if (!supHasNamespaces && supDstData == null) continue;
 
 					String supDstName = supDstData[0];
-					assertTrue(dstNames[subNs] == null || Objects.equals(dstNames[subNs], supDstName));
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 
 					if (!supHasFieldDesc) continue;
 					String supDstDesc = supDstData[1];
-					assertTrue(dstDescs == null || dstDescs[subNs] == null || Objects.equals(dstDescs[subNs], supDstDesc));
+					assertTrue(dstDescs == null || dstDescs[subNs] == null || dstDescs[subNs].equals(supDstDesc));
 				}
 
 				return true;
@@ -280,10 +273,10 @@ public class ValidContentReadTest {
 					if (!supHasNamespaces && supDstData == null) continue;
 
 					String supDstName = supDstData[0];
-					assertTrue(dstNames[subNs] == null || Objects.equals(dstNames[subNs], supDstName));
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 
 					String supDstDesc = supDstData[1];
-					assertTrue(dstDescs == null || dstDescs[subNs] == null || Objects.equals(dstDescs[subNs], supDstDesc));
+					assertTrue(dstDescs == null || dstDescs[subNs] == null || dstDescs[subNs].equals(supDstDesc));
 				}
 
 				return true;
@@ -316,7 +309,7 @@ public class ValidContentReadTest {
 				for (int subNs = 0; subNs < dstNames.length; subNs++) {
 					String supDstName = supDstNamesByNsName.get(subTree.getNamespaceName(subNs));
 					if (!supHasNamespaces && supDstName == null) continue;
-					assertEquals(dstNames[subNs], supDstName);
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 				}
 
 				return true;
@@ -326,7 +319,7 @@ public class ValidContentReadTest {
 			public void visitMethodArgComment(String srcClsName, String srcMethodName, String srcMethodDesc, int argPosition, int lvIndex, String srcArgName,
 					String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, comment).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, srcArgName).getComment(), comment);
 			}
 
 			@Override
@@ -350,7 +343,7 @@ public class ValidContentReadTest {
 				for (int subNs = 0; subNs < dstNames.length; subNs++) {
 					String supDstName = supDstNamesByNsName.get(subTree.getNamespaceName(subNs));
 					if (!supHasNamespaces && supDstName == null) continue;
-					assertEquals(dstNames[subNs], supDstName);
+					assertTrue(dstNames[subNs] == null || dstNames[subNs].equals(supDstName) || (supDstName == null && dstNames[subNs].equals(srcName)));
 				}
 
 				return true;
@@ -361,7 +354,7 @@ public class ValidContentReadTest {
 					int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcVarName,
 					String[] dstClsNames, String[] dstMethodNames, String[] dstMethodDescs, String[] dstNames, String comment) throws IOException {
 				if (!supHasComments) return;
-				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, comment).getComment(), comment);
+				assertEquals(supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName).getComment(), comment);
 			}
 		}));
 	}

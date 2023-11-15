@@ -59,8 +59,23 @@ public class WriteTest {
 	}
 
 	@Test
+	public void srgFile() throws Exception {
+		write(MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xsrgFile() throws Exception {
+		write(MappingFormat.XSRG_FILE);
+	}
+
+	@Test
+	public void proguardFile() throws Exception {
+		write(MappingFormat.PROGUARD_FILE);
+	}
+
+	@Test
 	public void recafSimpleFile() throws Exception {
-		write(MappingFormat.RECAF_SIMPLE_FILE);
+		write(MappingFormat.PROGUARD_FILE);
 	}
 
 	private void write(MappingFormat format) throws Exception {

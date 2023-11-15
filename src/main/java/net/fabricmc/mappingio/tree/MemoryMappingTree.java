@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -93,6 +94,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 	}
 
+	@ApiStatus.Experimental
 	public void setHierarchyInfoProvider(@Nullable HierarchyInfoProvider<?> provider) {
 		hierarchyInfo = provider;
 
@@ -1286,6 +1288,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				for (MethodArgEntry entry : args) {
 					if (argPosition >= 0 && entry.argPosition == argPosition
 							|| lvIndex >= 0 && entry.lvIndex == lvIndex) {
+						if (srcName != null && entry.srcName != null && !srcName.equals(entry.srcName)) continue; // both srcNames are present but not equal
 						return entry;
 					}
 				}

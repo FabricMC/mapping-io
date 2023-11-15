@@ -1,40 +1,40 @@
 tsrg2 source target target2
-class_1  
-class_2 class2Ns0Rename 
-class_3  class3Ns1Rename
-class_4  
-class_5 class5Ns0Rename 
-class_6  class6Ns1Rename
-class_7  
-class_7$class_8 class_7$class8Ns0Rename 
-class_9$class_10  class_9$class10Ns1Rename
-class_11$class_12  
-class_13$class_14 class_13$class14Ns0Rename 
-class_15$class_16  class_15$class16Ns1Rename
-class_17  
-class_17$class_18$class_19 class_17$class_18$class19Ns0Rename 
-class_20$class_21$class_22  class_20$class_21$class22Ns1Rename
-class_23$class_24$class_25  
-class_26$class_27$class_28 class_26$class_27$class28Ns0Rename 
-class_29$class_30$class_31  class_29$class_30$class31Ns1Rename
-class_32  
-	field_1 I  
-	field_2 I field2Ns0Rename 
-	field_3 I  field3Ns1Rename
-	field_4 I  
-	field_5 I field5Ns0Rename 
-	field_6 I  field6Ns1Rename
-	method_1 ()I  
-	method_2 ()I method2Ns0Rename 
-	method_3 ()I  method3Ns1Rename
-	method_4 ()I  
-	method_5 ()I method5Ns0Rename 
-	method_6 ()I  method6Ns1Rename
-	method_7 ()I  
-		5 param_1  
-		7 param_2  param2Ns1Rename
-		9 param_3 param3Ns0Rename 
-		11 param_4  
-		13 param_5 param5Ns0Rename 
-		15 param_6  param6Ns1Rename
-	method_8 ()I  
+class_1 class_1 class_1
+class_2 class2Ns0Rename class_2
+class_3 class_3 class3Ns1Rename
+class_4 class_4 class_4
+class_5 class5Ns0Rename class_5
+class_6 class_6 class6Ns1Rename
+class_7 class_7 class_7
+class_7$class_8 class_7$class8Ns0Rename class_7$class_8
+class_9$class_10 class_9$class_10 class_9$class10Ns1Rename
+class_11$class_12 class_11$class_12 class_11$class_12
+class_13$class_14 class_13$class14Ns0Rename class_13$class_14
+class_15$class_16 class_15$class_16 class_15$class16Ns1Rename
+class_17 class_17 class_17
+class_17$class_18$class_19 class_17$class_18$class19Ns0Rename class_17$class_18$class_19
+class_20$class_21$class_22 class_20$class_21$class_22 class_20$class_21$class22Ns1Rename
+class_23$class_24$class_25 class_23$class_24$class_25 class_23$class_24$class_25
+class_26$class_27$class_28 class_26$class_27$class28Ns0Rename class_26$class_27$class_28
+class_29$class_30$class_31 class_29$class_30$class_31 class_29$class_30$class31Ns1Rename
+class_32 class_32 class_32
+	field_1 I field_1 field_1
+	field_2 I field2Ns0Rename field_2
+	field_3 I field_3 field3Ns1Rename
+	field_4 I field_4 field_4
+	field_5 I field5Ns0Rename field_5
+	field_6 I field_6 field6Ns1Rename
+	method_1 ()I method_1 method_1
+	method_2 ()I method2Ns0Rename method_2
+	method_3 ()I method_3 method3Ns1Rename
+	method_4 ()I method_4 method_4
+	method_5 ()I method5Ns0Rename method_5
+	method_6 ()I method_6 method6Ns1Rename
+	method_7 ()I method_7 method_7
+		5 param_1 param_1 param_1
+		7 param_2 param_2 param2Ns1Rename
+		9 param_3 param3Ns0Rename param_3
+		11 param_4 param_4 param_4
+		13 param_5 param5Ns0Rename param_5
+		15 param_6 param_6 param6Ns1Rename
+	method_8 ()I method_8 method_8
