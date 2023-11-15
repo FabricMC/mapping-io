@@ -28,6 +28,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirWriter;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileWriter;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileWriter;
+import net.fabricmc.mappingio.format.srg.SrgFileWriter;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileWriter;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 
@@ -52,6 +53,8 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		case TINY_FILE: return new Tiny1FileWriter(writer);
 		case TINY_2_FILE: return new Tiny2FileWriter(writer, false);
 		case ENIGMA_FILE: return new EnigmaFileWriter(writer);
+		case SRG_FILE: return new SrgFileWriter(writer, false);
+		case XSRG_FILE: return new SrgFileWriter(writer, true);
 		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
 		default: return null;
 		}
