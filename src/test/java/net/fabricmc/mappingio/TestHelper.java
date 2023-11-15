@@ -60,6 +60,7 @@ public final class TestHelper {
 		case TSRG_2_FILE:
 			return "tsrg2.tsrg";
 		case PROGUARD_FILE:
+			return "proguard.txt";
 		default:
 			return null;
 		}
