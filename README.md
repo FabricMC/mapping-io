@@ -16,7 +16,7 @@ MappingReader.read(inputPath, /* optional */ inputFormat,
 The above example reads mappings from the input path directly into a mapping writer, writing all contents to disk in the specified mapping format.
 Keep in mind that the conversion process might be lossy if the two formats' feature sets differ; see the comparison table [here](./src/main/java/net/fabricmc/mappingio/format/MappingFormat.java) for more information.
 
-One may also read into a tree first, if in-memory storage is desired:
+You can also read into a tree first:
 ```java
 VisitableMappingTree tree = new MemoryMappingTree();
 
