@@ -75,6 +75,20 @@ public class WriteTest {
 		check(MappingFormat.TINY_2_FILE);
 	}
 
+	@Test
+	public void srgFile() throws Exception {
+		check(MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xsrgFile() throws Exception {
+		check(MappingFormat.XSRG_FILE);
+	}
+
+	public void proguardFile() throws Exception {
+		check(MappingFormat.PROGUARD_FILE);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		Path path = TestHelper.writeToDir(tree, format, dir);
 		readWithLorenz(path, format);

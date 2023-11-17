@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.util.Arrays;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 
@@ -82,6 +83,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume a column without unescaping.
 	 */
+	@Nullable
 	public String nextCol() throws IOException {
 		return nextCol(false);
 	}
@@ -89,6 +91,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume a column with unescaping.
 	 */
+	@Nullable
 	public String nextEscapedCol() throws IOException {
 		return nextCol(true);
 	}
@@ -96,6 +99,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume a column and unescape it if requested.
 	 */
+	@Nullable
 	public String nextCol(boolean unescape) throws IOException {
 		if (eol) return null;
 
@@ -157,6 +161,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume all column until eol and unescape if requested.
 	 */
+	@Nullable
 	public String nextCols(boolean unescape) throws IOException {
 		if (eol) return null;
 

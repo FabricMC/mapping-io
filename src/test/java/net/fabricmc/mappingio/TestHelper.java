@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraftforge.srgutils.IMappingFile;
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
@@ -38,11 +39,88 @@ public final class TestHelper {
 		}
 	}
 
+	@Nullable
+	public static String getFileName(MappingFormat format) {
+		switch (format) {
+		case ENIGMA_FILE:
+			return "enigma.mappings";
+		case ENIGMA_DIR:
+			return "enigma-dir";
+		case TINY_FILE:
+			return "tiny.tiny";
+		case TINY_2_FILE:
+			return "tinyV2.tiny";
+		case SRG_FILE:
+			return "srg.srg";
+		case XSRG_FILE:
+			return "xsrg.xsrg";
+		case CSRG_FILE:
+			return "csrg.csrg";
+		case TSRG_FILE:
+			return "tsrg.tsrg";
+		case TSRG_2_FILE:
+			return "tsrg2.tsrg";
+		case PROGUARD_FILE:
+			return "proguard.txt";
+		default:
+			return null;
+		}
+	}
+
+	@Nullable
+	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
+		switch (format) {
+		case SRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.SRG;
+		case XSRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.XSRG;
+		case CSRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.CSRG;
+		case TSRG_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.TSRG;
+		case ENIGMA_FILE:
+			return org.cadixdev.lorenz.io.MappingFormats.byId("enigma");
+		case TINY_FILE:
+		case TINY_2_FILE:
+		case ENIGMA_DIR:
+		case TSRG_2_FILE:
+		case PROGUARD_FILE:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
+		}
+	}
+
+	@Nullable
+	public static IMappingFile.Format toSrgUtilsFormat(MappingFormat format) {
+		switch (format) {
+		case TINY_FILE:
+			return IMappingFile.Format.TINY1;
+		case TINY_2_FILE:
+			return IMappingFile.Format.TINY;
+		case SRG_FILE:
+			return IMappingFile.Format.SRG;
+		case XSRG_FILE:
+			return IMappingFile.Format.XSRG;
+		case CSRG_FILE:
+			return IMappingFile.Format.CSRG;
+		case TSRG_FILE:
+			return IMappingFile.Format.TSRG;
+		case TSRG_2_FILE:
+			return IMappingFile.Format.TSRG2;
+		case PROGUARD_FILE:
+			return IMappingFile.Format.PG;
+		case ENIGMA_FILE:
+		case ENIGMA_DIR:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
+		}
+	}
+
 	public static Path writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
-		Path path = dir.resolve(format.name() + (format.hasSingleFile() ? "."+format.fileExt : ""));
-		MappingWriter writer = MappingWriter.create(path, format);
-		tree.accept(writer);
-		writer.close();
+		Path path = dir.resolve(getFileName(format));
+		tree.accept(MappingWriter.create(path, format));
 		return path;
 	}
 
@@ -147,41 +225,6 @@ public final class TestHelper {
 		visitComment(tree);
 
 		return tree;
-	}
-
-	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
-		switch (format) {
-		case SRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.SRG;
-		case TSRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.TSRG;
-		case ENIGMA_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.byId("enigma");
-		default:
-			return null;
-		}
-	}
-
-	public static IMappingFile.Format toSrgUtilsFormat(MappingFormat format) {
-		switch (format) {
-		case TINY_FILE:
-			return IMappingFile.Format.TINY1;
-		case TINY_2_FILE:
-			return IMappingFile.Format.TINY;
-		case SRG_FILE:
-			return IMappingFile.Format.SRG;
-		case TSRG_FILE:
-			return IMappingFile.Format.TSRG;
-		case TSRG_2_FILE:
-			return IMappingFile.Format.TSRG2;
-		case PROGUARD_FILE:
-			return IMappingFile.Format.PG;
-		case ENIGMA_FILE:
-		case ENIGMA_DIR:
-			return null;
-		default:
-			throw new IllegalArgumentException("Unknown format: " + format);
-		}
 	}
 
 	private static void visitClass(MemoryMappingTree tree, int... dstNs) {
@@ -357,6 +400,12 @@ public final class TestHelper {
 		private ThreadLocal<AtomicInteger> argNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> varNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> nsNum = ThreadLocal.withInitial(() -> new AtomicInteger());
+	}
+
+	public static class MappingDirs {
+		public static final Path DETECTION = getResource("/detection/");
+		public static final Path VALID = getResource("/read/valid/");
+		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
 	}
 
 	private static final String fldDesc = "I";

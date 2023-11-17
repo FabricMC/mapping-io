@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ElementMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;
@@ -154,13 +156,13 @@ public final class VisitOrder {
 		return (a, b) -> compareShortFirst(a.getSrcName(), b.getSrcName());
 	}
 
-	public static int compare(String a, String b) {
+	public static int compare(@Nullable String a, @Nullable String b) {
 		if (a == null || b == null) return compareNullLast(a, b);
 
 		return a.compareTo(b);
 	}
 
-	public static int compareShortFirst(String a, String b) {
+	public static int compareShortFirst(@Nullable String a, @Nullable String b) {
 		if (a == null || b == null) return compareNullLast(a, b);
 
 		int cmp = a.length() - b.length();
@@ -185,7 +187,7 @@ public final class VisitOrder {
 		return 0;
 	}
 
-	public static int byNameShortFirstNestaware(String a, String b) {
+	public static int byNameShortFirstNestaware(@Nullable String a, @Nullable String b) {
 		if (a == null || b == null) {
 			return compareNullLast(a, b);
 		}
@@ -211,7 +213,7 @@ public final class VisitOrder {
 		return 0;
 	}
 
-	public static int compareNullLast(String a, String b) {
+	public static int compareNullLast(@Nullable String a, @Nullable String b) {
 		if (a == null) {
 			if (b == null) { // both null
 				return 0;

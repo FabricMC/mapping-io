@@ -1,184 +1,189 @@
 plugins {
-	id "java"
-	id "java-library"
-	id "checkstyle"
-	id "maven-publish"
-	id "com.diffplug.spotless" version "5.8.2"
-	id "me.modmuss50.remotesign" version "0.4.0"
+	id "com.diffplug.spotless" version "6.22.0" apply false
+	id "me.modmuss50.remotesign" version "0.4.0" apply false
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-group "net.fabricmc"
-archivesBaseName = "mapping-io"
 
 def ENV = System.getenv()
 
-tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
+allprojects {
+	apply plugin: "java"
+	apply plugin: "java-library"
+	apply plugin: "maven-publish"
+	apply plugin: "checkstyle"
+	apply plugin: "com.diffplug.spotless"
+	apply plugin: "me.modmuss50.remotesign"
 
-	if (JavaVersion.current().isJava9Compatible()) {
+	group "net.fabricmc"
+
+	tasks.withType(JavaCompile).configureEach {
+		it.options.encoding = "UTF-8"
 		it.options.release = 8
 	}
-}
 
-checkstyle {
-	configFile = project.file("checkstyle.xml")
-	toolVersion = project.checkstyle_tool_version
-}
-
-repositories {
-	maven {
-		name = 'Fabric'
-		url = 'https://maven.fabricmc.net/'
+	checkstyle {
+		configFile = rootProject.file("checkstyle.xml")
+		toolVersion = project.checkstyle_tool_version
 	}
-	mavenCentral()
-	maven {
-		name = 'NeoForged'
-		url = 'https://maven.neoforged.net/'
+
+	repositories {
+		mavenCentral()
+		maven {
+			name = 'NeoForged'
+			url = 'https://maven.neoforged.net/'
+		}
 	}
-}
 
-dependencies {
-	implementation "org.ow2.asm:asm:${project.asm_version}"
-	compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
-	implementation "net.fabricmc:tiny-remapper:${tiny_remapper_version}"
+	dependencies {
+		implementation "org.ow2.asm:asm:${project.asm_version}"
+		compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 
-	testImplementation "net.minecraftforge:srgutils:${srgutils_version}"
-	testImplementation "org.cadixdev:lorenz:${lorenz_version}"
-	testImplementation "org.cadixdev:lorenz-io-enigma:${lorenz_version}"
-	testImplementation "org.junit.jupiter:junit-jupiter-api:${junit_jupiter_version}"
-	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit_jupiter_version}"
-}
+		testImplementation "net.minecraftforge:srgutils:${srgutils_version}"
+		testImplementation "org.cadixdev:lorenz:${lorenz_version}"
+		testImplementation "org.cadixdev:lorenz-io-enigma:${lorenz_version}"
+		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"
+		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+		testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+	}
 
-spotless {
+	spotless {
+		java {
+			licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+		}
+	}
+
 	java {
-		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+		withSourcesJar()
+		withJavadocJar()
+
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+	}
+
+	test {
+		useJUnitPlatform()
+	}
+
+	javadoc {
+		failOnError = false
+		options {
+			// Disable the crazy super-strict doclint tool in Java 8
+			addStringOption('Xdoclint:none', '-quiet')
+		}
+	}
+
+	assemble.dependsOn javadocJar
+
+	if (ENV.SIGNING_SERVER) {
+		remoteSign {
+			requestUrl = ENV.SIGNING_SERVER
+			pgpAuthKey = ENV.SIGNING_PGP_KEY
+			jarAuthKey = ENV.SIGNING_JAR_KEY
+
+			sign (jar, sourcesJar, javadocJar)
+
+			afterEvaluate {
+				sign publishing.publications.mavenJava
+			}
+		}
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				if (ENV.SIGNING_SERVER) {
+					artifact(signJar.output) {
+						classifier null
+						builtBy signJar
+					}
+
+					artifact(signSourcesJar.output) {
+						classifier "sources"
+						builtBy signSourcesJar
+					}
+
+					artifact(signJavadocJar.output) {
+						classifier "javadoc"
+						builtBy signJavadocJar
+					}
+				} else {
+					from components.java
+				}
+
+				pom {
+					name = base.archivesName.get()
+					description = 'A library for working with mapping files.'
+					url = 'https://github.com/FabricMC/mapping-io'
+
+					scm {
+						connection = "scm:git:https://github.com/FabricMC/mapping-io.git"
+						developerConnection = "scm:git:git@github.com:FabricMC/mapping-io.git"
+						url = "https://github.com/FabricMC/mapping-io"
+					}
+
+					issueManagement {
+						system = "GitHub"
+						url = "https://github.com/FabricMC/mapping-io/issues"
+					}
+
+					licenses {
+						license {
+							name = 'The Apache License, Version 2.0'
+							url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+						}
+					}
+
+					developers {
+						developer {
+							id = "modmuss50"
+							name = "modmuss50"
+							email = "modmuss50@fabricmc.net"
+						}
+
+						developer {
+							id = "sfPlayer"
+							name = "Player"
+							email = "player@fabricmc.net"
+						}
+					}
+				}
+			}
+		}
+
+		repositories {
+			mavenLocal()
+
+			if (ENV.MAVEN_URL) {
+				repositories.maven {
+					name "fabric"
+					url ENV.MAVEN_URL
+					credentials {
+						username ENV.MAVEN_USERNAME
+						password ENV.MAVEN_PASSWORD
+					}
+				}
+			}
+
+			if (ENV.MAVEN_CENTRAL_URL) {
+				repositories.maven {
+					name "central"
+					url ENV.MAVEN_CENTRAL_URL
+					credentials {
+						username ENV.MAVEN_CENTRAL_USERNAME
+						password ENV.MAVEN_CENTRAL_PASSWORD
+					}
+				}
+			}
+		}
 	}
 }
 
-java {
-	withSourcesJar()
-	withJavadocJar()
-}
-
-test {
-	useJUnitPlatform()
+base {
+	archivesName = "mapping-io"
 }
 
 jar {
 	manifest {
 		attributes("Automatic-Module-Name": "net.fabricmc.mappingio")
-	}
-}
-
-javadoc {
-	failOnError = false
-}
-
-assemble.dependsOn javadocJar
-
-if (ENV.SIGNING_SERVER) {
-	remoteSign {
-		requestUrl = ENV.SIGNING_SERVER
-		pgpAuthKey = ENV.SIGNING_PGP_KEY
-		jarAuthKey = ENV.SIGNING_JAR_KEY
-
-		sign (jar, sourcesJar, javadocJar)
-
-		afterEvaluate {
-			sign publishing.publications.mavenJava
-		}
-	}
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			if (ENV.SIGNING_SERVER) {
-				artifact(signJar.output) {
-					classifier null
-					builtBy signJar
-				}
-
-				artifact(signSourcesJar.output) {
-					classifier "sources"
-					builtBy signSourcesJar
-				}
-
-				artifact(signJavadocJar.output) {
-					classifier "javadoc"
-					builtBy signJavadocJar
-				}
-			} else {
-				from components.java
-			}
-
-			pom {
-				name = 'mapping-io'
-				description = 'A library for working with mapping files.'
-				url = 'https://github.com/FabricMC/mapping-io'
-
-				scm {
-					connection = "scm:git:https://github.com/FabricMC/mapping-io.git"
-					developerConnection = "scm:git:git@github.com:FabricMC/mapping-io.git"
-					url = "https://github.com/FabricMC/mapping-io"
-				}
-
-				issueManagement {
-					system = "GitHub"
-					url = "https://github.com/FabricMC/mapping-io/issues"
-				}
-
-				licenses {
-					license {
-						name = 'The Apache License, Version 2.0'
-						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-					}
-				}
-
-				developers {
-					developer {
-						id = "modmuss50"
-						name = "modmuss50"
-						email = "modmuss50@fabricmc.net"
-					}
-
-					developer {
-						id = "sfPlayer"
-						name = "Player"
-						email = "player@fabricmc.net"
-					}
-				}
-			}
-		}
-	}
-
-	repositories {
-		mavenLocal()
-
-		if (ENV.MAVEN_URL) {
-			repositories.maven {
-				name "fabric"
-				url ENV.MAVEN_URL
-				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
-				}
-			}
-		}
-
-		if (ENV.MAVEN_CENTRAL_URL) {
-			repositories.maven {
-				name "central"
-				url ENV.MAVEN_CENTRAL_URL
-				credentials {
-					username ENV.MAVEN_CENTRAL_USERNAME
-					password ENV.MAVEN_CENTRAL_PASSWORD
-				}
-			}
-		}
 	}
 }
 
