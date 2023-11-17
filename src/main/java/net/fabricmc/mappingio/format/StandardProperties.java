@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 public final class StandardProperties {
 	private StandardProperties() {
@@ -32,10 +33,12 @@ public final class StandardProperties {
 		return Collections.unmodifiableSet(values);
 	}
 
+	@Nullable
 	public static StandardProperty getByName(String name) {
 		return valuesByName.get(name);
 	}
 
+	@Nullable
 	@ApiStatus.Internal
 	public static StandardProperty getById(String id) {
 		return valuesById.get(id);

@@ -17,60 +17,98 @@
 package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.NopMappingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 public class DetectionTest {
-	private static Path dir;
-
-	@BeforeAll
-	public static void setup() throws Exception {
-		dir = TestHelper.getResource("/detection/");
-	}
+	private static final Path dir = TestHelper.MappingDirs.DETECTION;
 
 	@Test
 	public void enigmaFile() throws Exception {
-		check("enigma.mappings", MappingFormat.ENIGMA_FILE);
+		MappingFormat format = MappingFormat.ENIGMA_FILE;
+		check(format);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
-		check("enigma-dir", MappingFormat.ENIGMA_DIR);
+		MappingFormat format = MappingFormat.ENIGMA_DIR;
+		check(format);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
-		check("tiny.tiny", MappingFormat.TINY_FILE);
+		MappingFormat format = MappingFormat.TINY_FILE;
+		check(format);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
-		check("tinyV2.tiny", MappingFormat.TINY_2_FILE);
+		MappingFormat format = MappingFormat.TINY_2_FILE;
+		check(format);
 	}
 
 	@Test
 	public void srgFile() throws Exception {
-		check("srg.srg", MappingFormat.SRG_FILE);
+		MappingFormat format = MappingFormat.SRG_FILE;
+		check(format);
+	}
+
+	@Test
+	public void xrgFile() throws Exception {
+		MappingFormat format = MappingFormat.XSRG_FILE;
+		check(format);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		MappingFormat format = MappingFormat.CSRG_FILE;
+		assertThrows(AssertionFailedError.class, () -> check(format));
 	}
 
 	@Test
 	public void tsrgFile() throws Exception {
-		check("tsrg.tsrg", MappingFormat.TSRG_FILE);
+		MappingFormat format = MappingFormat.TSRG_FILE;
+		check(format);
 	}
 
 	@Test
 	public void tsrg2File() throws Exception {
-		check("tsrg2.tsrg", MappingFormat.TSRG_2_FILE);
+		MappingFormat format = MappingFormat.TSRG_2_FILE;
+		check(format);
 	}
 
-	private void check(String path, MappingFormat format) throws Exception {
-		assertEquals(format, MappingReader.detectFormat(dir.resolve(path)));
+	@Test
+	public void proguardFile() throws Exception {
+		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		check(format);
+	}
+
+	private void check(MappingFormat format) throws Exception {
+		Path path = dir.resolve(TestHelper.getFileName(format));
+		assertEquals(format, MappingReader.detectFormat(path));
+
+		if (!format.hasSingleFile()) return;
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+			assertEquals(format, MappingReader.detectFormat(reader));
+		}
+
+		// Make sure that the passed reader still works after implicit format detection (see https://github.com/FabricMC/mapping-io/pull/71).
+		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+			MappingReader.read(reader, new NopMappingVisitor(true));
+		}
 	}
 }

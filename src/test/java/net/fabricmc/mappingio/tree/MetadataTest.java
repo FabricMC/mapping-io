@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -57,7 +58,7 @@ public class MetadataTest {
 	public void testOrder() throws Exception {
 		tree.accept(new NopMappingVisitor(true) {
 			@Override
-			public void visitMetadata(String key, String value) {
+			public void visitMetadata(String key, @Nullable String value) {
 				assertEquals(key, keys.get(visitCount));
 				assertEquals(value, values.get(visitCount));
 				visitCount++;
@@ -76,7 +77,7 @@ public class MetadataTest {
 			}
 
 			@Override
-			public void visitMetadata(String key, String value) {
+			public void visitMetadata(String key, @Nullable String value) {
 				assertFalse(visitedKeys.contains(key));
 				visitedKeys.add(key);
 			}

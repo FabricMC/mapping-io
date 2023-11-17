@@ -17,10 +17,13 @@
 package net.fabricmc.mappingio.format;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.NonExtendable
 public interface StandardProperty {
 	boolean isApplicableTo(MappingFormat format);
+
+	@Nullable
 	String getNameFor(MappingFormat format);
 
 	/**

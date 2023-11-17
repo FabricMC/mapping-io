@@ -18,6 +18,8 @@ package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappingVisitor;
 
 public final class MissingDescFilter extends ForwardingMappingVisitor {
@@ -26,14 +28,14 @@ public final class MissingDescFilter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		if (srcDesc == null) return false;
 
 		return super.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		if (srcDesc == null) return false;
 
 		return super.visitMethod(srcName, srcDesc);

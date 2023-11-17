@@ -30,10 +30,12 @@ public class WriteTest {
 	@TempDir
 	private static Path dir;
 	private static VisitableMappingTree tree;
+	private static VisitableMappingTree treeWithHoles;
 
 	@BeforeAll
 	public static void setup() throws Exception {
 		tree = TestHelper.createTestTree();
+		treeWithHoles = TestHelper.createTestTreeWithHoles();
 	}
 
 	@Test
@@ -56,7 +58,22 @@ public class WriteTest {
 		write(MappingFormat.TINY_2_FILE);
 	}
 
+	@Test
+	public void srgFile() throws Exception {
+		write(MappingFormat.SRG_FILE);
+	}
+
+	@Test
+	public void xsrgFile() throws Exception {
+		write(MappingFormat.XSRG_FILE);
+	}
+
+	public void proguardFile() throws Exception {
+		write(MappingFormat.PROGUARD_FILE);
+	}
+
 	private void write(MappingFormat format) throws Exception {
 		TestHelper.writeToDir(tree, format, dir);
+		TestHelper.writeToDir(treeWithHoles, format, dir);
 	}
 }

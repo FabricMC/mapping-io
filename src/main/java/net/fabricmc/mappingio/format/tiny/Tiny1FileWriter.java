@@ -23,6 +23,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
@@ -61,7 +63,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		StandardProperty property = StandardProperties.getById(key);
 
 		if (property != null) {
@@ -84,7 +86,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -92,7 +94,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -100,12 +102,12 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		return false; // not supported, skip
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		return false; // not supported, skip
 	}
 
