@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
- * Immutable mapping tree.
+ * Read-only mapping tree.
  */
 public interface MappingTreeView {
 	/**
