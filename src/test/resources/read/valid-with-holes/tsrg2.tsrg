@@ -31,10 +31,10 @@ class_32 class_32 class_32
 	method_5 ()I method5Ns0Rename method_5
 	method_6 ()I method_6 method6Ns1Rename
 	method_7 ()I method_7 method_7
-		5 param_1 param_1 param_1
-		7 param_2 param_2 param2Ns1Rename
-		9 param_3 param3Ns0Rename param_3
-		11 param_4 param_4 param_4
-		13 param_5 param5Ns0Rename param_5
-		15 param_6 param_6 param6Ns1Rename
+		1 param_1 param_1 param_1
+		3 param_2 param_2 param2Ns1Rename
+		5 param_3 param3Ns0Rename param_3
+		7 param_4 param_4 param_4
+		9 param_5 param5Ns0Rename param_5
+		11 param_6 param_6 param6Ns1Rename
 	method_8 ()I method_8 method_8
