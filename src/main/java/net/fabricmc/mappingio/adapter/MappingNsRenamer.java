@@ -24,7 +24,14 @@ import java.util.Objects;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that renames namespaces.
+ */
 public final class MappingNsRenamer extends ForwardingMappingVisitor {
+	/**
+	 * @param next the next visitor to forward the data to.
+	 * @param nameMap a map of which namespaces should be renamed to which new names.
+	 */
 	public MappingNsRenamer(MappingVisitor next, Map<String, String> nameMap) {
 		super(next);
 

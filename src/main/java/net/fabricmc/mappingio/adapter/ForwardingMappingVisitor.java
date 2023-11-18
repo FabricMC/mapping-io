@@ -27,6 +27,12 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that forwards all visit calls to another {@link MappingVisitor}.
+ *
+ * <p>Does nothing useful by itself, it's intended to be extended.
+ * Subclasses should override the visit methods they want to intercept.
+ */
 public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	protected ForwardingMappingVisitor(MappingVisitor next) {
 		Objects.requireNonNull(next, "null next");

@@ -21,6 +21,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Mutable mapping tree.
+ */
 public interface MappingTree extends MappingTreeView {
 	@Nullable
 	String setSrcNamespace(String namespace);

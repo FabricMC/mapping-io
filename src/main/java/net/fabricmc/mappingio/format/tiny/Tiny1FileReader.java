@@ -29,6 +29,12 @@ import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@link net.fabricmc.mappingio.format.MappingFormat#TINY_1 Tiny v1 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class Tiny1FileReader {
 	private Tiny1FileReader() {
 	}

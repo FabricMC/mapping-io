@@ -28,12 +28,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
 
 /**
- * A mapping writer for the ProGuard mapping format.
- * Note that this format is very basic: it only supports
- * one namespace pair and only classes, methods and fields
- * without comments.
- *
- * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
+ * {@link net.fabricmc.mappingio.format.MappingFormat#PROGUARD_FILE ProGuard file} writer.
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;

@@ -58,7 +58,7 @@ public final class MappingReader {
 		int pos = 0;
 		int len;
 
-		// Be careful not to close the reader, thats upto the caller.
+		// Be careful not to close the reader, thats up to the caller.
 		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
 
 		br.mark(DETECT_HEADER_LEN);
@@ -177,24 +177,39 @@ public final class MappingReader {
 		}
 	}
 
-	public static void read(Path file, MappingVisitor visitor) throws IOException {
-		read(file, null, visitor);
+	/**
+	 * Tries to detect the format of the given path and read it.
+	 *
+	 * @param path the path to read from. Can be a file or a directory.
+	 * @param visitor the receiving visitor.
+	 * @throws IOException if the format can't be detected or reading fails.
+	 */
+	public static void read(Path path, MappingVisitor visitor) throws IOException {
+		read(path, null, visitor);
 	}
 
-	public static void read(Path file, MappingFormat format, MappingVisitor visitor) throws IOException {
+	/**
+	 * Tries to read the given path using the passed format's reader.
+	 *
+	 * @param path the path to read from. Can be a file or a directory.
+	 * @param format the format to use. Has to match the path's format.
+	 * @param visitor the receiving visitor.
+	 * @throws IOException if reading fails.
+	 */
+	public static void read(Path path, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
-			format = detectFormat(file);
+			format = detectFormat(path);
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
 		if (format.hasSingleFile()) {
-			try (Reader reader = Files.newBufferedReader(file)) {
+			try (Reader reader = Files.newBufferedReader(path)) {
 				read(reader, format, visitor);
 			}
 		} else {
 			switch (format) {
 			case ENIGMA_DIR:
-				EnigmaDirReader.read(file, visitor);
+				EnigmaDirReader.read(path, visitor);
 				break;
 			default:
 				throw new IllegalStateException();
@@ -202,10 +217,25 @@ public final class MappingReader {
 		}
 	}
 
+	/**
+	 * Tries to detect the reader's content's format and read it.
+	 *
+	 * @param reader the reader to read from.
+	 * @param visitor the receiving visitor.
+	 * @throws IOException if the format can't be detected or reading fails.
+	 */
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, null, visitor);
 	}
 
+	/**
+	 * Tries to read the reader's content using the passed format's mapping reader.
+	 *
+	 * @param reader the reader to read from.
+	 * @param format the format to use. Has to match the reader's content's format.
+	 * @param visitor the receiving visitor.
+	 * @throws IOException if reading fails.
+	 */
 	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
 			if (!reader.markSupported()) reader = new BufferedReader(reader);

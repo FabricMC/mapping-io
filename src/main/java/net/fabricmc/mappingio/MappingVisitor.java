@@ -54,7 +54,7 @@ public interface MappingVisitor {
 	}
 
 	/**
-	 * Reset the visitor including any chained visitors to allow for another independent visit (excluding visitEnd=false).
+	 * Reset the visitor, including any chained visitors, to allow for another independent visit (excluding visitEnd=false).
 	 */
 	default void reset() {
 		throw new UnsupportedOperationException();
@@ -82,15 +82,54 @@ public interface MappingVisitor {
 		return true;
 	}
 
+	/**
+	 * Visit a class.
+	 *
+	 * @param srcName the fully qualified source name of the class, in internal form
+	 * (slashes instead of dots, dollar signs for delimiting inner classes).
+	 * @return whether or not the class's content should be visited too.
+	 */
 	boolean visitClass(String srcName) throws IOException;
 	boolean visitField(String srcName, @Nullable String srcDesc) throws IOException;
 	boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException;
+
+	/**
+	 * Visit a parameter.
+	 *
+	 * @param argPosition always starts at 0 and gets incremented by 1 for each additional parameter.
+	 * @param lvIndex the parameter's local variable index in the current method.
+	 * Starts at 0 for static methods, 1 otherwise. For each additional parameter,
+	 * it gets incremented by 1, or by 2 if it's a primitive {@code long} or {@code double}.
+	 * @param srcName the optional source name of the parameter.
+	 * @return whether or not the arg's content should be visited too.
+	 */
 	boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException;
+
+	/**
+	 * Visit a variable.
+	 *
+	 * @param lvtRowIndex the variable's index in the method's LVT
+	 * (local variable table). It is optional, so -1 can be passed instead.
+	 * This is the case since LVTs themselves are optional debug information, see
+	 * <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.13">JVMS 4.7.13</a>.
+	 * @param lvIndex the var's local variable index in the current method. For each additional variable,
+	 * it gets incremented by 1, or by 2 if it's a primitive {@code long} or {@code double}.
+	 * The first variable starts where the last parameter left off (plus the offset).
+	 * @param startOpIdx required for cases when the lvIndex alone doesn't uniquely identify a local variable.
+	 * This is the case when variables get re-defined later on, in which case most decompilers opt to
+	 * not re-define the existing var, but instead generate a new one (with both sharing the same lvIndex).
+	 * @param endOpIdx counterpart to startOpIdx. Inclusive.
+	 * @param srcName the optional source name of the variable.
+	 * @return whether or not the var's content should be visited too.
+	 */
 	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException;
 
 	/**
 	 * Finish the visitation pass.
-	 * @return true if the visitation pass is final, false if it should be started over
+	 *
+	 * @return true if the visitation pass is final, false if it should be started over.
+	 * Implementors may throw an exception if a second pass is requested without the {@code NEEDS_MULTIPLE_PASSES}
+	 * flag having been passed beforehand, not without documenting this behavior though.
 	 */
 	default boolean visitEnd() throws IOException {
 		return true;

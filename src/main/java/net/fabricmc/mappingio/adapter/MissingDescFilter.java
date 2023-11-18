@@ -22,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that filters out elements with missing source descriptors.
+ */
 public final class MissingDescFilter extends ForwardingMappingVisitor {
 	public MissingDescFilter(MappingVisitor next) {
 		super(next);

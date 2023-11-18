@@ -30,6 +30,12 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@link MappingFormat#SRG_FILE SRG file} and {@link MappingFormat#XSRG_FILE XSRG file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class SrgFileReader {
 	private SrgFileReader() {
 	}

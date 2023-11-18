@@ -29,6 +29,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
+/**
+ * {@link net.fabricmc.mappingio.format.MappingFormat#TINY_2 Tiny v2 file} writer.
+ */
 public final class Tiny2FileWriter implements MappingWriter {
 	public Tiny2FileWriter(Writer writer, boolean escapeNames) {
 		this.writer = writer;

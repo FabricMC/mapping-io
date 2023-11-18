@@ -40,6 +40,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * {@link VisitableMappingTree} implementation that stores all data in memory.
+ */
 public final class MemoryMappingTree implements VisitableMappingTree {
 	public MemoryMappingTree() {
 		this(false);

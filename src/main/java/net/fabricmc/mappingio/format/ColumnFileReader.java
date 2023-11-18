@@ -26,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 
+/**
+ * Reader for column-based files.
+ */
 @ApiStatus.Internal
 public final class ColumnFileReader implements Closeable {
 	public ColumnFileReader(Reader reader, char columnSeparator) {

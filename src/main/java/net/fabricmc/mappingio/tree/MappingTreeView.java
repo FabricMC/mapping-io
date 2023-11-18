@@ -24,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * Immutable mapping tree.
+ */
 public interface MappingTreeView {
 	/**
 	 * @return The source namespace, or {@code null} if the tree is uninitialized.

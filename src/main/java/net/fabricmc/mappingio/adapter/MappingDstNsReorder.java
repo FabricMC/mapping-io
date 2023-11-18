@@ -24,7 +24,15 @@ import java.util.Objects;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that reorders and/or drops destination namespaces.
+ */
 public final class MappingDstNsReorder extends ForwardingMappingVisitor {
+	/**
+	 * @param next the next visitor to forward the data to
+	 * @param newDstNs the destination namespaces, in the desired order.
+	 * Omitting entries from the list is going to drop them.
+	 */
 	public MappingDstNsReorder(MappingVisitor next, List<String> newDstNs) {
 		super(next);
 
@@ -33,6 +41,11 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 		this.newDstNs = newDstNs;
 	}
 
+	/**
+	 * @param next the next visitor to forward the data to
+	 * @param newDstNs the destination namespaces, in the desired order.
+	 * Omitting entries from the list is going to drop them.
+	 */
 	public MappingDstNsReorder(MappingVisitor next, String... newDstNs) {
 		this(next, Arrays.asList(newDstNs));
 	}

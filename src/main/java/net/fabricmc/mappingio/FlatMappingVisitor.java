@@ -28,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.RegularAsFlatMappingVisitor;
 
+/**
+ * A mapping visitor that provides the entire data for a given element within a single visit call.
+ */
 public interface FlatMappingVisitor {
 	default Set<MappingFlag> getFlags() {
 		return MappingFlag.NONE;

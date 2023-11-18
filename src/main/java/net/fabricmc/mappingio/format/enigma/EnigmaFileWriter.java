@@ -21,6 +21,9 @@ import java.io.Writer;
 
 import net.fabricmc.mappingio.MappedElementKind;
 
+/**
+ * {@link net.fabricmc.mappingio.format.MappingFormat#ENIGMA_FILE Enigma file} writer.
+ */
 public final class EnigmaFileWriter extends EnigmaWriterBase {
 	public EnigmaFileWriter(Writer writer) throws IOException {
 		super(writer);

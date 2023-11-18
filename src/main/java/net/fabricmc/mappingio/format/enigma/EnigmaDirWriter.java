@@ -31,6 +31,9 @@ import java.util.List;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@link MappingFormat#ENIGMA_DIRECTORY Enigma directory} writer.
+ */
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
 		super(null);

@@ -33,16 +33,16 @@ import org.jetbrains.annotations.Nullable;
  *   <tr>
  *     <td>Tiny v1</td>
  *     <td>✔</td>
- *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *     <td>✔ (Currently limited support)</td>
  *   </tr>
  *   <tr>
  *     <td>Tiny v2</td>
  *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>src</td>
  *     <td>✔</td>
  *     <td>✔</td>
  *     <td>✔</td>
@@ -50,57 +50,57 @@ import org.jetbrains.annotations.Nullable;
  *   </tr>
  *   <tr>
  *     <td>Enigma</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>src</td>
  *     <td>✔</td>
  *     <td>✔</td>
- *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>SRG</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>XSRG</td>
- *     <td>✖</td>
- *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>src & dst</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>CSRG/TSRG</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>TSRG2</td>
  *     <td>✔</td>
+ *     <td>src</td>
+ *     <td>-</td>
  *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>ProGuard</td>
- *     <td>✖</td>
- *     <td>✔</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
- *     <td>✖</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
  *   </tr>
  * </table>
  */

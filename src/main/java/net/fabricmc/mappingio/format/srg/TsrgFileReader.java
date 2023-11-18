@@ -31,6 +31,12 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@link MappingFormat#TSRG_FILE TSRG file} and {@link MappingFormat#TSRG_2_FILE TSRG2 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class TsrgFileReader {
 	private TsrgFileReader() {
 	}
