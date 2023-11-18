@@ -28,8 +28,9 @@ import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 
 @ApiStatus.Internal
 public final class ColumnFileReader implements Closeable {
-	public ColumnFileReader(Reader reader, char columnSeparator) {
+	public ColumnFileReader(Reader reader, char indentationChar, char columnSeparator) {
 		this.reader = reader;
+		this.indentationChar = indentationChar;
 		this.columnSeparator = columnSeparator;
 	}
 
@@ -43,45 +44,20 @@ public final class ColumnFileReader implements Closeable {
 	 *
 	 * <p>The reader will point to the next column or end of line if successful, otherwise remains unchanged.
 	 *
-	 * @param expect content to expect
+	 * @param expected content to expect
 	 * @return true if the column was read and had the expected content, false otherwise
 	 * @throws IOException
 	 */
-	public boolean nextCol(String expect) throws IOException {
-		if (eol) return false;
-
-		int len = expect.length();
-		if (!fillBuffer(len)) return false;
-
-		for (int i = 0; i < len; i++) {
-			if (buffer[bufferPos + i] != expect.charAt(i)) return false; // read failed, not all of expect available
-		}
-
-		char trailing = 0;
-
-		if (fillBuffer(len + 1) // not eof
-				&& (trailing = buffer[bufferPos + len]) != columnSeparator // not end of column
-				&& trailing != '\n' // not end of line
-				&& trailing != '\r') {
-			return false; // read failed, column contains data beyond expect
-		}
-
-		// successful read
-
-		bufferPos += expect.length();
-
-		// seek to the start of the next column
-		if (trailing == columnSeparator) {
-			bufferPos++;
-		} else {
-			eol = true;
-		}
+	public boolean nextCol(String expected) throws IOException {
+		if (read(false, false, true, expected) == noMatch) return false;
 
 		return true;
 	}
 
 	/**
 	 * Read and consume a column without unescaping.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String nextCol() throws IOException {
@@ -89,36 +65,75 @@ public final class ColumnFileReader implements Closeable {
 	}
 
 	/**
-	 * Read and consume a column with unescaping.
-	 */
-	@Nullable
-	public String nextEscapedCol() throws IOException {
-		return nextCol(true);
-	}
-
-	/**
-	 * Read and consume a column and unescape it if requested.
+	 * Read and consume a column, and unescape it if requested.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string.
+	 * Empty if there was no content or eol was encountered while reading.
 	 */
 	@Nullable
 	public String nextCol(boolean unescape) throws IOException {
-		if (eol) return null;
+		return read(unescape, true, true, null);
+	}
+
+	/**
+	 * Read a column without consuming, and unescape if requested.
+	 * Since it doesn't consume, it won't (un)mark bof, eol or eof.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string.
+	 * Empty if there was no content or eol was encountered while reading.
+	 */
+	@Nullable
+	public String peekCol(boolean unescape) throws IOException {
+		return read(unescape, false, true, null);
+	}
+
+	/**
+	 * @param unescape Whether to unescape the read string.
+	 * @param consume Whether to advance the bufferPos.
+	 * @param stopAtNextCol Whether to only read one column.
+	 * @param expected If not null, the read string must match this exactly, otherwise we early-exit with {@link #noMatch}. Always consumes if matched.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string.
+	 * Empty if there was no content or eol was encountered while reading.
+	 * If {@code expected} is not null, it will be returned if matched, otherwise {@link #noMatch}.
+	 */
+	@Nullable
+	private String read(boolean unescape, boolean consume, boolean stopAtNextCol, @Nullable String expected) throws IOException {
+		if (eol) return expected == null ? null : noMatch;
+
+		int expectedLength = expected != null ? expected.length() : -1;
+
+		// Check if the buffer needs to be filled and if we hit eof while doing so
+		if (expectedLength > 0 && bufferPos + expectedLength >= bufferLimit) {
+			if (!fillBuffer(expectedLength, !consume, false)) return noMatch;
+		}
 
 		int start;
-		int end = bufferPos;
+		int end = this.bufferPos;
 		int firstEscaped = -1;
+		int charsRead = 0;
+		int modifiedBufferPos = -1;
+		boolean filled = true;
 
 		readLoop: for (;;) {
 			while (end < bufferLimit) {
 				char c = buffer[end];
 
-				if (c == columnSeparator || c == '\n' || c == '\r') { // end of the current column
+				if (expected != null) {
+					if ((charsRead < expectedLength && c != expected.charAt(charsRead))
+							|| charsRead > expectedLength) {
+						return noMatch;
+					}
+				}
+
+				if (c == '\n' || c == '\r' || (stopAtNextCol && c == columnSeparator)) { // stop reading
 					start = bufferPos;
-					bufferPos = end;
+					modifiedBufferPos = end;
 
 					// seek to the start of the next column
 					if (c == columnSeparator) {
-						bufferPos++;
-					} else {
+						modifiedBufferPos++;
+					} else if (consume) {
 						eol = true;
 					}
 
@@ -127,13 +142,14 @@ public final class ColumnFileReader implements Closeable {
 					firstEscaped = bufferPos;
 				}
 
+				charsRead++;
 				end++;
 			}
 
 			// buffer ran out, refill
 
 			int oldStart = bufferPos;
-			boolean filled = fillBuffer(end - bufferPos + 1);
+			filled = fillBuffer(end - bufferPos + 1, !consume, consume);
 			int posShift = bufferPos - oldStart; // fillBuffer may compact the data, shifting it to the buffer start
 			assert posShift <= 0;
 			end += posShift;
@@ -141,70 +157,68 @@ public final class ColumnFileReader implements Closeable {
 
 			if (!filled) {
 				start = bufferPos;
-				bufferPos = end;
-				eol = true;
 				break;
 			}
 		}
 
-		int len = end - start;
-
-		if (len == 0) {
-			return "";
-		} else if (firstEscaped >= 0) {
-			return Tiny2Util.unescape(String.valueOf(buffer, start, len));
-		} else {
-			return String.valueOf(buffer, start, len);
+		if (expected != null) {
+			consume = true;
 		}
+
+		String ret;
+
+		if (expected != null) {
+			ret = expected;
+		} else {
+			int len = end - start;
+
+			if (len == 0) {
+				ret = "";
+			} else if (firstEscaped >= 0) {
+				ret = Tiny2Util.unescape(String.valueOf(buffer, start, len));
+			} else {
+				ret = String.valueOf(buffer, start, len);
+			}
+		}
+
+		if (consume) {
+			if (charsRead > 0) bof = false;
+			if (!filled) eof = eol = true;
+			if (modifiedBufferPos != -1) bufferPos = modifiedBufferPos;
+
+			if (eol && !eof) { // manually check for eof
+				int charsToRead = buffer[bufferPos] == '\r' ? 2 : 1; // 2 for \r\n, 1 for just \n
+
+				if (end >= bufferLimit - charsToRead) {
+					fillBuffer(charsToRead, false, true);
+				}
+			}
+		}
+
+		return ret;
 	}
 
 	/**
-	 * Read and consume all column until eol and unescape if requested.
+	 * Read and consume all columns until eol, and unescape if requested.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string.
+	 * Empty if there was no content or eol was encountered while reading.
 	 */
 	@Nullable
 	public String nextCols(boolean unescape) throws IOException {
-		if (eol) return null;
+		return read(unescape, true, false, null);
+	}
 
-		int end = bufferPos;
-		int firstEscaped = -1;
-		boolean filled;
-
-		readLoop: do {
-			while (end < bufferLimit) {
-				char c = buffer[end];
-
-				if (c == '\n' || c == '\r') { // end of the current column
-					break readLoop;
-				} else if (unescape && c == '\\' && firstEscaped < 0) {
-					firstEscaped = bufferPos;
-				}
-
-				end++;
-			}
-
-			// buffer ran out, refill
-
-			int oldStart = bufferPos;
-			filled = fillBuffer(end - bufferPos + 1);
-			int posShift = bufferPos - oldStart; // fillBuffer may compact the data, shifting it to the buffer start
-			assert posShift <= 0;
-			end += posShift;
-			if (firstEscaped >= 0) firstEscaped += posShift;
-		} while (filled);
-
-		int start = bufferPos;
-		bufferPos = end;
-		eol = true;
-
-		int len = end - start;
-
-		if (len == 0) {
-			return "";
-		} else if (firstEscaped >= 0) {
-			return Tiny2Util.unescape(String.valueOf(buffer, start, len));
-		} else {
-			return String.valueOf(buffer, start, len);
-		}
+	/**
+	 * Read all columns until eol without consuming, and unescape if requested.
+	 * Since it doesn't consume, it won't (un)mark bof, eol or eof.
+	 *
+	 * @return null if already at eol or eof, otherwise the read string.
+	 * Empty if there was no content or eol was encountered while reading.
+	 */
+	@Nullable
+	public String peekCols(boolean unescape) throws IOException {
+		return read(unescape, false, false, null);
 	}
 
 	/**
@@ -221,87 +235,160 @@ public final class ColumnFileReader implements Closeable {
 	}
 
 	public boolean nextLine(int indent) throws IOException {
-		fillLopo: do {
+		fillLoop: do {
 			while (bufferPos < bufferLimit) {
 				char c = buffer[bufferPos];
 
 				if (c == '\n') {
 					if (indent == 0) { // skip empty lines if indent is 0
-						if (!fillBuffer(2)) break fillLopo;
+						if (!fillBuffer(2, false, true)) break fillLoop;
 
 						c = buffer[bufferPos + 1];
 
 						if (c == '\n' || c == '\r') { // 2+ consecutive new lines, consume first nl and retry
 							bufferPos++;
 							lineNumber++;
+							bof = false;
 							continue;
 						}
 					}
 
-					if (!fillBuffer(indent + 1)) return false;
+					if (!fillBuffer(indent + 1, false, true)) return false;
 
 					for (int i = 1; i <= indent; i++) {
-						if (buffer[bufferPos + i] != '\t') return false;
+						if (buffer[bufferPos + i] != indentationChar) return false;
 					}
 
 					bufferPos += indent + 1;
 					lineNumber++;
+					bof = false;
 					eol = false;
 
 					return true;
 				}
 
 				bufferPos++;
+				bof = false;
 			}
-		} while (fillBuffer(1));
+		} while (fillBuffer(1, false, true));
 
 		return false;
 	}
 
 	public boolean hasExtraIndents() throws IOException {
-		return fillBuffer(1) && buffer[bufferPos] == '\t';
+		return fillBuffer(1, false, false) && buffer[bufferPos] == indentationChar;
 	}
 
 	public int getLineNumber() {
 		return lineNumber;
 	}
 
+	public boolean isAtBof() {
+		return bof;
+	}
+
 	public boolean isAtEof() {
 		return eof;
 	}
 
-	public void mark() {
-		if (bufferPos > 0) {
+	/**
+	 * Marks the present position in the stream. Subsequent calls to
+	 * {@link #reset()} will reposition the stream to this point.
+	 * In comparison to {@link java.io.Reader#mark(int)} this method stacks,
+	 * so don't forget to call {@link #discardMark()} if you don't need the mark anymore.
+	 *
+	 * @return the mark index (starting at 1)
+	 */
+	public int mark() {
+		if (markIdx == 0 && bufferPos > 0) { // save memory
 			int available = bufferLimit - bufferPos;
 			System.arraycopy(buffer, bufferPos, buffer, 0, available);
 			bufferPos = 0;
 			bufferLimit = available;
-			markedLineNumber = lineNumber;
-			markedEol = eol;
-			markedEof = eof;
 		}
 
-		mark = bufferPos;
+		if (markIdx == markedBufferPositions.length) {
+			markedBufferPositions = Arrays.copyOf(markedBufferPositions, markedBufferPositions.length * 2);
+			markedLineNumbers = Arrays.copyOf(markedLineNumbers, markedLineNumbers.length * 2);
+			markedBofs = Arrays.copyOf(markedBofs, markedBofs.length * 2);
+			markedEols = Arrays.copyOf(markedEols, markedEols.length * 2);
+			markedEofs = Arrays.copyOf(markedEofs, markedEofs.length * 2);
+		}
+
+		markedBufferPositions[markIdx] = bufferPos;
+		markedLineNumbers[markIdx] = lineNumber;
+		markedBofs[markIdx] = bof;
+		markedEols[markIdx] = eol;
+		markedEofs[markIdx] = eof;
+
+		return ++markIdx;
 	}
 
-	public void reset() {
-		if (mark < 0) throw new IllegalStateException("not marked");
-
-		bufferPos = mark;
-		lineNumber = markedLineNumber;
-		eol = markedEol;
-		eof = markedEof;
+	/**
+	 * Discard the last mark.
+	 */
+	public void discardMark() {
+		discardMark(markIdx);
 	}
 
-	private boolean fillBuffer(int count) throws IOException {
+	/**
+	 * Discard the mark at specified index and all above, if present.
+	 */
+	private void discardMark(int index) {
+		if (markIdx == 0) throw new IllegalStateException("no mark to discard");
+		if (index < 1 || index > markIdx) throw new IllegalStateException("index out of bounds");
+
+		for (int i = markIdx; i >= index; i--) {
+			markedBufferPositions[i-1] = 0;
+			markedLineNumbers[i-1] = 0;
+		}
+
+		markIdx = index - 1;
+	}
+
+	/**
+	 * Reset to last mark. The marked data isn't discarded, so can be called multiple times.
+	 * If you want to reset to an older mark, use {@link #reset(int)}.
+	 *
+	 * @return The index of the mark that was reset to.
+	 */
+	public int reset() {
+		reset(markIdx);
+		return markIdx;
+	}
+
+	/**
+	 * Reset to the mark with the specified index.
+	 * Unless reset to {@code 0}, the marked data isn't discarded afterwards,
+	 * so can be called multiple times.
+	 * Use negative indices to reset to a mark relative to the current one.
+	 */
+	public void reset(int indexToResetTo) {
+		if (markIdx == 0) throw new IllegalStateException("no mark to reset to");
+		if (indexToResetTo < -markIdx || indexToResetTo > markIdx) throw new IllegalStateException("index out of bounds");
+
+		if (indexToResetTo < 0) indexToResetTo += markIdx;
+		int arrayIdx = indexToResetTo == 0 ? indexToResetTo : indexToResetTo - 1;
+
+		bufferPos = markedBufferPositions[arrayIdx];
+		lineNumber = markedLineNumbers[arrayIdx];
+		bof = markedBofs[arrayIdx];
+		eol = markedEols[arrayIdx];
+		eof = markedEofs[arrayIdx];
+
+		if (indexToResetTo == 0) discardMark(1);
+		markIdx = indexToResetTo;
+	}
+
+	private boolean fillBuffer(int count, boolean preventCompaction, boolean markEof) throws IOException {
 		int available = bufferLimit - bufferPos;
 		int req = count - available;
 		if (req <= 0) return true;
 
 		if (bufferPos + count > buffer.length) { // not enough remaining buffer space
-			if (mark >= 0) { // marked for rewind -> grow
+			if (markIdx > 0 || preventCompaction) { // can't compact -> grow
 				buffer = Arrays.copyOf(buffer, Math.max(bufferPos + count, buffer.length * 2));
-			} else { // not marked, compact and grow as needed
+			} else { // compact and grow as needed
 				if (count > buffer.length) { // too small for compacting to suffice -> grow and compact
 					char[] newBuffer = new char[Math.max(count, buffer.length * 2)];
 					System.arraycopy(buffer, bufferPos, newBuffer, 0, available);
@@ -321,7 +408,7 @@ public final class ColumnFileReader implements Closeable {
 			int read = reader.read(buffer, bufferLimit, buffer.length - bufferLimit);
 
 			if (read < 0) {
-				eof = eol = true;
+				if (markEof) eof = eol = true;
 				return false;
 			}
 
@@ -331,16 +418,21 @@ public final class ColumnFileReader implements Closeable {
 		return true;
 	}
 
+	private static final String noMatch = new String();
 	private final Reader reader;
+	private final char indentationChar;
 	private final char columnSeparator;
 	private char[] buffer = new char[4096 * 4];
 	private int bufferPos;
 	private int bufferLimit;
-	private int mark = -1;
 	private int lineNumber = 1;
+	private boolean bof = true;
 	private boolean eol; // tracks whether the last column has been read, otherwise ambiguous if the last col is empty
 	private boolean eof;
-	private int markedLineNumber;
-	private boolean markedEol;
-	private boolean markedEof;
+	private int markIdx = 0; // 0 means no mark
+	private int[] markedBufferPositions = new int[3];
+	private int[] markedLineNumbers = new int[3];
+	private boolean[] markedBofs = new boolean[3];
+	private boolean[] markedEols = new boolean[3];
+	private boolean[] markedEofs = new boolean[3];
 }

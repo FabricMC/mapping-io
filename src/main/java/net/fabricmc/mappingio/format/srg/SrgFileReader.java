@@ -39,7 +39,7 @@ public final class SrgFileReader {
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
 	}
 
 	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
