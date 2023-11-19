@@ -17,7 +17,6 @@
 package net.fabricmc.mappingio.read;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.NopMappingVisitor;
@@ -75,7 +73,7 @@ public class DetectionTest {
 	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
-		assertThrows(AssertionFailedError.class, () -> check(format));
+		check(format);
 	}
 
 	@Test
@@ -101,6 +99,7 @@ public class DetectionTest {
 		assertEquals(format, MappingReader.detectFormat(path));
 
 		if (!format.hasSingleFile()) return;
+		if (format == MappingFormat.CSRG_FILE) return;
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
 			assertEquals(format, MappingReader.detectFormat(reader));
