@@ -33,7 +33,7 @@ import net.fabricmc.mappingio.MappingVisitor;
  *
  * <p>Element data is relayed upon {@link #visitElementContent(MappedElementKind)}
  * or {@link #visitComment(MappedElementKind, String)} invocation.
- * If no data was collected for the current element, the corresponding {@link FlatMappingVisitor}'s' visit method is not called.
+ * If no data was collected for the current element, the corresponding {@link FlatMappingVisitor}'s visit method is not called.
  */
 public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	public FlatAsRegularMappingVisitor(FlatMappingVisitor out) {
