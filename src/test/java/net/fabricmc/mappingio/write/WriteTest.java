@@ -74,6 +74,11 @@ public class WriteTest {
 	}
 
 	@Test
+	public void csrgFile() throws Exception {
+		check(MappingFormat.CSRG_FILE);
+	}
+
+	@Test
 	public void tsrgFile() throws Exception {
 		check(MappingFormat.TSRG_FILE);
 	}
