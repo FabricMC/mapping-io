@@ -37,8 +37,11 @@ import net.fabricmc.mappingio.MappingWriter;
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
-	private int dstNamespace = -1;
 	private final String dstNamespaceString;
+	private int dstNamespace = -1;
+	private String srcName;
+	private String srcDesc;
+	private String dstName;
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -104,54 +107,35 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		writer.write(toJavaClassName(srcName));
-		writeArrow();
+		this.srcName = srcName;
+
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
-		writeIndent();
-		writer.write(toJavaType(srcDesc));
-		writer.write(' ');
-		writer.write(srcName);
-		writeArrow();
+		this.srcName = srcName;
+		this.srcDesc = srcDesc;
+
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		Type type = Type.getMethodType(srcDesc);
-		writeIndent();
-		writer.write(toJavaType(type.getReturnType().getDescriptor()));
-		writer.write(' ');
-		writer.write(srcName);
-		writer.write('(');
-		Type[] args = type.getArgumentTypes();
+		this.srcName = srcName;
+		this.srcDesc = srcDesc;
 
-		for (int i = 0; i < args.length; i++) {
-			if (i > 0) {
-				writer.write(',');
-			}
-
-			writer.write(toJavaType(args[i].getDescriptor()));
-		}
-
-		writer.write(')');
-		writeArrow();
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		// ignored
-		return false;
+		return false; // not supported, skip
 	}
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
-		// ignored
-		return false;
+		return false; // not supported, skip
 	}
 
 	@Override
@@ -160,19 +144,58 @@ public final class ProGuardFileWriter implements MappingWriter {
 			return;
 		}
 
-		if (targetKind == MappedElementKind.CLASS) {
-			writer.write(toJavaClassName(name));
-			writer.write(':');
-		} else {
-			writer.write(name);
+		dstName = name;
+	}
+
+	@Override
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		if (dstName == null) dstName = srcName;
+
+		switch (targetKind) {
+		case CLASS:
+			writer.write(toJavaClassName(srcName));
+			dstName = toJavaClassName(dstName) + ":";
+			break;
+		case FIELD:
+			writeIndent();
+			writer.write(toJavaType(srcDesc));
+			writer.write(' ');
+			writer.write(srcName);
+			break;
+		case METHOD:
+			Type type = Type.getMethodType(srcDesc);
+			writeIndent();
+			writer.write(toJavaType(type.getReturnType().getDescriptor()));
+			writer.write(' ');
+			writer.write(srcName);
+			writer.write('(');
+			Type[] args = type.getArgumentTypes();
+
+			for (int i = 0; i < args.length; i++) {
+				if (i > 0) {
+					writer.write(',');
+				}
+
+				writer.write(toJavaType(args[i].getDescriptor()));
+			}
+
+			writer.write(')');
+			break;
+		default:
+			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
 
+		writeArrow();
+		writer.write(dstName);
 		writer.write('\n');
+
+		srcName = srcDesc = dstName = null;
+		return true;
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// ignored
+		// not supported, skip
 	}
 
 	private void writeArrow() throws IOException {

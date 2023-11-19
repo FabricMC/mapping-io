@@ -73,6 +73,7 @@ public class WriteTest {
 		check(MappingFormat.XSRG_FILE);
 	}
 
+	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
 	}
