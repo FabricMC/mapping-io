@@ -32,9 +32,9 @@ import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@link MappingFormat#CSRG_FILE CSRG file},
- * {@link MappingFormat#TSRG_FILE TSRG file} and
- * {@link MappingFormat#TSRG_2_FILE TSRG2 file} reader.
+ * {@linkplain MappingFormat#CSRG_FILE CSRG file},
+ * {@linkplain MappingFormat#TSRG_FILE TSRG file} and
+ * {@linkplain MappingFormat#TSRG_2_FILE TSRG2 file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.

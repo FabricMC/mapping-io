@@ -28,9 +28,10 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@link net.fabricmc.mappingio.format.MappingFormat#TINY_2 Tiny v2 file} writer.
+ * {@linkplain MappingFormat#TINY_2 Tiny v2 file} writer.
  */
 public final class Tiny2FileWriter implements MappingWriter {
 	public Tiny2FileWriter(Writer writer, boolean escapeNames) {

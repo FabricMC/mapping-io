@@ -31,7 +31,8 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@link MappingFormat#SRG_FILE SRG file} and {@link MappingFormat#XSRG_FILE XSRG file} reader.
+ * {@linkplain MappingFormat#SRG_FILE SRG file} and
+ * {@linkplain MappingFormat#XSRG_FILE XSRG file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.

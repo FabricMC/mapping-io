@@ -29,8 +29,8 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
 /**
- * {@link net.fabricmc.mappingio.format.MappingFormat#SRG_FILE SRG file} and
- * {@link net.fabricmc.mappingio.format.MappingFormat#XSRG_FILE XSRG file} writer.
+ * {@linkplain net.fabricmc.mappingio.format.MappingFormat#SRG_FILE SRG file} and
+ * {@linkplain net.fabricmc.mappingio.format.MappingFormat#XSRG_FILE XSRG file} writer.
  */
 public final class SrgFileWriter implements MappingWriter {
 	public SrgFileWriter(Writer writer, boolean xsrg) {

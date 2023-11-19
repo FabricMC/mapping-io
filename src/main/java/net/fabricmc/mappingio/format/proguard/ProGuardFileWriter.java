@@ -26,9 +26,10 @@ import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@link net.fabricmc.mappingio.format.MappingFormat#PROGUARD_FILE ProGuard file} writer.
+ * {@linkplain MappingFormat#PROGUARD_FILE ProGuard file} writer.
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;

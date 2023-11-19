@@ -34,7 +34,7 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@link MappingFormat#ENIGMA_DIRECTORY Enigma directory} reader.
+ * {@linkplain MappingFormat#ENIGMA_DIRECTORY Enigma directory} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
