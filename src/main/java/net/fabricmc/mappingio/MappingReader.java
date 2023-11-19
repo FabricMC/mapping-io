@@ -48,7 +48,11 @@ public final class MappingReader {
 		}
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
-			return detectFormat(reader, file);
+			String fileName = file.getFileName().toString();
+			int dotIdx = fileName.lastIndexOf('.');
+			String fileExt = dotIdx >= 0 ? fileName.substring(dotIdx + 1) : null;
+
+			return detectFormat(reader, fileExt);
 		}
 	}
 
@@ -57,7 +61,7 @@ public final class MappingReader {
 		return detectFormat(reader, null);
 	}
 
-	private static MappingFormat detectFormat(Reader reader, @Nullable Path file) throws IOException {
+	private static MappingFormat detectFormat(Reader reader, @Nullable String fileExt) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
@@ -99,14 +103,8 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		if (file != null) {
-			String fileName = file.getFileName().toString();
-			int dotIdx = fileName.lastIndexOf('.');
-
-			if (dotIdx >= 0) {
-				String ext = fileName.substring(dotIdx + 1);
-				if (ext.equals(MappingFormat.CSRG_FILE.fileExt)) return MappingFormat.CSRG_FILE;
-			}
+		if (fileExt != null) {
+			if (fileExt.equals(MappingFormat.CSRG_FILE.fileExt)) return MappingFormat.CSRG_FILE;
 		}
 
 		return null; // format unknown, not easily detectable or corrupted
