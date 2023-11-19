@@ -58,7 +58,7 @@ public final class MappingReader {
 		int pos = 0;
 		int len;
 
-		// Be careful not to close the reader, thats up to the caller.
+		// Be careful not to close the reader, that's up to the caller.
 		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
 
 		br.mark(DETECT_HEADER_LEN);
