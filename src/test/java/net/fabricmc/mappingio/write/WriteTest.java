@@ -22,58 +22,73 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTreeView;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class WriteTest {
 	@TempDir
 	private static Path dir;
-	private static VisitableMappingTree tree;
-	private static VisitableMappingTree treeWithHoles;
+	private static MappingTreeView validTree;
+	private static MappingTreeView validWithHolesTree;
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestHelper.createTestTree();
-		treeWithHoles = TestHelper.createTestTreeWithHoles();
+		validTree = TestHelper.createTestTree();
+		validWithHolesTree = TestHelper.createTestTreeWithHoles();
 	}
 
 	@Test
 	public void enigmaFile() throws Exception {
-		write(MappingFormat.ENIGMA_FILE);
+		check(MappingFormat.ENIGMA_FILE);
 	}
 
 	@Test
 	public void enigmaDirectory() throws Exception {
-		write(MappingFormat.ENIGMA_DIR);
+		check(MappingFormat.ENIGMA_DIR);
 	}
 
 	@Test
 	public void tinyFile() throws Exception {
-		write(MappingFormat.TINY_FILE);
+		check(MappingFormat.TINY_FILE);
 	}
 
 	@Test
 	public void tinyV2File() throws Exception {
-		write(MappingFormat.TINY_2_FILE);
+		check(MappingFormat.TINY_2_FILE);
 	}
 
 	@Test
 	public void srgFile() throws Exception {
-		write(MappingFormat.SRG_FILE);
+		check(MappingFormat.SRG_FILE);
 	}
 
 	@Test
 	public void xsrgFile() throws Exception {
-		write(MappingFormat.XSRG_FILE);
+		check(MappingFormat.XSRG_FILE);
 	}
 
 	public void proguardFile() throws Exception {
-		write(MappingFormat.PROGUARD_FILE);
+		check(MappingFormat.PROGUARD_FILE);
 	}
 
-	private void write(MappingFormat format) throws Exception {
-		TestHelper.writeToDir(tree, format, dir);
-		TestHelper.writeToDir(treeWithHoles, format, dir);
+	private void check(MappingFormat format) throws Exception {
+		dogfood(validTree, dir, format);
+		dogfood(validWithHolesTree, dir, format);
+	}
+
+	private void dogfood(MappingTreeView origTree, Path outputPath, MappingFormat outputFormat) throws Exception {
+		outputPath = TestHelper.writeToDir(origTree, dir, outputFormat);
+		VisitableMappingTree writtenTree = new MemoryMappingTree();
+
+		MappingReader.read(outputPath, outputFormat, writtenTree);
+
+		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(origTree, null, outputFormat)));
+		origTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(writtenTree, outputFormat, null)));
 	}
 }
