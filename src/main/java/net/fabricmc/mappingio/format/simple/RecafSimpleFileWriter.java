@@ -25,7 +25,11 @@ import java.util.Set;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#RECAF_SIMPLE Recaf Simple file} writer.
+ */
 public final class RecafSimpleFileWriter implements MappingWriter {
 	public RecafSimpleFileWriter(Writer writer) {
 		this.writer = writer;

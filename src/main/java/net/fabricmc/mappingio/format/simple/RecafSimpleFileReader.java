@@ -26,9 +26,13 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#RECAF_SIMPLE Recaf Simple file} reader.
+ */
 public final class RecafSimpleFileReader {
 	private RecafSimpleFileReader() {
 	}
