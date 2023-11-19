@@ -42,40 +42,22 @@ public final class MappingReader {
 	}
 
 	@Nullable
-	public static MappingFormat detectFormat(Path file, boolean trustFileExtension) throws IOException {
+	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
 		}
 
-		if (trustFileExtension) {
-			String fileName = file.getFileName().toString();
-			int dotIdx = fileName.lastIndexOf('.');
-
-			if (dotIdx >= 0) {
-				String ext = fileName.substring(dotIdx + 1);
-
-				switch (ext) {
-				case "mapping": // Standard name
-				case "mappings": // Sometimes used for standalone (non-dir) files
-				case "enigma": // Erroneously used by Lorenz <0.6
-					return MappingFormat.ENIGMA_FILE;
-				case "srg":
-					return MappingFormat.SRG_FILE;
-				case "map": // Erroneously used by Mapping-IO <0.5
-					return MappingFormat.PROGUARD_FILE;
-				default:
-					break;
-				}
-			}
-		}
-
 		try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
-			return detectFormat(reader);
+			return detectFormat(reader, file);
 		}
 	}
 
 	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
+		return detectFormat(reader, null);
+	}
+
+	private static MappingFormat detectFormat(Reader reader, @Nullable Path file) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
@@ -117,9 +99,17 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		// TODO: CSRG
+		if (file != null) {
+			String fileName = file.getFileName().toString();
+			int dotIdx = fileName.lastIndexOf('.');
 
-		return null; // unknown format or corrupted
+			if (dotIdx >= 0) {
+				String ext = fileName.substring(dotIdx + 1);
+				if (ext.equals(MappingFormat.CSRG_FILE.fileExt)) return MappingFormat.CSRG_FILE;
+			}
+		}
+
+		return null; // format unknown, not easily detectable or corrupted
 	}
 
 	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
@@ -154,6 +144,11 @@ public final class MappingReader {
 	}
 
 	public static List<String> getNamespaces(Path file, MappingFormat format) throws IOException {
+		if (format == null) {
+			format = detectFormat(file);
+			if (format == null) throw new IOException("invalid/unsupported mapping format");
+		}
+
 		if (format.hasNamespaces) {
 			try (Reader reader = Files.newBufferedReader(file)) {
 				return getNamespaces(reader, format);
@@ -194,7 +189,16 @@ public final class MappingReader {
 		}
 	}
 
+	public static void read(Path file, MappingVisitor visitor) throws IOException {
+		read(file, null, visitor);
+	}
+
 	public static void read(Path file, MappingFormat format, MappingVisitor visitor) throws IOException {
+		if (format == null) {
+			format = detectFormat(file);
+			if (format == null) throw new IOException("invalid/unsupported mapping format");
+		}
+
 		if (format.hasSingleFile()) {
 			try (Reader reader = Files.newBufferedReader(file)) {
 				read(reader, format, visitor);

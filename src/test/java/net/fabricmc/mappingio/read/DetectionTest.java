@@ -98,13 +98,11 @@ public class DetectionTest {
 
 	private void check(MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
-		assertEquals(format, MappingReader.detectFormat(path, true));
-		assertEquals(format, MappingReader.detectFormat(path, false));
+		assertEquals(format, MappingReader.detectFormat(path));
 
 		if (!format.hasSingleFile()) return;
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-			assertEquals(format, MappingReader.detectFormat(reader));
 			assertEquals(format, MappingReader.detectFormat(reader));
 		}
 
