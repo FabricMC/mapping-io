@@ -29,8 +29,8 @@ import net.fabricmc.mappingio.MappingVisitor;
  */
 public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 	/**
-	 * @param next the next visitor to forward the data to
-	 * @param newDstNs the destination namespaces, in the desired order.
+	 * @param next The next visitor to forward the data to.
+	 * @param newDstNs The destination namespaces, in the desired order.
 	 * Omitting entries from the list is going to drop them.
 	 */
 	public MappingDstNsReorder(MappingVisitor next, List<String> newDstNs) {
@@ -42,8 +42,8 @@ public final class MappingDstNsReorder extends ForwardingMappingVisitor {
 	}
 
 	/**
-	 * @param next the next visitor to forward the data to
-	 * @param newDstNs the destination namespaces, in the desired order.
+	 * @param next The next visitor to forward the data to
+	 * @param newDstNs The destination namespaces, in the desired order.
 	 * Omitting entries from the list is going to drop them.
 	 */
 	public MappingDstNsReorder(MappingVisitor next, String... newDstNs) {

@@ -180,9 +180,9 @@ public final class MappingReader {
 	/**
 	 * Tries to detect the format of the given path and read it.
 	 *
-	 * @param path the path to read from. Can be a file or a directory.
-	 * @param visitor the receiving visitor.
-	 * @throws IOException if the format can't be detected or reading fails.
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If the format can't be detected or reading fails.
 	 */
 	public static void read(Path path, MappingVisitor visitor) throws IOException {
 		read(path, null, visitor);
@@ -191,10 +191,10 @@ public final class MappingReader {
 	/**
 	 * Tries to read the given path using the passed format's reader.
 	 *
-	 * @param path the path to read from. Can be a file or a directory.
-	 * @param format the format to use. Has to match the path's format.
-	 * @param visitor the receiving visitor.
-	 * @throws IOException if reading fails.
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param format The format to use. Has to match the path's format.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If reading fails.
 	 */
 	public static void read(Path path, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
@@ -220,9 +220,9 @@ public final class MappingReader {
 	/**
 	 * Tries to detect the reader's content's format and read it.
 	 *
-	 * @param reader the reader to read from.
-	 * @param visitor the receiving visitor.
-	 * @throws IOException if the format can't be detected or reading fails.
+	 * @param reader The reader to read from.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If the format can't be detected or reading fails.
 	 */
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, null, visitor);
@@ -231,10 +231,10 @@ public final class MappingReader {
 	/**
 	 * Tries to read the reader's content using the passed format's mapping reader.
 	 *
-	 * @param reader the reader to read from.
-	 * @param format the format to use. Has to match the reader's content's format.
-	 * @param visitor the receiving visitor.
-	 * @throws IOException if reading fails.
+	 * @param reader The reader to read from.
+	 * @param format The format to use. Has to match the reader's content's format.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If reading fails.
 	 */
 	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {

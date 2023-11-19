@@ -29,8 +29,8 @@ import net.fabricmc.mappingio.MappingVisitor;
  */
 public final class MappingNsRenamer extends ForwardingMappingVisitor {
 	/**
-	 * @param next the next visitor to forward the data to.
-	 * @param nameMap a map of which namespaces should be renamed to which new names.
+	 * @param next The next visitor to forward the data to.
+	 * @param nameMap A map of which namespaces should be renamed to which new names.
 	 */
 	public MappingNsRenamer(MappingVisitor next, Map<String, String> nameMap) {
 		super(next);

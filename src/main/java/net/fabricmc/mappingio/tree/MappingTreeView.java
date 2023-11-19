@@ -41,14 +41,14 @@ public interface MappingTreeView {
 	List<String> getDstNamespaces();
 
 	/**
-	 * Get the maximum available namespace ID (exclusive).
+	 * @return The maximum available namespace ID (exclusive).
 	 */
 	default int getMaxNamespaceId() {
 		return getDstNamespaces().size();
 	}
 
 	/**
-	 * Get the minimum available namespace ID (inclusive).
+	 * @return The minimum available namespace ID (inclusive).
 	 */
 	default int getMinNamespaceId() {
 		return MIN_NAMESPACE_ID;

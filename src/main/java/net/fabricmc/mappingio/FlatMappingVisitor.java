@@ -43,7 +43,7 @@ public interface FlatMappingVisitor {
 	/**
 	 * Determine whether the header (namespaces, metadata if part of the header) should be visited.
 	 *
-	 * @return true if the header is to be visited, false otherwise
+	 * @return {@code true} if the header is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitHeader() throws IOException {
 		return true;
@@ -56,7 +56,7 @@ public interface FlatMappingVisitor {
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
 	 *
-	 * @return true if content is to be visited, false otherwise
+	 * @return {@code true} if content is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitContent() throws IOException {
 		return true;
@@ -99,7 +99,8 @@ public interface FlatMappingVisitor {
 
 	/**
 	 * Finish the visitation pass.
-	 * @return true if the visitation pass is final, false if it should be started over
+	 *
+	 * @return {@code true} if the visitation pass is final, {@code false} if it should be started over.
 	 */
 	default boolean visitEnd() throws IOException {
 		return true;
