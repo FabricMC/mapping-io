@@ -1,7 +1,7 @@
-CLASS class_1 RenamedClass1
-	FIELD field_1 renamedField I
-	METHOD method_1 renamedMethod (F)I
-		ARG 0 renamedParameter
-	CLASS class_2 RenamedInnerClass
-		FIELD field_1 renamedField2 I
-CLASS class_3 RenamedClass2
+CLASS class_1 class1Ns0Rename
+	FIELD field_1 field1Ns0Rename I
+	METHOD method_1 method1Ns0Rename ()I
+		ARG 1 param1Ns0Rename
+	CLASS class_2 class2Ns0Rename
+		FIELD field_2 field2Ns0Rename I
+CLASS class_3 class3Ns0Rename

@@ -1,0 +1,6 @@
+CLASS class_1 class1Ns0Rename
+	FIELD field_1 field1Ns0Rename I
+	METHOD method_1 method1Ns0Rename ()I
+		ARG 1 param1Ns0Rename
+	CLASS class_2 class2Ns0Rename
+		FIELD field_2 field2Ns0Rename I

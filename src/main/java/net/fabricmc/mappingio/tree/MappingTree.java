@@ -19,7 +19,10 @@ package net.fabricmc.mappingio.tree;
 import java.util.Collection;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 public interface MappingTree extends MappingTreeView {
+	@Nullable
 	String setSrcNamespace(String namespace);
 	List<String> setDstNamespaces(List<String> namespaces);
 
@@ -49,34 +52,41 @@ public interface MappingTree extends MappingTreeView {
 	@Override
 	Collection<? extends ClassMapping> getClasses();
 	@Override
+	@Nullable
 	ClassMapping getClass(String srcName);
 
 	@Override
+	@Nullable
 	default ClassMapping getClass(String name, int namespace) {
 		return (ClassMapping) MappingTreeView.super.getClass(name, namespace);
 	}
 
 	ClassMapping addClass(ClassMapping cls);
+	@Nullable
 	ClassMapping removeClass(String srcName);
 
 	@Override
-	default FieldMapping getField(String srcOwnerName, String srcName, String srcDesc) {
-		return (FieldMapping) MappingTreeView.super.getField(srcOwnerName, srcName, srcDesc);
+	@Nullable
+	default FieldMapping getField(String srcClsName, String srcName, @Nullable String srcDesc) {
+		return (FieldMapping) MappingTreeView.super.getField(srcClsName, srcName, srcDesc);
 	}
 
 	@Override
-	default FieldMapping getField(String ownerName, String name, String desc, int namespace) {
-		return (FieldMapping) MappingTreeView.super.getField(ownerName, name, desc, namespace);
+	@Nullable
+	default FieldMapping getField(String clsName, String name, @Nullable String desc, int namespace) {
+		return (FieldMapping) MappingTreeView.super.getField(clsName, name, desc, namespace);
 	}
 
 	@Override
-	default MethodMapping getMethod(String srcOwnerName, String srcName, String srcDesc) {
-		return (MethodMapping) MappingTreeView.super.getMethod(srcOwnerName, srcName, srcDesc);
+	@Nullable
+	default MethodMapping getMethod(String srcClsName, String srcName, @Nullable String srcDesc) {
+		return (MethodMapping) MappingTreeView.super.getMethod(srcClsName, srcName, srcDesc);
 	}
 
 	@Override
-	default MethodMapping getMethod(String ownerName, String name, String desc, int namespace) {
-		return (MethodMapping) MappingTreeView.super.getMethod(ownerName, name, desc, namespace);
+	@Nullable
+	default MethodMapping getMethod(String clsName, String name, @Nullable String desc, int namespace) {
+		return (MethodMapping) MappingTreeView.super.getMethod(clsName, name, desc, namespace);
 	}
 
 	interface MetadataEntry extends MetadataEntryView {
@@ -94,28 +104,34 @@ public interface MappingTree extends MappingTreeView {
 		@Override
 		Collection<? extends FieldMapping> getFields();
 		@Override
-		FieldMapping getField(String srcName, String srcDesc);
+		@Nullable
+		FieldMapping getField(String srcName, @Nullable String srcDesc);
 
 		@Override
-		default FieldMapping getField(String name, String desc, int namespace) {
+		@Nullable
+		default FieldMapping getField(String name, @Nullable String desc, int namespace) {
 			return (FieldMapping) ClassMappingView.super.getField(name, desc, namespace);
 		}
 
 		FieldMapping addField(FieldMapping field);
-		FieldMapping removeField(String srcName, String srcDesc);
+		@Nullable
+		FieldMapping removeField(String srcName, @Nullable String srcDesc);
 
 		@Override
 		Collection<? extends MethodMapping> getMethods();
 		@Override
-		MethodMapping getMethod(String srcName, String srcDesc);
+		@Nullable
+		MethodMapping getMethod(String srcName, @Nullable String srcDesc);
 
 		@Override
-		default MethodMapping getMethod(String name, String desc, int namespace) {
+		@Nullable
+		default MethodMapping getMethod(String name, @Nullable String desc, int namespace) {
 			return (MethodMapping) ClassMappingView.super.getMethod(name, desc, namespace);
 		}
 
 		MethodMapping addMethod(MethodMapping method);
-		MethodMapping removeMethod(String srcName, String srcDesc);
+		@Nullable
+		MethodMapping removeMethod(String srcName, @Nullable String srcDesc);
 	}
 
 	interface MemberMapping extends ElementMapping, MemberMappingView {
@@ -130,16 +146,20 @@ public interface MappingTree extends MappingTreeView {
 		@Override
 		Collection<? extends MethodArgMapping> getArgs();
 		@Override
-		MethodArgMapping getArg(int argPosition, int lvIndex, String srcName);
+		@Nullable
+		MethodArgMapping getArg(int argPosition, int lvIndex, @Nullable String srcName);
 		MethodArgMapping addArg(MethodArgMapping arg);
-		MethodArgMapping removeArg(int argPosition, int lvIndex, String srcName);
+		@Nullable
+		MethodArgMapping removeArg(int argPosition, int lvIndex, @Nullable String srcName);
 
 		@Override
 		Collection<? extends MethodVarMapping> getVars();
 		@Override
-		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
+		@Nullable
+		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 		MethodVarMapping addVar(MethodVarMapping var);
-		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
+		@Nullable
+		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 	}
 
 	interface MethodArgMapping extends ElementMapping, MethodArgMappingView {

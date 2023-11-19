@@ -1,7 +1,7 @@
-v1	source	target
-CLASS	class_1	RenamedClass1
-FIELD	class_1	I	field_1	renamedField
-METHOD	class_1	(F)I	method_1	renamedMethod
-CLASS	class_1$class_2	RenamedClass1$RenamedInnerClass
-FIELD	class_1$class_2	I	field_1	renamedField2
-CLASS	class_3	RenamedClass2
+v1	source	target	target2
+CLASS	class_1	class1Ns0Rename	class1Ns1Rename
+FIELD	class_1	I	field_1	field1Ns0Rename	field1Ns1Rename
+METHOD	class_1	()I	method_1	method1Ns0Rename	method1Ns1Rename
+CLASS	class_1$class_2	class1Ns0Rename$class2Ns0Rename	class1Ns1Rename$class2Ns1Rename
+FIELD	class_1$class_2	I	field_2	field2Ns0Rename	field2Ns1Rename
+CLASS	class_3	class3Ns0Rename	class3Ns1Rename

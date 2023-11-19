@@ -1,0 +1,30 @@
+CLASS class_32
+	FIELD field_1 I
+	FIELD field_2 field2Ns0Rename I
+	FIELD field_3 I
+	FIELD field_4 I
+		COMMENT This is a comment
+	FIELD field_5 field5Ns0Rename I
+		COMMENT This is a comment
+	FIELD field_6 I
+		COMMENT This is a comment
+	METHOD method_1 ()I
+	METHOD method_2 method2Ns0Rename ()I
+	METHOD method_3 ()I
+	METHOD method_4 ()I
+		COMMENT This is a comment
+	METHOD method_5 method5Ns0Rename ()I
+		COMMENT This is a comment
+	METHOD method_6 ()I
+		COMMENT This is a comment
+	METHOD method_7 ()I
+		ARG 5
+		ARG 7
+		ARG 9 param3Ns0Rename
+		ARG 11
+			COMMENT This is a comment
+		ARG 13 param5Ns0Rename
+			COMMENT This is a comment
+		ARG 15
+			COMMENT This is a comment
+	METHOD method_8 ()I

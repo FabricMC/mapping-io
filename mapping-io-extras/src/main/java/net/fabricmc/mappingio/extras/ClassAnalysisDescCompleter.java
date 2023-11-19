@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.tree;
+package net.fabricmc.mappingio.extras;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,15 +32,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Locale;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 
 public final class ClassAnalysisDescCompleter {
 	private ClassAnalysisDescCompleter() {
@@ -142,7 +145,7 @@ public final class ClassAnalysisDescCompleter {
 	}
 
 	private static final class AnalyzingVisitor extends ClassVisitor {
-		AnalyzingVisitor(String namespace, MappingTree mappingTree) {
+		AnalyzingVisitor(@Nullable String namespace, MappingTree mappingTree) {
 			super(Integer.getInteger("mappingIo.asmApiVersion", Opcodes.ASM9));
 
 			this.namespace = namespace != null ? mappingTree.getNamespaceId(namespace) : MappingTreeView.SRC_NAMESPACE_ID;
@@ -157,6 +160,7 @@ public final class ClassAnalysisDescCompleter {
 		}
 
 		@Override
+		@Nullable
 		public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 			if (cls != null) {
 				FieldMapping field = cls.getField(name, descriptor, namespace);
@@ -170,6 +174,7 @@ public final class ClassAnalysisDescCompleter {
 		}
 
 		@Override
+		@Nullable
 		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 			if (cls != null) {
 				MethodMapping method = cls.getMethod(name, descriptor, namespace);

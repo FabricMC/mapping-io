@@ -19,6 +19,8 @@ package net.fabricmc.mappingio;
 import java.io.IOException;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 public class NopMappingVisitor implements MappingVisitor {
 	public NopMappingVisitor(boolean visitSubVisitors) {
 		this.visitSubVisitors = visitSubVisitors;
@@ -44,22 +46,22 @@ public class NopMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		return visitSubVisitors;
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		return visitSubVisitors;
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		return visitSubVisitors;
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		return visitSubVisitors;
 	}
 
