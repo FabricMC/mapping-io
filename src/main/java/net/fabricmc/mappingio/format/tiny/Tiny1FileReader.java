@@ -34,7 +34,7 @@ public final class Tiny1FileReader {
 	}
 
 	public static List<String> getNamespaces(Reader reader) throws IOException {
-		return getNamespaces(new ColumnFileReader(reader, '\t'));
+		return getNamespaces(new ColumnFileReader(reader, '\t', '\t'));
 	}
 
 	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
@@ -53,7 +53,7 @@ public final class Tiny1FileReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
 	}
 
 	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {

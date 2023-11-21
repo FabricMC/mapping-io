@@ -31,7 +31,7 @@ public final class Tiny2FileReader {
 	}
 
 	public static List<String> getNamespaces(Reader reader) throws IOException {
-		return getNamespaces(new ColumnFileReader(reader, '\t'));
+		return getNamespaces(new ColumnFileReader(reader, '\t', '\t'));
 	}
 
 	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
@@ -52,7 +52,7 @@ public final class Tiny2FileReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
 	}
 
 	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
@@ -95,7 +95,7 @@ public final class Tiny2FileReader {
 					} else {
 						String key = reader.nextCol();
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
-						String value = reader.nextEscapedCol(); // may be missing -> null
+						String value = reader.nextCol(true); // may be missing -> null
 
 						if (key.equals(Tiny2Util.escapedNamesProperty)) {
 							escapeNames = true;
@@ -201,7 +201,7 @@ public final class Tiny2FileReader {
 	}
 
 	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
-		String comment = reader.nextEscapedCol();
+		String comment = reader.nextCol(true);
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 
 		visitor.visitComment(subjectKind, comment);
