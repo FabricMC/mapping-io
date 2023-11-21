@@ -137,25 +137,35 @@ public final class Tiny1FileReader {
 						final String prefix = "# INTERMEDIARY-COUNTER ";
 						String[] parts;
 
-						if (line.startsWith(prefix)
-								&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
-							String property = null;
+						if (line.startsWith("# ")) { // metadata
+							if (line.startsWith(prefix.substring(2))
+									&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
+								String property = null;
 
-							switch (parts[0]) {
-							case "class":
-								property = nextIntermediaryClassProperty;
-								break;
-							case "field":
-								property = nextIntermediaryFieldProperty;
-								break;
-							case "method":
-								property = nextIntermediaryMethodProperty;
-								break;
-							}
+								switch (parts[0]) {
+								case "class":
+									property = nextIntermediaryClassProperty;
+									break;
+								case "field":
+									property = nextIntermediaryFieldProperty;
+									break;
+								case "method":
+									property = nextIntermediaryMethodProperty;
+									break;
+								}
 
-							if (property != null) {
-								visitor.visitMetadata(property, parts[1]);
+								if (property != null) {
+									visitor.visitMetadata(property, parts[1]);
+								}
 							}
+						} else if (line.isEmpty()) {
+							throw new IOException("Found indentation without content in line "+reader.getLineNumber());
+						} else if (line.startsWith(" ")) {
+							throw new IOException("Found indentation using spaces in line "+reader.getLineNumber()+", expected tab");
+						} else if (line.startsWith("CLASS")
+									|| line.startsWith("FIELD")
+									|| line.startsWith("METHOD")) {
+							throw new IOException("Found invalid character after element kind declaration in line "+reader.getLineNumber());
 						}
 					}
 				}
@@ -177,6 +187,12 @@ public final class Tiny1FileReader {
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
 
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
+		}
+
+		String col;
+
+		if (!reader.isAtEol() && (col = reader.nextCol()) != null && !col.startsWith("#")) {
+			throw new IOException("Found invalid additional column in line "+reader.getLineNumber());
 		}
 	}
 

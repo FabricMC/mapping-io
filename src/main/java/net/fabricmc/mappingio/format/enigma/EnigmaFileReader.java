@@ -61,6 +61,8 @@ public final class EnigmaFileReader {
 			do {
 				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
 					readClass(reader, 0, null, null, commentSb, finalVisitor);
+				} else {
+					invalidLine(reader, "CLASS");
 				}
 			} while (reader.nextLine(0));
 		}
@@ -89,6 +91,8 @@ public final class EnigmaFileReader {
 		String dstInnerName = reader.nextCol();
 		String dstName = dstInnerName;
 
+		if (dstName != null && dstName.isEmpty()) throw new IOException("empty class-name-b in line "+reader.getLineNumber()); // null is allowed, empty is not
+
 		// merge with outer name if available
 		if (outerDstClass != null
 				|| dstInnerName != null && outerSrcClass != null) {
@@ -98,6 +102,7 @@ public final class EnigmaFileReader {
 			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
 
+		checkEol(reader);
 		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
 	}
 
@@ -136,16 +141,25 @@ public final class EnigmaFileReader {
 					dstName = null;
 					srcDesc = dstNameOrSrcDesc;
 				} else {
+					if (srcDesc.isEmpty()) throw new IOException("missing member-desc-a in line "+reader.getLineNumber());
 					dstName = dstNameOrSrcDesc;
 				}
 
-				if (isMethod && visitor.visitMethod(srcName, srcDesc)) {
-					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-					readMethod(reader, indent, commentSb, visitor);
-				} else if (!isMethod && visitor.visitField(srcName, srcDesc)) {
+				if (isMethod) {
+					if (!srcDesc.startsWith("(")) throw new IOException("invalid method-desc-a in line "+reader.getLineNumber());
+
+					if (visitor.visitMethod(srcName, srcDesc)) {
+						if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+						checkEol(reader);
+						readMethod(reader, indent, commentSb, visitor);
+					}
+				} else if (visitor.visitField(srcName, srcDesc)) {
 					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+					checkEol(reader);
 					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor);
 				}
+			} else {
+				invalidLine(reader, "CLASS, METHOD, FIELD or COMMENT");
 			}
 		}
 
@@ -199,8 +213,12 @@ public final class EnigmaFileReader {
 
 						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor);
 					}
+				} else {
+					invalidLine(reader, "COMMENT or ARG");
 				}
 			}
+
+			checkEol(reader);
 		}
 
 		submitComment(MappedElementKind.METHOD, commentSb, visitor);
@@ -212,7 +230,11 @@ public final class EnigmaFileReader {
 		while (reader.nextLine(indent + kind.level + 1)) {
 			if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
 				readComment(reader, commentSb);
+			} else {
+				invalidLine(reader, "COMMENT");
 			}
+
+			checkEol(reader);
 		}
 
 		submitComment(kind, commentSb, visitor);
@@ -233,5 +255,25 @@ public final class EnigmaFileReader {
 
 		visitor.visitComment(kind, commentSb.toString());
 		commentSb.setLength(0);
+	}
+
+	private static void invalidLine(ColumnFileReader reader, String expected) throws IOException {
+		String line = reader.nextCol();
+
+		if (line != null && line.startsWith(" ")) {
+			throw new IOException("Found indentation using spaces in line "+reader.getLineNumber()+", expected tab");
+		} else if (!reader.isAtBof()) { // empty files are allowed
+			throw new IOException("invalid line "+reader.getLineNumber()+", expected "+expected);
+		}
+	}
+
+	private static void checkEol(ColumnFileReader reader) throws IOException {
+		if (!reader.isAtEol()) {
+			String rest = reader.nextCols(false);
+
+			if (rest != null && !rest.trim().startsWith("# ")) {
+				throw new IOException("line ending expected in line "+reader.getLineNumber()+", found: '"+rest+"'");
+			}
+		}
 	}
 }
