@@ -57,7 +57,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume a column without unescaping.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string (may be empty).
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String nextCol() throws IOException {
@@ -67,8 +67,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume a column, and unescape it if requested.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string.
-	 * Empty if there was no content or eol was encountered while reading.
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String nextCol(boolean unescape) throws IOException {
@@ -79,8 +78,7 @@ public final class ColumnFileReader implements Closeable {
 	 * Read a column without consuming, and unescape if requested.
 	 * Since it doesn't consume, it won't (un)mark bof, eol or eof.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string.
-	 * Empty if there was no content or eol was encountered while reading.
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String peekCol(boolean unescape) throws IOException {
@@ -93,8 +91,7 @@ public final class ColumnFileReader implements Closeable {
 	 * @param stopAtNextCol Whether to only read one column.
 	 * @param expected If not null, the read string must match this exactly, otherwise we early-exit with {@link #noMatch}. Always consumes if matched.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string.
-	 * Empty if there was no content or eol was encountered while reading.
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 * If {@code expected} is not null, it will be returned if matched, otherwise {@link #noMatch}.
 	 */
 	@Nullable
@@ -111,29 +108,37 @@ public final class ColumnFileReader implements Closeable {
 		int start;
 		int end = this.bufferPos;
 		int firstEscaped = -1;
-		int charsRead = 0;
+		int contentCharsRead = 0;
 		int modifiedBufferPos = -1;
+		int startOffset = 0;
+		boolean readAnything = false;
 		boolean filled = true;
 
 		readLoop: for (;;) {
 			while (end < bufferLimit) {
 				char c = buffer[end];
+				boolean isColumnSeparator = (c == columnSeparator);
 
-				if (expected != null) {
-					if ((charsRead < expectedLength && c != expected.charAt(charsRead))
-							|| charsRead > expectedLength) {
+				// skip leading column separator
+				if (isColumnSeparator && !readAnything) {
+					startOffset = 1;
+					contentCharsRead = -1;
+				}
+
+				readAnything = true;
+
+				if (expected != null && contentCharsRead > -1) {
+					if ((contentCharsRead < expectedLength && c != expected.charAt(contentCharsRead))
+							|| contentCharsRead > expectedLength) {
 						return noMatch;
 					}
 				}
 
-				if (c == '\n' || c == '\r' || (stopAtNextCol && c == columnSeparator)) { // stop reading
-					start = bufferPos;
+				if (c == '\n' || c == '\r' || (isColumnSeparator && stopAtNextCol && contentCharsRead > -1)) { // stop reading
+					start = bufferPos + startOffset;
 					modifiedBufferPos = end;
 
-					// seek to the start of the next column
-					if (c == columnSeparator) {
-						modifiedBufferPos++;
-					} else if (consume) {
+					if (!isColumnSeparator && consume) {
 						eol = true;
 					}
 
@@ -142,7 +147,7 @@ public final class ColumnFileReader implements Closeable {
 					firstEscaped = bufferPos;
 				}
 
-				charsRead++;
+				contentCharsRead++;
 				end++;
 			}
 
@@ -173,7 +178,7 @@ public final class ColumnFileReader implements Closeable {
 			int len = end - start;
 
 			if (len == 0) {
-				ret = "";
+				ret = readAnything ? "" : null;
 			} else if (firstEscaped >= 0) {
 				ret = Tiny2Util.unescape(String.valueOf(buffer, start, len));
 			} else {
@@ -182,7 +187,7 @@ public final class ColumnFileReader implements Closeable {
 		}
 
 		if (consume) {
-			if (charsRead > 0) bof = false;
+			if (readAnything) bof = false;
 			if (!filled) eof = eol = true;
 			if (modifiedBufferPos != -1) bufferPos = modifiedBufferPos;
 
@@ -201,8 +206,7 @@ public final class ColumnFileReader implements Closeable {
 	/**
 	 * Read and consume all columns until eol, and unescape if requested.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string.
-	 * Empty if there was no content or eol was encountered while reading.
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String nextCols(boolean unescape) throws IOException {
@@ -213,8 +217,7 @@ public final class ColumnFileReader implements Closeable {
 	 * Read all columns until eol without consuming, and unescape if requested.
 	 * Since it doesn't consume, it won't (un)mark bof, eol or eof.
 	 *
-	 * @return null if already at eol or eof, otherwise the read string.
-	 * Empty if there was no content or eol was encountered while reading.
+	 * @return null if nothing has been read (first char was eol), otherwise the read string (may be empty).
 	 */
 	@Nullable
 	public String peekCols(boolean unescape) throws IOException {
@@ -223,6 +226,8 @@ public final class ColumnFileReader implements Closeable {
 
 	/**
 	 * Read and consume a column and convert it to integer.
+	 *
+	 * @return -1 if nothing has been read (first char was eol), otherwise the number present.
 	 */
 	public int nextIntCol() throws IOException {
 		String str = nextCol(false);
@@ -281,6 +286,13 @@ public final class ColumnFileReader implements Closeable {
 
 	public int getLineNumber() {
 		return lineNumber;
+	}
+
+	/**
+	 * Whether or not EOL has been encountered in the current line yet.
+	 */
+	public boolean isAtEol() {
+		return eol;
 	}
 
 	public boolean isAtBof() {
