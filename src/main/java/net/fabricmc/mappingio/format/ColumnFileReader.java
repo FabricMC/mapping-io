@@ -135,10 +135,10 @@ public final class ColumnFileReader implements Closeable {
 				}
 
 				if (c == '\n' || c == '\r' || (isColumnSeparator && stopAtNextCol && contentCharsRead > -1)) { // stop reading
-					start = bufferPos + startOffset;
+					start = bufferPos;
 					modifiedBufferPos = end;
 
-					if (!isColumnSeparator && consume) {
+					if (!isColumnSeparator && (consume || expected != null)) {
 						eol = true;
 					}
 
@@ -166,13 +166,11 @@ public final class ColumnFileReader implements Closeable {
 			}
 		}
 
-		if (expected != null) {
-			consume = true;
-		}
-
+		start += startOffset;
 		String ret;
 
 		if (expected != null) {
+			consume = true;
 			ret = expected;
 		} else {
 			int len = end - start;
