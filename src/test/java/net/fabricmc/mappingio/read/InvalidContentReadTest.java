@@ -29,6 +29,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 
 public class InvalidContentReadTest {
 	String tinyHeader = "v1	source	target\n";
+	String tiny2Header = "tiny	2	0	source	target\n";
 
 	@Test
 	public void enigmaFile() throws Exception {
@@ -41,6 +42,7 @@ public class InvalidContentReadTest {
 		checkEnigmaLine(MappedElementKind.CLASS);
 		checkEnigmaLine(MappedElementKind.FIELD);
 		checkEnigmaLine(MappedElementKind.METHOD);
+		// TODO: args
 	}
 
 	private void checkEnigmaLine(MappedElementKind kind) throws Exception {
@@ -88,6 +90,7 @@ public class InvalidContentReadTest {
 		checkTinyLine(MappedElementKind.CLASS);
 		checkTinyLine(MappedElementKind.FIELD);
 		checkTinyLine(MappedElementKind.METHOD);
+		// TODO: args, vars
 	}
 
 	private void checkTinyLine(MappedElementKind kind) throws Exception {
@@ -112,6 +115,55 @@ public class InvalidContentReadTest {
 
 			prefix += "	src";
 		}
+
+		checkThrows(prefix, format);
+		checkWorks(prefix + "	", format);
+		checkWorks(prefix + "	dst", format);
+		checkThrows(prefix + "	dst	", format);
+		checkThrows(prefix + "	dst	dst2", format);
+	}
+
+	@Test
+	public void tinyV2File() throws Exception {
+		MappingFormat format = MappingFormat.TINY_2_FILE;
+
+		checkThrows(" ", format);
+		checkWorks(tiny2Header, format);
+		checkThrows(tiny2Header + " ", format);
+		checkThrows(tiny2Header + "	", format);
+
+		checkTiny2Line(MappedElementKind.CLASS);
+		checkTiny2Line(MappedElementKind.FIELD);
+		checkTiny2Line(MappedElementKind.METHOD);
+		// TODO: args, vars
+	}
+
+	private void checkTiny2Line(MappedElementKind kind) throws Exception {
+		MappingFormat format = MappingFormat.TINY_2_FILE;
+		String prefix = tiny2Header;
+
+		if (kind == MappedElementKind.CLASS) {
+			prefix += "c";
+		} else {
+			prefix += "c	src	\n	" + (kind == MappedElementKind.FIELD ? "f" : "m");
+		}
+
+		// No source/target
+		checkThrows(prefix, format);
+
+		// Spaces for separation
+		checkThrows(prefix + " ", format);
+		checkThrows(prefix + " src", format);
+
+		// Tabs for separation
+		if (kind != MappedElementKind.CLASS) {
+			checkThrows(prefix, format);
+
+			prefix += kind == MappedElementKind.FIELD ? "	I" : "	()V";
+			checkThrows(prefix, format);
+		}
+
+		prefix += "	src";
 
 		checkThrows(prefix, format);
 		checkWorks(prefix + "	", format);

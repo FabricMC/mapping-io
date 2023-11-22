@@ -115,6 +115,8 @@ public final class Tiny2FileReader {
 						if (visitor.visitClass(srcName)) {
 							readClass(reader, dstNsCount, escapeNames, visitor);
 						}
+					} else {
+						unrecognizedLine(reader);
 					}
 				}
 			}
@@ -151,6 +153,8 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, MappedElementKind.CLASS, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
@@ -185,6 +189,8 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, MappedElementKind.METHOD, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
@@ -196,6 +202,8 @@ public final class Tiny2FileReader {
 		while (reader.nextLine(kind.level + 1)) {
 			if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, kind, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
@@ -213,6 +221,20 @@ public final class Tiny2FileReader {
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
 
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
+		}
+
+		String col;
+
+		if (!reader.isAtEol() && (col = reader.nextCol()) != null && !col.startsWith("#")) {
+			throw new IOException("Found invalid additional column in line "+reader.getLineNumber());
+		}
+	}
+
+	private static void unrecognizedLine(ColumnFileReader reader) throws IOException {
+		String col = reader.peekCol(false);
+
+		if (col != null && (col.startsWith(" ") || col.substring(1).startsWith(" "))) {
+			throw new IOException("Found indentation using spaces in line "+reader.getLineNumber()+", expected tab");
 		}
 	}
 }
