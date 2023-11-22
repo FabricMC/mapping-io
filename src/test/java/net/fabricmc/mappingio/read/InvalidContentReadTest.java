@@ -105,18 +105,22 @@ public class InvalidContentReadTest {
 		checkThrows(prefix + " src", format);
 
 		// Tabs for separation
-		prefix += "	src";
+		prefix += "	";
+		checkThrows(prefix, format);
+		prefix += "src";
+		checkThrows(prefix, format);
 
 		if (kind != MappedElementKind.CLASS) {
+			prefix += "	";
 			checkThrows(prefix, format);
 
-			prefix += kind == MappedElementKind.FIELD ? "	I" : "	()V";
+			prefix += kind == MappedElementKind.FIELD ? "I" : "()V";
 			checkThrows(prefix, format);
 
 			prefix += "	src";
+			checkThrows(prefix, format);
 		}
 
-		checkThrows(prefix, format);
 		checkWorks(prefix + "	", format);
 		checkWorks(prefix + "	dst", format);
 		checkThrows(prefix + "	dst	", format);
@@ -158,18 +162,105 @@ public class InvalidContentReadTest {
 		// Tabs for separation
 		if (kind != MappedElementKind.CLASS) {
 			checkThrows(prefix, format);
+			prefix += "	";
+			checkThrows(prefix, format);
 
-			prefix += kind == MappedElementKind.FIELD ? "	I" : "	()V";
+			prefix += kind == MappedElementKind.FIELD ? "I" : "()V";
 			checkThrows(prefix, format);
 		}
 
-		prefix += "	src";
+		prefix += "	";
+		checkThrows(prefix, format);
+		prefix += "src";
 
 		checkThrows(prefix, format);
 		checkWorks(prefix + "	", format);
 		checkWorks(prefix + "	dst", format);
 		checkThrows(prefix + "	dst	", format);
 		checkThrows(prefix + "	dst	dst2", format);
+	}
+
+	@Test
+	public void srgFile() throws Exception {
+		MappingFormat format = MappingFormat.SRG_FILE;
+
+		checkThrows(" ", format);
+		checkThrows("	", format);
+
+		// TODO: packages
+		checkSrgLine(MappedElementKind.CLASS, format);
+		checkSrgLine(MappedElementKind.FIELD, format);
+		checkSrgLine(MappedElementKind.METHOD, format);
+	}
+
+	@Test
+	public void xsrgFile() throws Exception {
+		MappingFormat format = MappingFormat.XSRG_FILE;
+
+		checkThrows(" ", format);
+		checkThrows("	", format);
+
+		// TODO: packages
+		checkSrgLine(MappedElementKind.CLASS, format);
+		checkSrgLine(MappedElementKind.FIELD, format);
+		checkSrgLine(MappedElementKind.METHOD, format);
+	}
+
+	private void checkSrgLine(MappedElementKind kind, MappingFormat format) throws Exception {
+		String prefix;
+
+		if (kind == MappedElementKind.CLASS) {
+			prefix = "CL:";
+		} else {
+			prefix = (kind == MappedElementKind.FIELD ? "FD:" : "MD:");
+		}
+
+		// No source/target
+		checkThrows(prefix, format);
+
+		// Tabs for separation
+		checkThrows(prefix + "	", format);
+		checkThrows(prefix + "	src", format);
+		checkThrows(prefix + "	src	dst", format);
+
+		// Spaces for separation
+		prefix += " ";
+		checkThrows(prefix, format);
+		prefix += "src";
+		checkThrows(prefix, format);
+		String suffix = "";
+
+		if (kind != MappedElementKind.CLASS) {
+			prefix += "/";
+			checkThrows(prefix, format);
+
+			prefix += "src";
+			checkThrows(prefix, format);
+
+			if (kind == MappedElementKind.METHOD || format == MappingFormat.XSRG_FILE) {
+				prefix += " ";
+				checkThrows(prefix, format);
+
+				prefix += kind == MappedElementKind.FIELD ? "I" : "()V";
+				checkThrows(prefix, format);
+			}
+
+			prefix += " dst/";
+			checkThrows(prefix, format);
+
+			if (kind == MappedElementKind.METHOD) {
+				suffix += " ()V";
+			} else if (format == MappingFormat.XSRG_FILE) {
+				suffix += " I";
+			}
+		} else {
+			prefix += " ";
+		}
+
+		checkThrows(prefix + "" + suffix, format);
+		checkWorks(prefix + "dst" + suffix, format);
+		checkThrows(prefix + "dst" + suffix + " ", format);
+		checkThrows(prefix + "dst" + suffix + " dst2", format);
 	}
 
 	private void check(String fileContent, MappingFormat format, boolean shouldThrow) throws Exception {

@@ -97,7 +97,15 @@ public final class SrgFileReader {
 							cols[i] = reader.nextCol();
 						}
 
-						if (!isMethod && cols[1] != null && cols[2] != null) format = MappingFormat.XSRG_FILE;
+						if (!isMethod) {
+							if (cols[1] != null && cols[2] != null) {
+								format = MappingFormat.XSRG_FILE;
+							} else if (cols[1] != null || cols[2] != null) {
+								String line = cols[1] == null ? cols[2] : (cols[2] == null ? cols[1] : cols[1] + cols[2]);
+								throw new IOException("unexpected content at line ending in line "+reader.getLineNumber()+": '"+line+"'");
+							}
+						}
+
 						String srcDesc;
 						String dstName;
 						String dstDesc;
@@ -142,6 +150,16 @@ public final class SrgFileReader {
 								visitor.visitElementContent(kind);
 							}
 						}
+					} else {
+						invalidLine(reader, "'CL:', 'MD:' or 'FD:'");
+					}
+
+					if (!reader.isAtEol()) {
+						String rest = reader.nextCols(false);
+
+						if (rest != null && !rest.trim().startsWith("# ")) {
+							throw new IOException("line ending expected in line "+reader.getLineNumber()+", found: '"+rest+"'");
+						}
 					}
 				} while (reader.nextLine(0));
 			}
@@ -153,6 +171,16 @@ public final class SrgFileReader {
 
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
+		}
+	}
+
+	private static void invalidLine(ColumnFileReader reader, String expected) throws IOException {
+		String line = reader.nextCol(false);
+
+		if (line != null && line.startsWith(" ")) {
+			throw new IOException("Found indentation using spaces in line "+reader.getLineNumber()+", expected tab");
+		} else if (!reader.isAtBof()) { // empty files are allowed
+			throw new IOException("invalid line "+reader.getLineNumber()+", expected "+expected);
 		}
 	}
 }
