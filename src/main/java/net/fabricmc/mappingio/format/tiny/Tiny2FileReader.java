@@ -31,7 +31,7 @@ public final class Tiny2FileReader {
 	}
 
 	public static List<String> getNamespaces(Reader reader) throws IOException {
-		return getNamespaces(new ColumnFileReader(reader, '\t'));
+		return getNamespaces(new ColumnFileReader(reader, '\t', '\t'));
 	}
 
 	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
@@ -52,7 +52,7 @@ public final class Tiny2FileReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
 	}
 
 	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
@@ -95,7 +95,7 @@ public final class Tiny2FileReader {
 					} else {
 						String key = reader.nextCol();
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
-						String value = reader.nextEscapedCol(); // may be missing -> null
+						String value = reader.nextCol(true); // may be missing -> null
 
 						if (key.equals(Tiny2Util.escapedNamesProperty)) {
 							escapeNames = true;
@@ -115,6 +115,8 @@ public final class Tiny2FileReader {
 						if (visitor.visitClass(srcName)) {
 							readClass(reader, dstNsCount, escapeNames, visitor);
 						}
+					} else {
+						unrecognizedLine(reader);
 					}
 				}
 			}
@@ -151,6 +153,8 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, MappedElementKind.CLASS, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
@@ -185,6 +189,8 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, MappedElementKind.METHOD, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
@@ -196,12 +202,14 @@ public final class Tiny2FileReader {
 		while (reader.nextLine(kind.level + 1)) {
 			if (reader.nextCol("c")) { // comment: c <comment>
 				readComment(reader, kind, visitor);
+			} else {
+				unrecognizedLine(reader);
 			}
 		}
 	}
 
 	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
-		String comment = reader.nextEscapedCol();
+		String comment = reader.nextCol(true);
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 
 		visitor.visitComment(subjectKind, comment);
@@ -213,6 +221,20 @@ public final class Tiny2FileReader {
 			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
 
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
+		}
+
+		String col;
+
+		if (!reader.isAtEol() && (col = reader.nextCol()) != null && !col.startsWith("#")) {
+			throw new IOException("Found invalid additional column in line "+reader.getLineNumber());
+		}
+	}
+
+	private static void unrecognizedLine(ColumnFileReader reader) throws IOException {
+		String col = reader.peekCol(false);
+
+		if (col != null && (col.startsWith(" ") || col.substring(1).startsWith(" "))) {
+			throw new IOException("Found indentation using spaces in line "+reader.getLineNumber()+", expected tab");
 		}
 	}
 }
