@@ -58,13 +58,13 @@ CLASS class_32
 	METHOD method_6 ()I
 		COMMENT This is a comment
 	METHOD method_7 ()I
-		ARG 5
+		ARG 1
+		ARG 3
+		ARG 5 param3Ns0Rename
 		ARG 7
-		ARG 9 param3Ns0Rename
+			COMMENT This is a comment
+		ARG 9 param5Ns0Rename
+			COMMENT This is a comment
 		ARG 11
-			COMMENT This is a comment
-		ARG 13 param5Ns0Rename
-			COMMENT This is a comment
-		ARG 15
 			COMMENT This is a comment
 	METHOD method_8 ()I
