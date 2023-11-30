@@ -131,10 +131,10 @@ public final class EnigmaFileReader {
 				if (state < 0) continue;
 
 				String srcName = reader.nextCol();
-				if (srcName == null || srcName.isEmpty()) throw new IOException("missing field-name-a in line "+reader.getLineNumber());
+				if (srcName == null || srcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
 
 				String dstNameOrSrcDesc = reader.nextCol();
-				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing field-desc-b in line "+reader.getLineNumber());
+				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing member-name-b/member-desc-a in line "+reader.getLineNumber());
 
 				String srcDesc = reader.nextCol();
 				String dstName;
