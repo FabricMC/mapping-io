@@ -102,6 +102,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
+ *   <tr>
+ *     <td>Recaf Simple</td>
+ *     <td>-</td>
+ *     <td>src & dst</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
  * </table>
  */
 // Format order is determined by importance to Fabric tooling, format family and release order therein.
