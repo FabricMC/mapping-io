@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Improved documentation
+- Fixed NPE in `MemoryMappingTree`
+- Fixed TSRG2 reader not handling multiple passes correctly
 
 ## [0.5.0] - 2023-11-15
 - Actually marked `HierarchyInfoProvider` as experimental

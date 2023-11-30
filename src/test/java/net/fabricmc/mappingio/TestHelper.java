@@ -204,7 +204,7 @@ public final class TestHelper {
 	}
 
 	private static void visitMethodArg(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodArg(counter.getAndIncrement(), counter.getAndIncrement(), nameGen.src(argKind));
+		tree.visitMethodArg(nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(argKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(argKind, ns, nameGen.dst(argKind, ns));
@@ -212,7 +212,8 @@ public final class TestHelper {
 	}
 
 	private static void visitMethodVar(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodVar(counter.get(), counter.get(), counter.getAndIncrement(), counter.getAndIncrement(), nameGen.src(varKind));
+		tree.visitMethodVar(nameGen.getCounter().get(), nameGen.getCounter().get(),
+				nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(varKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(varKind, ns, nameGen.dst(varKind, ns));
@@ -233,6 +234,7 @@ public final class TestHelper {
 			argNum.get().set(0);
 			varNum.get().set(0);
 			nsNum.get().set(0);
+			counter.get().set(0);
 		}
 
 		private void resetNsNum() {
@@ -300,6 +302,10 @@ public final class TestHelper {
 			return sb.toString();
 		}
 
+		public AtomicInteger getCounter() {
+			return counter.get();
+		}
+
 		private AtomicInteger getCounter(MappedElementKind kind) {
 			switch (kind) {
 			case CLASS:
@@ -348,9 +354,17 @@ public final class TestHelper {
 		private ThreadLocal<AtomicInteger> argNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> varNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> nsNum = ThreadLocal.withInitial(() -> new AtomicInteger());
+		private ThreadLocal<AtomicInteger> counter = ThreadLocal.withInitial(() -> new AtomicInteger());
 	}
 
 	public static class MappingDirs {
+		@Nullable
+		public static MemoryMappingTree getCorrespondingTree(Path dir) {
+			if (dir.equals(VALID)) return createTestTree();
+			if (dir.equals(VALID_WITH_HOLES)) return createTestTreeWithHoles();
+			return null;
+		}
+
 		public static final Path DETECTION = getResource("/detection/");
 		public static final Path VALID = getResource("/read/valid/");
 		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
@@ -360,7 +374,6 @@ public final class TestHelper {
 	private static final String mthDesc = "()I";
 	private static final String comment = "This is a comment";
 	private static final NameGen nameGen = new NameGen();
-	private static final AtomicInteger counter = new AtomicInteger();
 	private static final MappedElementKind clsKind = MappedElementKind.CLASS;
 	private static final MappedElementKind fldKind = MappedElementKind.FIELD;
 	private static final MappedElementKind mthKind = MappedElementKind.METHOD;

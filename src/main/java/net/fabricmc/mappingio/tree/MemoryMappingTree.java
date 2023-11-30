@@ -712,6 +712,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
 		protected Entry(MemoryMappingTree tree, String srcName) {
+			this.tree = tree;
 			this.srcName = srcName;
 			this.dstNames = new String[tree.dstNamespaces.size()];
 		}
@@ -817,6 +818,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			// TODO: copy args+vars
 		}
 
+		protected final MemoryMappingTree tree;
 		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;
@@ -825,14 +827,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	static final class ClassEntry extends Entry<ClassEntry> implements ClassMapping {
 		ClassEntry(MemoryMappingTree tree, String srcName) {
 			super(tree, srcName);
-
-			this.tree = tree;
 		}
 
 		ClassEntry(MemoryMappingTree tree, ClassMapping src, int srcNsEquivalent) {
 			super(tree, src, srcNsEquivalent);
-
-			this.tree = tree;
 
 			for (FieldMapping field : src.getFields()) {
 				addField(field);
@@ -1128,7 +1126,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		private static final byte FLAG_HAS_ANY_METHOD_DESC = 4;
 		private static final byte FLAG_MISSES_ANY_METHOD_DESC = 8;
 
-		protected final MemoryMappingTree tree;
 		private Map<MemberKey, FieldEntry> fields = null;
 		private Map<MemberKey, MethodEntry> methods = null;
 		private byte flags;
