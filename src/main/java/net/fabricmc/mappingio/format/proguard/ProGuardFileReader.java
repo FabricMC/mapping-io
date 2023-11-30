@@ -27,7 +27,14 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#PROGUARD_FILE ProGuard file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class ProGuardFileReader {
 	private ProGuardFileReader() {
 	}

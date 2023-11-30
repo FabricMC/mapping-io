@@ -18,5 +18,8 @@ package net.fabricmc.mappingio.tree;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * {@link MappingTree} that can be visited.
+ */
 public interface VisitableMappingTree extends MappingTree, MappingVisitor {
 }

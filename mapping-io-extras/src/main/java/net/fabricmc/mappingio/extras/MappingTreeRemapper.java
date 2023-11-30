@@ -23,7 +23,7 @@ import org.objectweb.asm.commons.Remapper;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 
 /**
- * An ASM remapper that remaps between two namespaces in a {@link MappingTreeView}.
+ * An ASM {@link Remapper} that remaps between two namespaces in a {@link MappingTreeView}.
  */
 public final class MappingTreeRemapper extends Remapper {
 	private final MappingTreeView tree;
@@ -33,9 +33,9 @@ public final class MappingTreeRemapper extends Remapper {
 	/**
 	 * Constructs a {@code MappingTreeRemapper}.
 	 *
-	 * @param tree the mapping tree view
-	 * @param from the input namespace, must be in the tree
-	 * @param to   the output namespace, must be in the tree
+	 * @param tree The mapping tree view.
+	 * @param from The input namespace, must be in the tree.
+	 * @param to The output namespace, must be in the tree.
 	 */
 	public MappingTreeRemapper(MappingTreeView tree, String from, String to) {
 		Objects.requireNonNull(tree, "Mapping tree cannot be null");
