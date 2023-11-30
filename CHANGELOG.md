@@ -4,8 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Fixed Enigma reader throwing incorrect error message
 - Improved documentation
+- Fixed NPE in `MemoryMappingTree`
+- Fixed TSRG2 reader not handling multiple passes correctly
+- Fixed ProGuard writer producing invalid files when missing destination names are present
+- Fixed Enigma reader throwing incorrect error message
 - Fixed NPE in `MemoryMappingTree`
 - Fixed TSRG2 reader not handling multiple passes correctly
 
