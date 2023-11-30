@@ -26,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 
+/**
+ * Reader for column-based files.
+ */
 @ApiStatus.Internal
 public final class ColumnFileReader implements Closeable {
 	public ColumnFileReader(Reader reader, char columnSeparator) {
@@ -43,9 +46,8 @@ public final class ColumnFileReader implements Closeable {
 	 *
 	 * <p>The reader will point to the next column or end of line if successful, otherwise remains unchanged.
 	 *
-	 * @param expect content to expect
-	 * @return true if the column was read and had the expected content, false otherwise
-	 * @throws IOException
+	 * @param expect Content to expect.
+	 * @return {@code true} if the column was read and had the expected content, false otherwise.
 	 */
 	public boolean nextCol(String expect) throws IOException {
 		if (eol) return false;

@@ -25,6 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.StandardProperty;
 
+/**
+ * Read-only mapping tree.
+ */
 public interface MappingTreeView {
 	/**
 	 * @return The source namespace, or {@code null} if the tree is uninitialized.
@@ -39,14 +42,14 @@ public interface MappingTreeView {
 	List<String> getDstNamespaces();
 
 	/**
-	 * Get the maximum available namespace ID (exclusive).
+	 * @return The maximum available namespace ID (exclusive).
 	 */
 	default int getMaxNamespaceId() {
 		return getDstNamespaces().size();
 	}
 
 	/**
-	 * Get the minimum available namespace ID (inclusive).
+	 * @return The minimum available namespace ID (inclusive).
 	 */
 	default int getMinNamespaceId() {
 		return MIN_NAMESPACE_ID;

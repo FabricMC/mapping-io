@@ -29,6 +29,12 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.StandardProperties;
 import net.fabricmc.mappingio.format.StandardProperty;
 
+/**
+ * {@linkplain MappingFormat#TINY_2 Tiny v2 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class Tiny2FileReader {
 	private Tiny2FileReader() {
 	}

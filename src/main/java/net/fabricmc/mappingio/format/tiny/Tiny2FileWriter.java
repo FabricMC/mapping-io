@@ -32,6 +32,9 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.StandardProperties;
 import net.fabricmc.mappingio.format.StandardProperty;
 
+/**
+ * {@linkplain MappingFormat#TINY_2 Tiny v2 file} writer.
+ */
 public final class Tiny2FileWriter implements MappingWriter {
 	public Tiny2FileWriter(Writer writer, boolean escapeNames) {
 		this.writer = writer;

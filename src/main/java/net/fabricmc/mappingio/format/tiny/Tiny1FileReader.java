@@ -32,6 +32,12 @@ import net.fabricmc.mappingio.format.StandardProperty;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#TINY_1 Tiny v1 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class Tiny1FileReader {
 	private Tiny1FileReader() {
 	}

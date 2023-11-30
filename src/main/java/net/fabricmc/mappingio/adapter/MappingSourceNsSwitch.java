@@ -52,9 +52,9 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	/**
 	 * Create a new MappingSourceNsSwitch instance.
 	 *
-	 * @param next MappingVisitor to pass the output to
-	 * @param newSourceNs namespace to use for the new source name
-	 * @param dropMissingNewSrcName whether to drop elements without a name in newSourceNs, will use original srcName otherwise
+	 * @param next MappingVisitor to pass the output to.
+	 * @param newSourceNs Namespace to use for the new source name.
+	 * @param dropMissingNewSrcName Whether to drop elements without a name in newSourceNs, will use original srcName otherwise.
 	 */
 	public MappingSourceNsSwitch(MappingVisitor next, String newSourceNs, boolean dropMissingNewSrcName) {
 		super(next);
