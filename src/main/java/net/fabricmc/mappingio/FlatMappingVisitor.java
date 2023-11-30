@@ -28,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.RegularAsFlatMappingVisitor;
 
+/**
+ * A mapping visitor that provides the entire data for a given element within a single visit call.
+ */
 public interface FlatMappingVisitor {
 	default Set<MappingFlag> getFlags() {
 		return MappingFlag.NONE;
@@ -40,7 +43,7 @@ public interface FlatMappingVisitor {
 	/**
 	 * Determine whether the header (namespaces, metadata if part of the header) should be visited.
 	 *
-	 * @return true if the header is to be visited, false otherwise
+	 * @return {@code true} if the header is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitHeader() throws IOException {
 		return true;
@@ -53,7 +56,7 @@ public interface FlatMappingVisitor {
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
 	 *
-	 * @return true if content is to be visited, false otherwise
+	 * @return {@code true} if content is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitContent() throws IOException {
 		return true;
@@ -96,7 +99,8 @@ public interface FlatMappingVisitor {
 
 	/**
 	 * Finish the visitation pass.
-	 * @return true if the visitation pass is final, false if it should be started over
+	 *
+	 * @return {@code true} if the visitation pass is final, {@code false} if it should be started over.
 	 */
 	default boolean visitEnd() throws IOException {
 		return true;

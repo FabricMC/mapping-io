@@ -26,14 +26,10 @@ import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * A mapping writer for the ProGuard mapping format.
- * Note that this format is very basic: it only supports
- * one namespace pair and only classes, methods and fields
- * without comments.
- *
- * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
+ * {@linkplain MappingFormat#PROGUARD_FILE ProGuard file} writer.
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
@@ -44,7 +40,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 	 * Constructs a ProGuard mapping writer that uses
 	 * the first destination namespace (index 0).
 	 *
-	 * @param writer the writer where the mappings will be written
+	 * @param writer The writer where the mappings will be written.
 	 */
 	public ProGuardFileWriter(Writer writer) {
 		this(writer, 0);
@@ -53,8 +49,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer       the writer where the mappings will be written
-	 * @param dstNamespace the namespace index to write as the destination namespace, must be at least 0
+	 * @param writer The writer where the mappings will be written.
+	 * @param dstNamespace The namespace index to write as the destination namespace, must be at least 0.
 	 */
 	public ProGuardFileWriter(Writer writer, int dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
@@ -69,8 +65,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer       the writer where the mappings will be written
-	 * @param dstNamespace the namespace name to write as the destination namespace
+	 * @param writer The writer where the mappings will be written.
+	 * @param dstNamespace The namespace name to write as the destination namespace.
 	 */
 	public ProGuardFileWriter(Writer writer, String dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
@@ -79,8 +75,6 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	/**
 	 * Closes the internal {@link Writer}.
-	 *
-	 * @throws IOException if an IO error occurs
 	 */
 	@Override
 	public void close() throws IOException {

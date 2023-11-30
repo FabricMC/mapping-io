@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+/**
+ * Flags a {@link MappingVisitor} may provide to inform the caller about certain requirements.
+ */
 public enum MappingFlag {
 	/**
 	 * Indication that the visitor may require multiple passes.
