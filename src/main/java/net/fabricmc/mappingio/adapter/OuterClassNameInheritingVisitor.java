@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
@@ -61,11 +63,13 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		dstNsCount = dstNamespaces.size();
 
 		if (pass == collectClassesPass) {
 			visitedDstName = new boolean[dstNsCount];
+			dstNameBySrcNameByNamespace = new HashMap[dstNsCount];
 		} else if (pass >= firstEmitPass) {
 			super.visitNamespaces(srcNamespace, dstNamespaces);
 		}
@@ -90,7 +94,7 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 		this.srcName = srcName;
 
 		if (pass == collectClassesPass) {
-			dstNameBySrcName.putIfAbsent(srcName, new String[dstNsCount]);
+			dstNamesBySrcName.putIfAbsent(srcName, new String[dstNsCount]);
 		} else if (pass >= firstEmitPass) {
 			super.visitClass(srcName);
 		}
@@ -103,11 +107,11 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 		if (pass == collectClassesPass) {
 			if (targetKind != MappedElementKind.CLASS) return;
 
-			dstNameBySrcName.get(srcName)[namespace] = name;
+			dstNamesBySrcName.get(srcName)[namespace] = name;
 		} else if (pass >= firstEmitPass) {
 			if (targetKind == MappedElementKind.CLASS) {
 				visitedDstName[namespace] = true;
-				name = dstNameBySrcName.get(srcName)[namespace];
+				name = dstNamesBySrcName.get(srcName)[namespace];
 			}
 
 			super.visitDstName(targetKind, namespace, name);
@@ -118,14 +122,26 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		if (pass < firstEmitPass) return;
 
-		// TODO: Remap type descriptors of changed classes
+		if (modifiedClasses.contains(srcName)) {
+			Map<String, String> nsDstNameBySrcName = dstNameBySrcNameByNamespace[namespace];
+
+			if (nsDstNameBySrcName == null) {
+				dstNameBySrcNameByNamespace[namespace] = nsDstNameBySrcName = dstNamesBySrcName.entrySet()
+						.stream()
+						.filter(entry -> entry.getValue()[namespace] != null)
+						.collect(HashMap::new, (map, entry) -> map.put(entry.getKey(), entry.getValue()[namespace]), HashMap::putAll);
+			}
+
+			desc = MappingUtil.mapDesc(desc, nsDstNameBySrcName);
+		}
+
 		super.visitDstDesc(targetKind, namespace, desc);
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		if (targetKind == MappedElementKind.CLASS && pass > collectClassesPass) {
-			String[] dstNames = dstNameBySrcName.get(srcName);
+			String[] dstNames = dstNamesBySrcName.get(srcName);
 
 			for (int ns = 0; ns < dstNames.length; ns++) {
 				String dstName = dstNames[ns];
@@ -137,12 +153,13 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 
 					for (int pos = parts.length - 2; pos >= 0; pos--) {
 						String outerSrcName = String.join("$", Arrays.copyOfRange(parts, 0, pos + 1));
-						String outerDstName = dstNameBySrcName.get(outerSrcName)[ns];
+						String outerDstName = dstNamesBySrcName.get(outerSrcName)[ns];
 
 						if (outerDstName != null) {
 							dstName = outerDstName + "$" + String.join("$", Arrays.copyOfRange(parts, pos + 1, parts.length));
 
 							dstNames[ns] = dstName;
+							modifiedClasses.add(srcName);
 							break;
 						}
 					}
@@ -171,16 +188,16 @@ public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 		}
 
 		return super.visitEnd();
-
 	}
 
 	private static final int collectClassesPass = 1;
 	private static final int fixOuterClassesPass = 2;
 	private static final int firstEmitPass = 3;
-	private final boolean nextNeedsMultiplePasses = next.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES);
-	private final Map<String, String[]> dstNameBySrcName = new HashMap<>();
+	private final Map<String, String[]> dstNamesBySrcName = new HashMap<>();
+	private final Set<String> modifiedClasses = new HashSet<>();
 	private int pass = 1;
 	private int dstNsCount = -1;
 	private String srcName;
 	private boolean[] visitedDstName;
+	private Map<String, String>[] dstNameBySrcNameByNamespace;
 }
