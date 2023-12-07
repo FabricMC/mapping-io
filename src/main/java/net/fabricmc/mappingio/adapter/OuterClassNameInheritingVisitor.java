@@ -34,12 +34,12 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
- * Searches for inner classes with no mapped name, whose enclosing classes have mapped names,
- * and applies the latter to the outer part of the former's fully qualified name.
+ * Searches for inner classes with no mapped name, whose enclosing classes do have mapped names,
+ * and applies those to the outer part of the inner classes' fully qualified name.
  *
- * <p>E.g it takes a class {@code class_123$class_124} that doesn't have a mapping,
- * tries to find {@code class_123}, which let's say has the mapping
- * {@code someClass}, and changes the former's name to {@code someClass$class124}.
+ * <p>For example, it takes a class {@code class_1$class_2} that doesn't have a mapping,
+ * tries to find {@code class_1}, which let's say has the mapping {@code SomeClass},
+ * and changes the former's destination name to {@code SomeClass$class_2}.
  */
 public class OuterClassNameInheritingVisitor extends ForwardingMappingVisitor {
 	protected OuterClassNameInheritingVisitor(MappingVisitor next) {
