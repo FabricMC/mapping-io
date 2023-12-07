@@ -166,6 +166,11 @@ public final class JamFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		// not supported, skip
+	}
+
+	@Override
 	public boolean visitEnd() throws IOException {
 		if (classOnlyPass) {
 			classOnlyPass = false;
@@ -174,11 +179,6 @@ public final class JamFileWriter implements MappingWriter {
 
 		classOnlyPass = true;
 		return MappingWriter.super.visitEnd();
-	}
-
-	@Override
-	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// not supported, skip
 	}
 
 	private void write(String str) throws IOException {
