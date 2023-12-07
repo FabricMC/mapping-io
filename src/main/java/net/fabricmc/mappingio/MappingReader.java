@@ -32,6 +32,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.srg.JamFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
 import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -85,6 +86,8 @@ public final class MappingReader {
 		case "MD:":
 		case "FD:":
 			return detectSrgOrXsrg(br);
+		case "CL ":
+			return MappingFormat.JAM_FILE;
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -260,6 +263,9 @@ public final class MappingReader {
 		case SRG_FILE:
 		case XSRG_FILE:
 			SrgFileReader.read(reader, visitor);
+			break;
+		case JAM_FILE:
+			JamFileReader.read(reader, visitor);
 			break;
 		case CSRG_FILE:
 		case TSRG_FILE:

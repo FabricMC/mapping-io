@@ -82,6 +82,13 @@ public class ValidContentReadTest {
 	}
 
 	@Test
+	public void jamFile() throws Exception {
+		MappingFormat format = MappingFormat.JAM_FILE;
+		checkDefault(format);
+		checkHoles(format);
+	}
+
+	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
 		checkDefault(format);

@@ -74,6 +74,11 @@ public class WriteTest {
 	}
 
 	@Test
+	public void jamFile() throws Exception {
+		check(MappingFormat.JAM_FILE);
+	}
+
+	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
 	}
