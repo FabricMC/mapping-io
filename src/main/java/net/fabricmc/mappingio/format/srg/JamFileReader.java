@@ -91,7 +91,7 @@ public final class JamFileReader {
 							}
 						}
 					} else if ((isMethod = reader.nextCol("MD")) || reader.nextCol("FD") // method/field: MD/FD <cls-a> <name-a> <desc-a> <name-b>
-							|| (isArg = reader.nextCol("MP"))) { // parameter: MP <cls-a> <name-a> <desc-a> <cls-b> <name-b>
+							|| (isArg = reader.nextCol("MP"))) { // parameter: MP <cls-a> <mth-name-a> <mth-desc-a> <arg-pos> [<arg-desc-a>] <name-b>
 						String clsSrcClsName = reader.nextCol();
 						if (clsSrcClsName == null) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
