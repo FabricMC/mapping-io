@@ -124,7 +124,7 @@ public final class JamFileWriter implements MappingWriter {
 				|| (field = targetKind == MappedElementKind.FIELD)
 				|| (arg = targetKind == MappedElementKind.METHOD_ARG)) {
 			if (classOnlyPass || memberSrcDesc == null || memberDstName == null) {
-				return true;
+				return !field && !arg;
 			}
 
 			if (field) {
