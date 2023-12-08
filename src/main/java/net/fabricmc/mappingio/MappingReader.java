@@ -83,10 +83,13 @@ public final class MappingReader {
 			return MappingFormat.ENIGMA_FILE;
 		case "PK:":
 		case "CL:":
-		case "MD:":
 		case "FD:":
+		case "MD:":
 			return detectSrgOrXsrg(br);
 		case "CL ":
+		case "FD ":
+		case "MD ":
+		case "MP ":
 			return MappingFormat.JAM_FILE;
 		}
 
