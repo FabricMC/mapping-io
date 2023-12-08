@@ -111,26 +111,27 @@ public final class JamFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		boolean field = false;
-		boolean arg = false;
+		boolean isClass = targetKind == MappedElementKind.CLASS;
+		boolean isMethod = false;
+		boolean isArg = false;
 
-		if (targetKind == MappedElementKind.CLASS) {
+		if (isClass) {
 			if (!classOnlyPass || classDstName == null) {
 				return true;
 			}
 
 			write("CL ");
-		} else if (targetKind == MappedElementKind.METHOD
-				|| (field = targetKind == MappedElementKind.FIELD)
-				|| (arg = targetKind == MappedElementKind.METHOD_ARG)) {
+		} else if (targetKind == MappedElementKind.FIELD
+				|| (isMethod = targetKind == MappedElementKind.METHOD)
+				|| (isArg = targetKind == MappedElementKind.METHOD_ARG)) {
 			if (classOnlyPass || memberSrcDesc == null || memberDstName == null) {
-				return !field && !arg;
+				return isMethod;
 			}
 
-			if (field) {
-				write("FD ");
-			} else if (!arg) {
+			if (isMethod) {
 				write("MD ");
+			} else if (!isArg) {
+				write("FD ");
 			} else {
 				if (argSrcPosition == -1 || argDstName == null) return false;
 				write("MP ");
@@ -142,7 +143,7 @@ public final class JamFileWriter implements MappingWriter {
 		write(classSrcName);
 		writeSpace();
 
-		if (targetKind == MappedElementKind.CLASS) {
+		if (isClass) {
 			write(classDstName);
 		} else {
 			write(memberSrcName);
@@ -151,7 +152,7 @@ public final class JamFileWriter implements MappingWriter {
 			write(memberSrcDesc);
 			writeSpace();
 
-			if (!arg) {
+			if (!isArg) {
 				write(memberDstName);
 			} else {
 				write(Integer.toString(argSrcPosition));
@@ -162,7 +163,7 @@ public final class JamFileWriter implements MappingWriter {
 
 		writeLn();
 
-		return targetKind == MappedElementKind.CLASS || targetKind == MappedElementKind.METHOD;
+		return isClass || isMethod;
 	}
 
 	@Override
