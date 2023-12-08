@@ -70,6 +70,7 @@ public class JobfFileReader {
 					if (reader.nextCol("c")) { // class: c <name-a> = <name-b>
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+						srcName = srcName.replace('.', '/');
 
 						if (!srcName.equals(lastClass)) {
 							lastClass = srcName;
@@ -102,7 +103,7 @@ public class JobfFileReader {
 						String dstName = reader.nextCol();
 						if (dstName == null || dstName.isEmpty()) throw new IOException("missing name-b in line "+reader.getLineNumber());
 
-						String srcOwner = src.substring(0, nameSepPos);
+						String srcOwner = src.substring(0, nameSepPos).replace('.', '/');
 
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;

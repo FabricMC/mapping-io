@@ -53,7 +53,7 @@ public final class JobfFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		classSrcName = srcName;
+		classSrcName = srcName.replace('/', '.');
 
 		return true;
 	}
