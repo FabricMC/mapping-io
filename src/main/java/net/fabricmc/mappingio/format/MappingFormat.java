@@ -102,6 +102,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
+ *   <tr>
+ *     <td>JOBF</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
  * </table>
  */
 // Format order is determined by importance to Fabric tooling, format family and release order therein.
@@ -156,7 +165,12 @@ public enum MappingFormat {
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false);
+	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false),
+
+	/**
+	 * The {@code JOBF} mapping format, as specified <a href="https://github.com/skylot/jadx/blob/2d5c0fda4a0c5d16207a5f48edb72e6efa7d5bbd/jadx-core/src/main/java/jadx/core/deobf/DeobfPresets.java">here</a>.
+	 */
+	JOBF_FILE("JOBF file", "jobf", false, true, false, false, false);
 
 	MappingFormat(String name, @Nullable String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
