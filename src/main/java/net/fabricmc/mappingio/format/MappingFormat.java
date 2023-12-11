@@ -109,6 +109,15 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.OptionalFeature;
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
+ *   <tr>
+ *     <td>IntelliJ migration map</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
  * </table>
  */
 // Format order is determined by importance to Fabric tooling, format family and release order therein.
@@ -261,7 +270,21 @@ public enum MappingFormat {
 					.withSrcNames(OptionalFeature.REQUIRED)
 					.withDstNames(OptionalFeature.REQUIRED)
 					.withSrcDescs(OptionalFeature.REQUIRED))
-			.withFileComments());
+			.withFileComments()),
+
+	/**
+	 * The IntelliJ IDEA migration map format, as implemented <a href="https://github.com/JetBrains/intellij-community/tree/5b6191dd34e05de8897f5da68757146395a260cc/java/java-impl-refactorings/src/com/intellij/refactoring/migration">here</a>.
+	 *
+	 * <p>Only supports packages and classes.
+	 */
+	INTELLIJ_MIGRATION_MAP_FILE("IntelliJ migration map file", "xml", new FeatureSet()
+			.withFileMetadata(MetadataSupport.FIXED) // migration map name and description
+			.withPackages(p -> p
+					.withSrcNames(OptionalFeature.REQUIRED)
+					.withDstNames(OptionalFeature.REQUIRED))
+			.withClasses(c -> c
+					.withSrcNames(OptionalFeature.REQUIRED)
+					.withDstNames(OptionalFeature.REQUIRED)));
 
 	MappingFormat(String name, @Nullable String fileExt, FeatureSet features) {
 		this.features = features;
