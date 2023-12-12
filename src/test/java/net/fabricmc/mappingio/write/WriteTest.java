@@ -78,6 +78,11 @@ public class WriteTest {
 		check(MappingFormat.PROGUARD_FILE);
 	}
 
+	@Test
+	public void migrationMapFile() throws Exception {
+		check(MappingFormat.INTELLIJ_MIGRATION_MAP_FILE);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		dogfood(validTree, dir, format);
 		dogfood(validWithHolesTree, dir, format);

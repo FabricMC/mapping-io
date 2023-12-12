@@ -96,6 +96,12 @@ public class DetectionTest {
 		check(format);
 	}
 
+	@Test
+	public void migrationMapFile() throws Exception {
+		MappingFormat format = MappingFormat.INTELLIJ_MIGRATION_MAP_FILE;
+		check(format);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
 		assertEquals(format, MappingReader.detectFormat(path));
