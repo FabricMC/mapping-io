@@ -60,9 +60,7 @@ public final class JamFileReader {
 		}
 
 		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
-
-			if (visitHeader) {
+			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
 			}
 
