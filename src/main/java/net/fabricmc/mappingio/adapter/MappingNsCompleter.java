@@ -27,11 +27,26 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that completes missing destination names.
+ *
+ * <p>Some mapping formats allow omitting destination names if equal to the source name.
+ * This visitor fills in these "holes" by copying names from another namespace.
+ */
 public final class MappingNsCompleter extends ForwardingMappingVisitor {
+	/**
+	 * @param next The next visitor to forward the data to.
+	 * @param alternatives A map of which namespaces should copy from which others.
+	 */
 	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives) {
 		this(next, alternatives, false);
 	}
 
+	/**
+	 * @param next The next visitor to forward the data to.
+	 * @param alternatives A map of which namespaces should copy from which others.
+	 * @param addMissingNs Whether or not to copy namespaces from the alternatives keyset if not already present.
+	 */
 	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives, boolean addMissingNs) {
 		super(next);
 

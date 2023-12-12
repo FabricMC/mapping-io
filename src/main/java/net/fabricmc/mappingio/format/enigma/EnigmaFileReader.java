@@ -26,9 +26,16 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#ENIGMA_FILE Enigma file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class EnigmaFileReader {
 	private EnigmaFileReader() {
 	}
@@ -124,10 +131,10 @@ public final class EnigmaFileReader {
 				if (state < 0) continue;
 
 				String srcName = reader.nextCol();
-				if (srcName == null || srcName.isEmpty()) throw new IOException("missing field-name-a in line "+reader.getLineNumber());
+				if (srcName == null || srcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
 
 				String dstNameOrSrcDesc = reader.nextCol();
-				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing field-desc-b in line "+reader.getLineNumber());
+				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing member-name-b/member-desc-a in line "+reader.getLineNumber());
 
 				String srcDesc = reader.nextCol();
 				String dstName;

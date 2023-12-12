@@ -31,6 +31,14 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#CSRG_FILE CSRG file},
+ * {@linkplain MappingFormat#TSRG_FILE TSRG file} and
+ * {@linkplain MappingFormat#TSRG_2_FILE TSRG2 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class TsrgFileReader {
 	private TsrgFileReader() {
 	}
@@ -79,32 +87,27 @@ public final class TsrgFileReader {
 		}
 
 		MappingFormat format = MappingFormat.TSRG_FILE;
-		if (reader.nextCol("tsrg2")) format = MappingFormat.TSRG_2_FILE;
-		String srcNamespace;
-		List<String> dstNamespaces;
-
-		if (format == MappingFormat.TSRG_2_FILE) { // tsrg2 magic
-			srcNamespace = reader.nextCol();
-			dstNamespaces = new ArrayList<>();
-			String dstNamespace;
-
-			while ((dstNamespace = reader.nextCol()) != null) {
-				dstNamespaces.add(dstNamespace);
-			}
-
-			reader.nextLine(0);
-		} else {
-			srcNamespace = sourceNs;
-			dstNamespaces = Collections.singletonList(targetNs);
-		}
-
-		int dstNsCount = dstNamespaces.size();
-		List<String> nameTmp = dstNamespaces.size() > 1 ? new ArrayList<>(dstNamespaces.size() - 1) : null;
+		String srcNamespace = sourceNs;
+		List<String> dstNamespaces = Collections.singletonList(targetNs);
 
 		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
+			if (reader.nextCol("tsrg2")) { // tsrg2 magic
+				format = MappingFormat.TSRG_2_FILE;
+				srcNamespace = reader.nextCol();
+				dstNamespaces = new ArrayList<>();
+				String dstNamespace;
 
-			if (visitHeader) {
+				while ((dstNamespace = reader.nextCol()) != null) {
+					dstNamespaces.add(dstNamespace);
+				}
+
+				reader.nextLine(0);
+			}
+
+			int dstNsCount = dstNamespaces.size();
+			List<String> nameTmp = dstNamespaces.size() > 1 ? new ArrayList<>(dstNamespaces.size() - 1) : null;
+
+			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 			}
 

@@ -27,6 +27,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A {@link FlatMappingVisitor} that forwards all relevant data to a regular {@link MappingVisitor}.
+ */
 public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	public RegularAsFlatMappingVisitor(MappingVisitor next) {
 		this.next = next;

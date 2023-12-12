@@ -28,31 +28,34 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingNsCompleter;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class WriteTest {
 	@TempDir
 	private static Path dir;
-	private static VisitableMappingTree tree;
+	private static MappingTreeView validTree;
 	private static Map<String, String> treeNsAltMap = new HashMap<>();
-	private static VisitableMappingTree treeWithHoles;
+	private static MappingTreeView validWithHolesTree;
 	private static Map<String, String> treeWithHolesNsAltMap = new HashMap<>();
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestHelper.createTestTree();
-		treeNsAltMap.put(tree.getDstNamespaces().get(0), tree.getSrcNamespace());
-		treeNsAltMap.put(tree.getDstNamespaces().get(1), tree.getSrcNamespace());
+		validTree = TestHelper.createTestTree();
+		treeNsAltMap.put(validTree.getDstNamespaces().get(0), validTree.getSrcNamespace());
+		treeNsAltMap.put(validTree.getDstNamespaces().get(1), validTree.getSrcNamespace());
 
-		treeWithHoles = TestHelper.createTestTreeWithHoles();
-		treeWithHolesNsAltMap.put(treeWithHoles.getDstNamespaces().get(0), treeWithHoles.getSrcNamespace());
-		treeWithHolesNsAltMap.put(treeWithHoles.getDstNamespaces().get(1), treeWithHoles.getSrcNamespace());
+		validWithHolesTree = TestHelper.createTestTreeWithHoles();
+		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(0), validWithHolesTree.getSrcNamespace());
+		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(1), validWithHolesTree.getSrcNamespace());
 	}
 
 	@Test
@@ -85,18 +88,29 @@ public class WriteTest {
 		check(MappingFormat.XSRG_FILE);
 	}
 
+	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
 	}
 
 	private void check(MappingFormat format) throws Exception {
-		Path path = TestHelper.writeToDir(tree, format, dir);
+		Path path = TestHelper.writeToDir(validTree, dir, format);
+		readWithMio(validTree, path, format);
 		readWithLorenz(path, format);
-		readWithSrgUtils(tree, format, treeNsAltMap);
+		readWithSrgUtils(validTree, format, treeNsAltMap);
 
-		path = TestHelper.writeToDir(treeWithHoles, format, dir);
+		path = TestHelper.writeToDir(validWithHolesTree, dir, format);
+		readWithMio(validWithHolesTree, path, format);
 		readWithLorenz(path, format);
-		readWithSrgUtils(treeWithHoles, format, treeWithHolesNsAltMap);
+		readWithSrgUtils(validWithHolesTree, format, treeWithHolesNsAltMap);
+	}
+
+	private void readWithMio(MappingTreeView origTree, Path outputPath, MappingFormat outputFormat) throws Exception {
+		VisitableMappingTree writtenTree = new MemoryMappingTree();
+		MappingReader.read(outputPath, outputFormat, writtenTree);
+
+		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(origTree, null, outputFormat)));
+		origTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(writtenTree, outputFormat, null)));
 	}
 
 	private void readWithLorenz(Path path, MappingFormat format) throws Exception {
@@ -105,7 +119,7 @@ public class WriteTest {
 		lorenzFormat.read(path);
 	}
 
-	private void readWithSrgUtils(MappingTree tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
+	private void readWithSrgUtils(MappingTreeView tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
 		IMappingFile.Format srgUtilsFormat = TestHelper.toSrgUtilsFormat(format);
 		if (srgUtilsFormat == null) return;
 
@@ -119,7 +133,7 @@ public class WriteTest {
 			}
 		}, nsAltMap));
 
-		Path path = TestHelper.writeToDir(dstNsCompTree, format, dir);
+		Path path = TestHelper.writeToDir(dstNsCompTree, dir, format);
 		INamedMappingFile.load(path.toFile());
 	}
 }

@@ -54,7 +54,7 @@ public interface MappingVisitor {
 	}
 
 	/**
-	 * Reset the visitor including any chained visitors to allow for another independent visit (excluding visitEnd=false).
+	 * Reset the visitor, including any chained visitors, to allow for another independent visit (excluding visitEnd=false).
 	 */
 	default void reset() {
 		throw new UnsupportedOperationException();
@@ -63,7 +63,7 @@ public interface MappingVisitor {
 	/**
 	 * Determine whether the header (namespaces, metadata if part of the header) should be visited.
 	 *
-	 * @return true if the header is to be visited, false otherwise
+	 * @return {@code true} if the header is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitHeader() throws IOException {
 		return true;
@@ -76,21 +76,61 @@ public interface MappingVisitor {
 	/**
 	 * Determine whether the mapping content (classes and anything below, metadata if not part of the header) should be visited.
 	 *
-	 * @return true if content is to be visited, false otherwise
+	 * @return {@code true} if content is to be visited, {@code false} otherwise.
 	 */
 	default boolean visitContent() throws IOException {
 		return true;
 	}
 
+	/**
+	 * Visit a class.
+	 *
+	 * @param srcName The fully qualified source name of the class, in internal form
+	 * (slashes instead of dots, dollar signs for delimiting inner classes).
+	 * @return Whether or not the class's content should be visited too.
+	 */
 	boolean visitClass(String srcName) throws IOException;
 	boolean visitField(String srcName, @Nullable String srcDesc) throws IOException;
 	boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException;
+
+	/**
+	 * Visit a parameter.
+	 *
+	 * @param argPosition Always starts at 0 and gets incremented by 1 for each additional parameter.
+	 * @param lvIndex The parameter's local variable index in the current method.
+	 * Starts at 0 for static methods, 1 otherwise. For each additional parameter,
+	 * it gets incremented by 1, or by 2 if it's a primitive {@code long} or {@code double}.
+	 * @param srcName The optional source name of the parameter.
+	 * @return Whether or not the arg's content should be visited too.
+	 */
 	boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException;
+
+	/**
+	 * Visit a variable.
+	 *
+	 * @param lvtRowIndex The variable's index in the method's LVT
+	 * (local variable table). It is optional, so -1 can be passed instead.
+	 * This is the case since LVTs themselves are optional debug information, see
+	 * <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.13">JVMS 4.7.13</a>.
+	 * @param lvIndex The var's local variable index in the current method. For each additional variable,
+	 * it gets incremented by 1, or by 2 if it's a primitive {@code long} or {@code double}.
+	 * The first variable starts where the last parameter left off (plus the offset).
+	 * @param startOpIdx Required for cases when the lvIndex alone doesn't uniquely identify a local variable.
+	 * This is the case when variables get re-defined later on, in which case most decompilers opt to
+	 * not re-define the existing var, but instead generate a new one (with both sharing the same lvIndex).
+	 * @param endOpIdx Counterpart to startOpIdx. Exclusive.
+	 * @param srcName The optional source name of the variable.
+	 * @return Whether or not the var's content should be visited too.
+	 */
 	boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException;
 
 	/**
 	 * Finish the visitation pass.
-	 * @return true if the visitation pass is final, false if it should be started over
+	 *
+	 * <p>Implementors may throw an exception if a second pass is requested without the {@code NEEDS_MULTIPLE_PASSES}
+	 * flag having been passed beforehand, but only if that behavior is documented.
+	 *
+	 * @return {@code true} if the visitation pass is final, {@code false} if it should be started over.
 	 */
 	default boolean visitEnd() throws IOException {
 		return true;
@@ -99,8 +139,8 @@ public interface MappingVisitor {
 	/**
 	 * Destination name for the current element.
 	 *
-	 * @param namespace namespace index, index into the dstNamespaces List in {@link #visitNamespaces}
-	 * @param name destination name
+	 * @param namespace Namespace index (index into the dstNamespaces list in {@link #visitNamespaces}).
+	 * @param name Destination name.
 	 */
 	void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException;
 
@@ -114,7 +154,7 @@ public interface MappingVisitor {
 	 *
 	 * <p>This is also a notification about all available dst names having been passed on.
 	 *
-	 * @return true if the contents are to be visited, false otherwise
+	 * @return {@code true} if the contents are to be visited, {@code false} otherwise
 	 */
 	default boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		return true;
@@ -123,7 +163,7 @@ public interface MappingVisitor {
 	/**
 	 * Comment for the specified element (last content-visited or any parent).
 	 *
-	 * @param comment comment as a potentially multi-line string
+	 * @param comment Comment as a potentially multi-line string.
 	 */
 	void visitComment(MappedElementKind targetKind, String comment) throws IOException;
 }

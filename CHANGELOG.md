@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Added tests to validate our writer outputs against 3rd-party readers
 
+## [0.5.1] - 2023-11-30
+- Improved documentation
+- Fixed ProGuard writer producing invalid files when missing destination names
+- Fixed Enigma reader throwing incorrect error message
+- Fixed NPE in `MemoryMappingTree`
+- Fixed TSRG2 reader not handling multiple passes correctly
+
 ## [0.5.0] - 2023-11-15
 - Actually marked `HierarchyInfoProvider` as experimental
 - Added changelog
