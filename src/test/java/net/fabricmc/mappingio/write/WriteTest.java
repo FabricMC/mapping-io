@@ -21,8 +21,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.minecraftforge.srgutils.IMappingFile;
-import net.minecraftforge.srgutils.INamedMappingFile;
+import net.neoforged.srgutils.IMappingFile;
+import net.neoforged.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

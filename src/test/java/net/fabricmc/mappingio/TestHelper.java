@@ -23,7 +23,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.minecraftforge.srgutils.IMappingFile;
+import net.neoforged.srgutils.IMappingFile;
+import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
@@ -71,15 +72,15 @@ public final class TestHelper {
 	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
 		switch (format) {
 		case SRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.SRG;
+			return MappingFormats.SRG;
 		case XSRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.XSRG;
+			return MappingFormats.XSRG;
 		case CSRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.CSRG;
+			return MappingFormats.CSRG;
 		case TSRG_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.TSRG;
+			return MappingFormats.TSRG;
 		case ENIGMA_FILE:
-			return org.cadixdev.lorenz.io.MappingFormats.byId("enigma");
+			return MappingFormats.byId("enigma");
 		case TINY_FILE:
 		case TINY_2_FILE:
 		case ENIGMA_DIR:
