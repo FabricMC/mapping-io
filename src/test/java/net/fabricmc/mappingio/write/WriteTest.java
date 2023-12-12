@@ -16,16 +16,24 @@
 
 package net.fabricmc.mappingio.write;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import net.neoforged.srgutils.IMappingFile;
+import net.neoforged.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.MappingNsCompleter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -35,12 +43,19 @@ public class WriteTest {
 	@TempDir
 	private static Path dir;
 	private static MappingTreeView validTree;
+	private static Map<String, String> treeNsAltMap = new HashMap<>();
 	private static MappingTreeView validWithHolesTree;
+	private static Map<String, String> treeWithHolesNsAltMap = new HashMap<>();
 
 	@BeforeAll
 	public static void setup() throws Exception {
 		validTree = TestHelper.createTestTree();
+		treeNsAltMap.put(validTree.getDstNamespaces().get(0), validTree.getSrcNamespace());
+		treeNsAltMap.put(validTree.getDstNamespaces().get(1), validTree.getSrcNamespace());
+
 		validWithHolesTree = TestHelper.createTestTreeWithHoles();
+		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(0), validWithHolesTree.getSrcNamespace());
+		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(1), validWithHolesTree.getSrcNamespace());
 	}
 
 	@Test
@@ -79,17 +94,46 @@ public class WriteTest {
 	}
 
 	private void check(MappingFormat format) throws Exception {
-		dogfood(validTree, dir, format);
-		dogfood(validWithHolesTree, dir, format);
+		Path path = TestHelper.writeToDir(validTree, dir, format);
+		readWithMio(validTree, path, format);
+		readWithLorenz(path, format);
+		readWithSrgUtils(validTree, format, treeNsAltMap);
+
+		path = TestHelper.writeToDir(validWithHolesTree, dir, format);
+		readWithMio(validWithHolesTree, path, format);
+		readWithLorenz(path, format);
+		readWithSrgUtils(validWithHolesTree, format, treeWithHolesNsAltMap);
 	}
 
-	private void dogfood(MappingTreeView origTree, Path outputPath, MappingFormat outputFormat) throws Exception {
-		outputPath = TestHelper.writeToDir(origTree, dir, outputFormat);
+	private void readWithMio(MappingTreeView origTree, Path outputPath, MappingFormat outputFormat) throws Exception {
 		VisitableMappingTree writtenTree = new MemoryMappingTree();
-
 		MappingReader.read(outputPath, outputFormat, writtenTree);
 
 		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(origTree, null, outputFormat)));
 		origTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(writtenTree, outputFormat, null)));
+	}
+
+	private void readWithLorenz(Path path, MappingFormat format) throws Exception {
+		org.cadixdev.lorenz.io.MappingFormat lorenzFormat = TestHelper.toLorenzFormat(format);
+		if (lorenzFormat == null) return;
+		lorenzFormat.read(path);
+	}
+
+	private void readWithSrgUtils(MappingTreeView tree, MappingFormat format, Map<String, String> nsAltMap) throws Exception {
+		IMappingFile.Format srgUtilsFormat = TestHelper.toSrgUtilsFormat(format);
+		if (srgUtilsFormat == null) return;
+
+		// SrgUtils can't handle empty dst names
+		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
+		tree.accept(new MappingNsCompleter(new ForwardingMappingVisitor(dstNsCompTree) {
+			@Override
+			public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+				// SrgUtil's Tiny v2 reader crashes on var sub-elements
+				return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
+			}
+		}, nsAltMap));
+
+		Path path = TestHelper.writeToDir(dstNsCompTree, dir, format);
+		INamedMappingFile.load(path.toFile());
 	}
 }

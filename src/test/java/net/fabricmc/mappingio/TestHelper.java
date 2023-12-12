@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.neoforged.srgutils.IMappingFile;
+import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
@@ -63,6 +65,57 @@ public final class TestHelper {
 			return "proguard.txt";
 		default:
 			return null;
+		}
+	}
+
+	@Nullable
+	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
+		switch (format) {
+		case SRG_FILE:
+			return MappingFormats.SRG;
+		case XSRG_FILE:
+			return MappingFormats.XSRG;
+		case CSRG_FILE:
+			return MappingFormats.CSRG;
+		case TSRG_FILE:
+			return MappingFormats.TSRG;
+		case ENIGMA_FILE:
+			return MappingFormats.byId("enigma");
+		case TINY_FILE:
+		case TINY_2_FILE:
+		case ENIGMA_DIR:
+		case TSRG_2_FILE:
+		case PROGUARD_FILE:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
+		}
+	}
+
+	@Nullable
+	public static IMappingFile.Format toSrgUtilsFormat(MappingFormat format) {
+		switch (format) {
+		case TINY_FILE:
+			return IMappingFile.Format.TINY1;
+		case TINY_2_FILE:
+			return IMappingFile.Format.TINY;
+		case SRG_FILE:
+			return IMappingFile.Format.SRG;
+		case XSRG_FILE:
+			return IMappingFile.Format.XSRG;
+		case CSRG_FILE:
+			return IMappingFile.Format.CSRG;
+		case TSRG_FILE:
+			return IMappingFile.Format.TSRG;
+		case TSRG_2_FILE:
+			return IMappingFile.Format.TSRG2;
+		case PROGUARD_FILE:
+			return IMappingFile.Format.PG;
+		case ENIGMA_FILE:
+		case ENIGMA_DIR:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
 		}
 	}
 
