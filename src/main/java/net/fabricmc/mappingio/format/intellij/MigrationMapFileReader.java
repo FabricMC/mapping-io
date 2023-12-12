@@ -127,6 +127,9 @@ public final class MigrationMapFileReader {
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing/empty oldName attribute at line "+xmlReader.getLocation().getLineNumber());
 						if (dstName == null || dstName.isEmpty()) throw new IOException("missing/empty newName attribute at line "+xmlReader.getLocation().getLineNumber());
 
+						srcName = srcName.replace('.', '/');
+						dstName = dstName.replace('.', '/');
+
 						if (visitor.visitClass(srcName)) {
 							visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
 						}

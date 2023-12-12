@@ -118,8 +118,8 @@ public final class MigrationMapFileWriter implements MappingWriter {
 			}
 
 			xmlWriter.writeStartElement("entry");
-			xmlWriter.writeAttribute("oldName", srcName);
-			xmlWriter.writeAttribute("newName", dstName);
+			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
+			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
 			xmlWriter.writeAttribute("type", "class");
 			xmlWriter.writeEndElement();
 
