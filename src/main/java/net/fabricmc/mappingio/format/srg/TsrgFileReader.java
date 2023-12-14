@@ -29,6 +29,9 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.ErrorCollector;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
@@ -66,7 +69,12 @@ public final class TsrgFileReader {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader r, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	@Deprecated
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(reader, sourceNs, targetNs, visitor, new ThrowingErrorCollector(Severity.ERROR));
+	}
+
+	public static void read(Reader r, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		ColumnFileReader reader;
 		CharArrayReader parentReader = null;
 
@@ -126,7 +134,11 @@ public final class TsrgFileReader {
 					if (format != MappingFormat.TSRG_2_FILE && parts.length >= 4 && !parts[3].startsWith("#")) { // CSRG
 						format = MappingFormat.CSRG_FILE;
 						String clsName = parts[0];
-						if (clsName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+						if (clsName.isEmpty()) {
+							errorCollector.addError("missing class-name-a in line "+reader.getLineNumber());
+							continue;
+						}
 
 						if (!clsName.equals(lastClass)) {
 							lastClass = clsName;
@@ -140,7 +152,8 @@ public final class TsrgFileReader {
 							dstName = parts.length == 6 ? null : parts[6];
 
 							if (dstName == null || dstName.isEmpty() || dstName.startsWith("#")) {
-								throw new IOException("missing method-name-b in line "+reader.getLineNumber());
+								errorCollector.addWarning("missing method-name-b in line "+reader.getLineNumber());
+								dstName = null;
 							}
 
 							if (visitor.visitMethod(parts[2], parts[4])) {
@@ -152,7 +165,8 @@ public final class TsrgFileReader {
 							dstName = parts.length == 4 ? null : parts[4];
 
 							if (dstName == null || dstName.isEmpty() || dstName.startsWith("#")) {
-								throw new IOException("missing field-name-b in line "+reader.getLineNumber());
+								errorCollector.addError("missing field-name-b in line "+reader.getLineNumber());
+								dstName = null;
 							}
 
 							if (visitor.visitField(parts[2], null)) {
@@ -162,19 +176,27 @@ public final class TsrgFileReader {
 							continue;
 						}
 
-						throw new IllegalStateException("invalid CSRG line: "+line);
+						errorCollector.addError("invalid CSRG line: "+line);
+						continue;
 					}
 
 					String srcName = reader.nextCol();
-					if (srcName == null || srcName.endsWith("/")) continue;
-					if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+					if (srcName == null && reader.isAtEof()) continue;
+
+					if (srcName == null || srcName.isEmpty()) {
+						errorCollector.addError("missing class-/package-name-a in line "+reader.getLineNumber());
+						continue;
+					} else if (srcName.endsWith("/")) {
+						errorCollector.addWarning("encountered package mapping in line "+reader.getLineNumber()+" which isn't supported yet, ignoring");
+						continue;
+					}
 
 					if (!srcName.equals(lastClass)) {
 						lastClass = srcName;
 						visitLastClass = visitor.visitClass(srcName);
 
 						if (visitLastClass) {
-							visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor);
+							visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor, errorCollector);
 						}
 					}
 				} while (reader.nextLine(0));
@@ -191,34 +213,52 @@ public final class TsrgFileReader {
 		}
 	}
 
-	private static boolean readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor) throws IOException {
-		readDstNames(reader, MappedElementKind.CLASS, 0, dstNsCount, visitor);
+	private static boolean readClass(ColumnFileReader reader, boolean isTsrg2, int dstNsCount, List<String> nameTmp, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		readDstNames(reader, MappedElementKind.CLASS, 0, dstNsCount, visitor, errorCollector);
 		if (!visitor.visitElementContent(MappedElementKind.CLASS)) return false;
 
-		while (reader.nextLine(1)) {
+		lineLoop: while (reader.nextLine(1)) {
 			if (reader.hasExtraIndents()) continue;
 
 			String srcName = reader.nextCol();
-			if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
+
+			if (srcName == null || srcName.isEmpty()) {
+				errorCollector.addError("missing name-a in line "+reader.getLineNumber());
+				continue;
+			}
 
 			String arg = reader.nextCol();
-			if (arg == null) throw new IOException("missing desc/name-b in line "+reader.getLineNumber());
+
+			if (arg == null) {
+				errorCollector.addError("missing desc/name-b in line "+reader.getLineNumber() + ", skipping element due to ambiguity regarding its kind");
+				continue;
+			}
 
 			if (arg.startsWith("(")) { // method: <nameA> <descA> <names>...
 				if (visitor.visitMethod(srcName, arg)) {
-					readMethod(reader, dstNsCount, visitor);
+					readMethod(reader, dstNsCount, visitor, errorCollector);
 				}
 			} else if (!isTsrg2) { // tsrg1 field, never has a desc: <nameA> <names>...
 				if (visitor.visitField(srcName, null)) {
-					if (arg.isEmpty()) throw new IOException("missing field-name-b in line "+reader.getLineNumber());
-					visitor.visitDstName(MappedElementKind.FIELD, 0, arg);
-					readElement(reader, MappedElementKind.FIELD, 1, dstNsCount, visitor);
+					if (arg.isEmpty()) {
+						errorCollector.addWarning("missing field-name-b in line "+reader.getLineNumber());
+					} else {
+						visitor.visitDstName(MappedElementKind.FIELD, 0, arg);
+					}
+
+					readElement(reader, MappedElementKind.FIELD, 1, dstNsCount, visitor, errorCollector);
 				}
 			} else { // tsrg2 field, may have desc
 				for (int i = 0; i < dstNsCount - 1; i++) {
 					String name = reader.nextCol();
-					if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
-					if (name.isEmpty()) throw new IOException("missing destination name in line "+reader.getLineNumber());
+
+					if (name == null) {
+						errorCollector.addError("missing name columns in line "+reader.getLineNumber());
+						continue lineLoop;
+					} else if (name.isEmpty()) {
+						errorCollector.addWarning("missing destination name in line "+reader.getLineNumber());
+					}
+
 					nameTmp.add(name);
 				}
 
@@ -232,7 +272,11 @@ public final class TsrgFileReader {
 				} else { // arg is desc, nameTmp starts with 1st dst name: <nameA> <descA> <names>...
 					offset = 0;
 					desc = arg;
-					if (desc.isEmpty()) throw new IOException("empty field desc in line "+reader.getLineNumber());
+
+					if (desc.isEmpty()) {
+						errorCollector.addWarning("empty field desc in line "+reader.getLineNumber());
+						desc = null;
+					}
 				}
 
 				if (visitor.visitField(srcName, desc)) {
@@ -258,8 +302,8 @@ public final class TsrgFileReader {
 		return true;
 	}
 
-	private static void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor) throws IOException {
-		readDstNames(reader, MappedElementKind.METHOD, 0, dstNsCount, visitor);
+	private static void readMethod(ColumnFileReader reader, int dstNsCount, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		readDstNames(reader, MappedElementKind.METHOD, 0, dstNsCount, visitor, errorCollector);
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
 		while (reader.nextLine(2)) {
@@ -269,30 +313,45 @@ public final class TsrgFileReader {
 				// method is static
 			} else {
 				int lvIndex = reader.nextIntCol();
-				if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+
+				if (lvIndex < 0) {
+					errorCollector.addWarning("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+					lvIndex = -1;
+				}
 
 				String srcName = reader.nextCol();
-				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
+
+				if (srcName == null) {
+					errorCollector.addWarning("missing var-name-a column in line "+reader.getLineNumber());
+				}
+
 				if (srcName.isEmpty()) srcName = null;
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
-					readElement(reader, MappedElementKind.METHOD_ARG, 0, dstNsCount, visitor);
+					readElement(reader, MappedElementKind.METHOD_ARG, 0, dstNsCount, visitor, errorCollector);
 				}
 			}
 		}
 	}
 
-	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
-		readDstNames(reader, kind, dstNsOffset, dstNsCount, visitor);
+	private static void readElement(ColumnFileReader reader, MappedElementKind kind, int dstNsOffset, int dstNsCount, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		readDstNames(reader, kind, dstNsOffset, dstNsCount, visitor, errorCollector);
 		visitor.visitElementContent(kind);
 	}
 
-	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsOffset, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsOffset, int dstNsCount, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		for (int dstNs = dstNsOffset; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol();
 
-			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
-			if (name.isEmpty()) throw new IOException("missing destination name in line "+reader.getLineNumber());
+			if (name == null) {
+				errorCollector.addError("missing name columns in line "+reader.getLineNumber());
+				break;
+			}
+
+			if (name.isEmpty()) {
+				errorCollector.addWarning("missing destination name in line "+reader.getLineNumber());
+				continue;
+			}
 
 			visitor.visitDstName(subjectKind, dstNs, name);
 		}

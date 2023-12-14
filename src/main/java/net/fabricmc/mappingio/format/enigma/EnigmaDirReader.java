@@ -29,6 +29,9 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.format.ErrorCollector;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -47,7 +50,12 @@ public final class EnigmaDirReader {
 		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
+	@Deprecated
 	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(dir, sourceNs, targetNs, visitor, new ThrowingErrorCollector(Severity.ERROR));
+	}
+
+	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -89,7 +97,7 @@ public final class EnigmaDirReader {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
-					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, delegatingVisitor);
+					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, delegatingVisitor, errorCollector);
 				}
 
 				return FileVisitResult.CONTINUE;

@@ -26,6 +26,9 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.ErrorCollector;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -44,11 +47,16 @@ public final class EnigmaFileReader {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
+	@Deprecated
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+		read(reader, sourceNs, targetNs, visitor, new ThrowingErrorCollector(Severity.ERROR));
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor, errorCollector);
+	}
+
+	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
@@ -67,7 +75,7 @@ public final class EnigmaFileReader {
 
 			do {
 				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
-					readClass(reader, 0, null, null, commentSb, finalVisitor);
+					readClass(reader, 0, null, null, commentSb, finalVisitor, errorCollector);
 				}
 			} while (reader.nextLine(0));
 		}
@@ -83,9 +91,13 @@ public final class EnigmaFileReader {
 		}
 	}
 
-	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readClass(ColumnFileReader reader, int indent, String outerSrcClass, String outerDstClass, StringBuilder commentSb, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		String srcInnerName = reader.nextCol();
-		if (srcInnerName == null || srcInnerName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+		if (srcInnerName == null || srcInnerName.isEmpty()) {
+			errorCollector.addError("missing class-name-a in line "+reader.getLineNumber());
+			return;
+		}
 
 		String srcName = srcInnerName;
 
@@ -105,10 +117,10 @@ public final class EnigmaFileReader {
 			dstName = String.format("%s$%s", outerDstClass, dstInnerName);
 		}
 
-		readClassBody(reader, indent, srcName, dstName, commentSb, visitor);
+		readClassBody(reader, indent, srcName, dstName, commentSb, visitor, errorCollector);
 	}
 
-	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readClassBody(ColumnFileReader reader, int indent, String srcClass, String dstClass, StringBuilder commentSb, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		boolean visited = false;
 		int state = 0; // 0=invalid 1=visit -1=skip
 
@@ -121,7 +133,7 @@ public final class EnigmaFileReader {
 					visited = true;
 				}
 
-				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor);
+				readClass(reader, indent + 1, srcClass, dstClass, commentSb, visitor, errorCollector);
 				state = 0;
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
 				readComment(reader, commentSb);
@@ -131,10 +143,18 @@ public final class EnigmaFileReader {
 				if (state < 0) continue;
 
 				String srcName = reader.nextCol();
-				if (srcName == null || srcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
+
+				if (srcName == null || srcName.isEmpty()) {
+					errorCollector.addError("missing member-name-a in line "+reader.getLineNumber());
+					continue;
+				}
 
 				String dstNameOrSrcDesc = reader.nextCol();
-				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing member-name-b/member-desc-a in line "+reader.getLineNumber());
+
+				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) {
+					errorCollector.addWarning("missing member-name-b/member-desc-a in line "+reader.getLineNumber());
+					dstNameOrSrcDesc = null;
+				}
 
 				String srcDesc = reader.nextCol();
 				String dstName;
@@ -148,7 +168,7 @@ public final class EnigmaFileReader {
 
 				if (isMethod && visitor.visitMethod(srcName, srcDesc)) {
 					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-					readMethod(reader, indent, commentSb, visitor);
+					readMethod(reader, indent, commentSb, visitor, errorCollector);
 				} else if (!isMethod && visitor.visitField(srcName, srcDesc)) {
 					if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
 					readElement(reader, MappedElementKind.FIELD, indent, commentSb, visitor);
@@ -187,7 +207,7 @@ public final class EnigmaFileReader {
 		return state;
 	}
 
-	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor) throws IOException {
+	private static void readMethod(ColumnFileReader reader, int indent, StringBuilder commentSb, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		if (!visitor.visitElementContent(MappedElementKind.METHOD)) return;
 
 		while (reader.nextLine(indent + 2)) {
@@ -198,7 +218,11 @@ public final class EnigmaFileReader {
 
 				if (reader.nextCol("ARG")) { // method parameter: ARG <lv-index> <name-b>
 					int lvIndex = reader.nextIntCol();
-					if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+
+					if (lvIndex < 0) {
+						errorCollector.addError("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+						return;
+					}
 
 					if (visitor.visitMethodArg(-1, lvIndex, null)) {
 						String dstName = reader.nextCol();
