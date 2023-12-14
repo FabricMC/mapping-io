@@ -46,8 +46,13 @@ public final class EnigmaDirReader {
 	private EnigmaDirReader() {
 	}
 
+	@Deprecated
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {
 		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	}
+
+	public static void read(Path dir, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, errorCollector);
 	}
 
 	@Deprecated

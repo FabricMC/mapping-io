@@ -65,8 +65,13 @@ public final class TsrgFileReader {
 		}
 	}
 
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+	}
+
+	public static void read(Reader reader, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, errorCollector);
 	}
 
 	@Deprecated

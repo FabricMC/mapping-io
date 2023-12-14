@@ -34,6 +34,8 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
@@ -130,7 +132,7 @@ public class VisitEndTest {
 
 	private VisitEndTestVisitor checkCompliance(MappingFormat format, Path path, int visitPassCountToFinish, boolean setFlag, MappingTreeView supTree) throws Exception {
 		VisitEndTestVisitor visitor = new VisitEndTestVisitor(visitPassCountToFinish, setFlag, supTree, format);
-		MappingReader.read(path, format, visitor);
+		MappingReader.read(path, format, visitor, new ThrowingErrorCollector(Severity.INFO));
 		assertTrue(visitor.finishedVisitPassCount == visitPassCountToFinish);
 		return visitor;
 	}

@@ -28,6 +28,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.format.ErrorCollector;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
@@ -184,8 +187,21 @@ public final class MappingReader {
 	 * @param visitor The receiving visitor.
 	 * @throws IOException If the format can't be detected or reading fails.
 	 */
+	@Deprecated
 	public static void read(Path path, MappingVisitor visitor) throws IOException {
 		read(path, null, visitor);
+	}
+
+	/**
+	 * Tries to detect the format of the given path and read it.
+	 *
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param visitor The receiving visitor.
+	 * @param errorCollector The error collector instance to log errors to.
+	 * @throws IOException If the format can't be detected or reading fails.
+	 */
+	public static void read(Path path, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(path, null, visitor, errorCollector);
 	}
 
 	/**
@@ -196,7 +212,20 @@ public final class MappingReader {
 	 * @param visitor The receiving visitor.
 	 * @throws IOException If reading fails.
 	 */
+	@Deprecated
 	public static void read(Path path, MappingFormat format, MappingVisitor visitor) throws IOException {
+		read(path, format, visitor, new ThrowingErrorCollector(Severity.ERROR));
+	}
+
+	/**
+	 * Tries to read the given path using the passed format's reader.
+	 *
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param format The format to use. Has to match the path's format.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If reading fails.
+	 */
+	public static void read(Path path, MappingFormat format, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		if (format == null) {
 			format = detectFormat(path);
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
@@ -204,12 +233,12 @@ public final class MappingReader {
 
 		if (format.hasSingleFile()) {
 			try (Reader reader = Files.newBufferedReader(path)) {
-				read(reader, format, visitor);
+				read(reader, format, visitor, errorCollector);
 			}
 		} else {
 			switch (format) {
 			case ENIGMA_DIR:
-				EnigmaDirReader.read(path, visitor);
+				EnigmaDirReader.read(path, visitor, errorCollector);
 				break;
 			default:
 				throw new IllegalStateException();
@@ -224,8 +253,21 @@ public final class MappingReader {
 	 * @param visitor The receiving visitor.
 	 * @throws IOException If the format can't be detected or reading fails.
 	 */
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, null, visitor);
+	}
+
+	/**
+	 * Tries to detect the reader's content's format and read it.
+	 *
+	 * @param reader The reader to read from.
+	 * @param visitor The receiving visitor.
+	 * @param errorCollector The error collector instance to log errors to.
+	 * @throws IOException If the format can't be detected or reading fails.
+	 */
+	public static void read(Reader reader, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(reader, null, visitor, errorCollector);
 	}
 
 	/**
@@ -236,7 +278,21 @@ public final class MappingReader {
 	 * @param visitor The receiving visitor.
 	 * @throws IOException If reading fails.
 	 */
+	@Deprecated
 	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
+		read(reader, format, visitor, new ThrowingErrorCollector(Severity.ERROR));
+	}
+
+	/**
+	 * Tries to read the reader's content using the passed format's mapping reader.
+	 *
+	 * @param reader The reader to read from.
+	 * @param format The format to use. Has to match the reader's content's format.
+	 * @param visitor The receiving visitor.
+	 * @param errorCollector The error collector instance to log errors to.
+	 * @throws IOException If reading fails.
+	 */
+	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		if (format == null) {
 			if (!reader.markSupported()) reader = new BufferedReader(reader);
 			reader.mark(DETECT_HEADER_LEN);
@@ -249,25 +305,25 @@ public final class MappingReader {
 
 		switch (format) {
 		case TINY_FILE:
-			Tiny1FileReader.read(reader, visitor);
+			Tiny1FileReader.read(reader, visitor, errorCollector);
 			break;
 		case TINY_2_FILE:
-			Tiny2FileReader.read(reader, visitor);
+			Tiny2FileReader.read(reader, visitor, errorCollector);
 			break;
 		case ENIGMA_FILE:
-			EnigmaFileReader.read(reader, visitor);
+			EnigmaFileReader.read(reader, visitor, errorCollector);
 			break;
 		case SRG_FILE:
 		case XSRG_FILE:
-			SrgFileReader.read(reader, visitor);
+			SrgFileReader.read(reader, visitor, errorCollector);
 			break;
 		case CSRG_FILE:
 		case TSRG_FILE:
 		case TSRG_2_FILE:
-			TsrgFileReader.read(reader, visitor);
+			TsrgFileReader.read(reader, visitor, errorCollector);
 			break;
 		case PROGUARD_FILE:
-			ProGuardFileReader.read(reader, visitor);
+			ProGuardFileReader.read(reader, visitor, errorCollector);
 			break;
 		default:
 			throw new IllegalStateException();
