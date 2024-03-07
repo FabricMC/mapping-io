@@ -1,0 +1,10 @@
+class_2 class2Ns0Rename
+class_5 class5Ns0Rename
+class_7$class_8 class_7$class8Ns0Rename
+class_13$class_14 class_13$class14Ns0Rename
+class_17$class_18$class_19 class_17$class_18$class19Ns0Rename
+class_26$class_27$class_28 class_26$class_27$class28Ns0Rename
+class_32.field_2 I field2Ns0Rename
+class_32.field_5 I field5Ns0Rename
+class_32.method_2()I method2Ns0Rename
+class_32.method_5()I method5Ns0Rename

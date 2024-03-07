@@ -61,6 +61,8 @@ public final class TestHelper {
 			return "tsrg2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case RECAF_SIMPLE_FILE:
+			return "recaf-simple.txt";
 		default:
 			return null;
 		}

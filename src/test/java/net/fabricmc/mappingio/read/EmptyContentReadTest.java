@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
 import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -63,5 +64,10 @@ public class EmptyContentReadTest {
 	@Test
 	public void emptyTsrgFile() throws Exception {
 		TsrgFileReader.read(new StringReader(""), tree);
+	}
+
+	@Test
+	public void emptyRecafSimpleFile() throws Exception {
+		RecafSimpleFileReader.read(new StringReader(""), tree);
 	}
 }
