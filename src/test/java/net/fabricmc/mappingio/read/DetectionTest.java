@@ -73,6 +73,12 @@ public class DetectionTest {
 	}
 
 	@Test
+	public void jamFile() throws Exception {
+		MappingFormat format = MappingFormat.JAM_FILE;
+		check(format);
+	}
+
+	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
 		assertThrows(AssertionFailedError.class, () -> check(format));

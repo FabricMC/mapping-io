@@ -53,6 +53,8 @@ public final class TestHelper {
 			return "srg.srg";
 		case XSRG_FILE:
 			return "xsrg.xsrg";
+		case JAM_FILE:
+			return "jam.jam";
 		case CSRG_FILE:
 			return "csrg.csrg";
 		case TSRG_FILE:

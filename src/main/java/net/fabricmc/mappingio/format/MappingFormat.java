@@ -46,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
+ *     <td>lvIdx, lvtIdx, startOpIdx & srcName</td>
  *     <td>✔</td>
  *   </tr>
  *   <tr>
@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
@@ -78,6 +78,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *   </tr>
  *   <tr>
+ *     <td>JAM</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>argPos</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
  *     <td>CSRG/TSRG</td>
  *     <td>-</td>
  *     <td>-</td>
@@ -91,7 +100,7 @@ import org.jetbrains.annotations.Nullable;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>-</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
@@ -147,6 +156,11 @@ public enum MappingFormat {
 	 * Same as SRG, but with field descriptors.
 	 */
 	XSRG_FILE("XSRG file", "xsrg", false, true, false, false, false, true),
+
+	/**
+	 * The {@code JAM} ("Java Associated Mapping"; formerly {@code SRGX}) mapping format, as specified <a href="https://github.com/caseif/JAM">here</a>.
+	 */
+	JAM_FILE("JAM file", "jam", false, true, false, true, false, true),
 
 	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
