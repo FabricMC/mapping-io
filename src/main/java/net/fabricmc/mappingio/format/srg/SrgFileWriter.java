@@ -28,6 +28,10 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 
+/**
+ * {@linkplain net.fabricmc.mappingio.format.MappingFormat#SRG_FILE SRG file} and
+ * {@linkplain net.fabricmc.mappingio.format.MappingFormat#XSRG_FILE XSRG file} writer.
+ */
 public final class SrgFileWriter implements MappingWriter {
 	public SrgFileWriter(Writer writer, boolean xsrg) {
 		this.writer = writer;
@@ -99,7 +103,7 @@ public final class SrgFileWriter implements MappingWriter {
 			memberDstName = name;
 			break;
 		default:
-			break;
+			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
 	}
 
@@ -118,11 +122,11 @@ public final class SrgFileWriter implements MappingWriter {
 			write("CL: ");
 			break;
 		case FIELD:
-			if (memberDstName == null) return false;
+			if (memberSrcDesc == null || memberDstName == null || (xsrg && memberDstDesc == null)) return false;
 			write("FD: ");
 			break;
 		case METHOD:
-			if (memberDstName == null || memberDstDesc == null) return false;
+			if (memberSrcDesc == null || memberDstName == null || memberDstDesc == null) return false;
 			write("MD: ");
 			break;
 		default:

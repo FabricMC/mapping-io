@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class TestHelper {
@@ -53,6 +53,8 @@ public final class TestHelper {
 			return "srg.srg";
 		case XSRG_FILE:
 			return "xsrg.xsrg";
+		case JAM_FILE:
+			return "jam.jam";
 		case CSRG_FILE:
 			return "csrg.csrg";
 		case TSRG_FILE:
@@ -61,15 +63,19 @@ public final class TestHelper {
 			return "tsrg2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case RECAF_SIMPLE_FILE:
+			return "recaf-simple.txt";
+		case JOBF_FILE:
+			return "jobf.jobf";
 		default:
 			return null;
 		}
 	}
 
-	public static void writeToDir(MappingTree tree, MappingFormat format, Path dir) throws IOException {
-		MappingWriter writer = MappingWriter.create(dir.resolve(format.name() + "." + format.fileExt), format);
-		tree.accept(writer);
-		writer.close();
+	public static Path writeToDir(MappingTreeView tree, Path dir, MappingFormat format) throws IOException {
+		Path path = dir.resolve(getFileName(format));
+		tree.accept(MappingWriter.create(path, format));
+		return path;
 	}
 
 	// Has to be kept in sync with /resources/read/valid/* test mappings!
@@ -204,7 +210,7 @@ public final class TestHelper {
 	}
 
 	private static void visitMethodArg(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodArg(counter.getAndIncrement(), counter.getAndIncrement(), nameGen.src(argKind));
+		tree.visitMethodArg(nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(argKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(argKind, ns, nameGen.dst(argKind, ns));
@@ -212,7 +218,8 @@ public final class TestHelper {
 	}
 
 	private static void visitMethodVar(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodVar(counter.get(), counter.get(), counter.getAndIncrement(), counter.getAndIncrement(), nameGen.src(varKind));
+		tree.visitMethodVar(nameGen.getCounter().get(), nameGen.getCounter().get(),
+				nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(varKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(varKind, ns, nameGen.dst(varKind, ns));
@@ -233,6 +240,7 @@ public final class TestHelper {
 			argNum.get().set(0);
 			varNum.get().set(0);
 			nsNum.get().set(0);
+			counter.get().set(0);
 		}
 
 		private void resetNsNum() {
@@ -300,6 +308,10 @@ public final class TestHelper {
 			return sb.toString();
 		}
 
+		public AtomicInteger getCounter() {
+			return counter.get();
+		}
+
 		private AtomicInteger getCounter(MappedElementKind kind) {
 			switch (kind) {
 			case CLASS:
@@ -348,9 +360,17 @@ public final class TestHelper {
 		private ThreadLocal<AtomicInteger> argNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> varNum = ThreadLocal.withInitial(() -> new AtomicInteger());
 		private ThreadLocal<AtomicInteger> nsNum = ThreadLocal.withInitial(() -> new AtomicInteger());
+		private ThreadLocal<AtomicInteger> counter = ThreadLocal.withInitial(() -> new AtomicInteger());
 	}
 
 	public static class MappingDirs {
+		@Nullable
+		public static MemoryMappingTree getCorrespondingTree(Path dir) {
+			if (dir.equals(VALID)) return createTestTree();
+			if (dir.equals(VALID_WITH_HOLES)) return createTestTreeWithHoles();
+			return null;
+		}
+
 		public static final Path DETECTION = getResource("/detection/");
 		public static final Path VALID = getResource("/read/valid/");
 		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
@@ -360,7 +380,6 @@ public final class TestHelper {
 	private static final String mthDesc = "()I";
 	private static final String comment = "This is a comment";
 	private static final NameGen nameGen = new NameGen();
-	private static final AtomicInteger counter = new AtomicInteger();
 	private static final MappedElementKind clsKind = MappedElementKind.CLASS;
 	private static final MappedElementKind fldKind = MappedElementKind.FIELD;
 	private static final MappedElementKind mthKind = MappedElementKind.METHOD;
