@@ -78,6 +78,11 @@ public class WriteTest {
 		check(MappingFormat.PROGUARD_FILE);
 	}
 
+	@Test
+	public void recafSimpleFile() throws Exception {
+		check(MappingFormat.RECAF_SIMPLE_FILE);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		dogfood(validTree, dir, format);
 		dogfood(validWithHolesTree, dir, format);

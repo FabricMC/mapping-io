@@ -104,6 +104,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
+ *   <tr>
+ *     <td>Recaf Simple</td>
+ *     <td>-</td>
+ *     <td>src & dst</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
  * </table>
  */
 // Format order is determined by importance to Fabric tooling, format family and release order therein.
@@ -158,7 +167,12 @@ public enum MappingFormat {
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false, true);
+	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false, true),
+
+	/**
+	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
+	 */
+	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", false, true, false, false, false, true);
 
 	MappingFormat(String name, @Nullable String fileExt,
 			boolean hasNamespaces, boolean hasFieldDescriptors,
