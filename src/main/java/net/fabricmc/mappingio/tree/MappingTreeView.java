@@ -23,6 +23,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 /**
  * Read-only mapping tree.
@@ -72,6 +73,7 @@ public interface MappingTreeView {
 
 	List<? extends MetadataEntryView> getMetadata();
 	List<? extends MetadataEntryView> getMetadata(String key);
+	List<? extends MetadataEntryView> getMetadata(StandardProperty property);
 
 	Collection<? extends ClassMappingView> getClasses();
 	@Nullable

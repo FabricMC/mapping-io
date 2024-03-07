@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>-</td>
  *     <td>-</td>
- *     <td>✔ (Currently limited support)</td>
+ *     <td>✔</td>
  *   </tr>
  *   <tr>
  *     <td>Tiny v2</td>

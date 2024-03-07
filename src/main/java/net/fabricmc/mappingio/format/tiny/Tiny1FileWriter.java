@@ -29,6 +29,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 /**
  * {@linkplain MappingFormat#TINY_1 Tiny v1 file} writer.
@@ -65,30 +67,18 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		switch (key) {
-		case Tiny1FileReader.nextIntermediaryClassProperty:
-		case Tiny1FileReader.nextIntermediaryFieldProperty:
-		case Tiny1FileReader.nextIntermediaryMethodProperty:
-			write("# INTERMEDIARY-COUNTER ");
+		StandardProperty property = StandardProperties.getById(key);
 
-			switch (key) {
-			case Tiny1FileReader.nextIntermediaryClassProperty:
-				write("class");
-				break;
-			case Tiny1FileReader.nextIntermediaryFieldProperty:
-				write("field");
-				break;
-			case Tiny1FileReader.nextIntermediaryMethodProperty:
-				write("method");
-				break;
-			default:
-				throw new IllegalStateException();
-			}
-
-			write(" ");
-			write(value);
-			writeLn();
+		if (property != null) {
+			if (!property.isApplicableTo(format)) return;
+			key = property.getNameFor(format);
 		}
+
+		write("# ");
+		write(key);
+		write(" ");
+		write(value);
+		writeLn();
 	}
 
 	@Override
@@ -197,6 +187,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final MappingFormat format = MappingFormat.TINY_FILE;
 
 	private final Writer writer;
 	private String classSrcName;

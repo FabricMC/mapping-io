@@ -21,6 +21,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.format.StandardProperty;
+
 /**
  * Mutable mapping tree.
  */
@@ -43,6 +45,14 @@ public interface MappingTree extends MappingTreeView {
 	 */
 	@Override
 	List<? extends MetadataEntry> getMetadata(String key);
+
+	/**
+	 * @return An unmodifiable list of all metadata entries currently present
+	 * in the tree whose key is equal to the passed {@link StandardProperty}'s ID.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
+	@Override
+	List<? extends MetadataEntry> getMetadata(StandardProperty property);
 
 	void addMetadata(MetadataEntry entry);
 

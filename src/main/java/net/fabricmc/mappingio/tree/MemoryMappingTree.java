@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 /**
  * {@link VisitableMappingTree} implementation that stores all data in memory.
@@ -224,6 +225,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	public List<? extends MetadataEntry> getMetadata(String key) {
 		return Collections.unmodifiableList(metadata.stream()
 				.filter(entry -> entry.getKey().equals(key))
+				.collect(Collectors.toList()));
+	}
+
+	@Override
+	public List<? extends MetadataEntry> getMetadata(StandardProperty property) {
+		return Collections.unmodifiableList(metadata.stream()
+				.filter(entry -> entry.getKey().equals(property.getId()))
 				.collect(Collectors.toList()));
 	}
 

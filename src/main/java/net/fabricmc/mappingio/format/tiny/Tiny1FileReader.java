@@ -27,6 +27,8 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.format.StandardProperty;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -141,28 +143,27 @@ public final class Tiny1FileReader {
 						}
 					} else {
 						String line = reader.nextCol();
-						final String prefix = "# INTERMEDIARY-COUNTER ";
-						String[] parts;
 
-						if (line.startsWith(prefix)
-								&& (parts = line.substring(prefix.length()).split(" ")).length == 2) {
-							String property = null;
+						if (line.startsWith("# ") && line.length() >= 3 && line.charAt(3) != ' ') { // Metadata
+							line = line.substring(2);
+							String[] parts = line.split(" ");
+							String value = parts[parts.length - 1];
+							String key = line.substring(0, line.lastIndexOf(value));
 
-							switch (parts[0]) {
-							case "class":
-								property = nextIntermediaryClassProperty;
-								break;
-							case "field":
-								property = nextIntermediaryFieldProperty;
-								break;
-							case "method":
-								property = nextIntermediaryMethodProperty;
-								break;
+							if (key.isEmpty()) {
+								String oldValue = value;
+								value = key;
+								key = oldValue;
 							}
+
+							StandardProperty property = StandardProperties.getByName(key);
 
 							if (property != null) {
-								visitor.visitMetadata(property, parts[1]);
+								if (!property.isApplicableTo(format)) continue; // How did it get there?
+								key = property.getId();
 							}
+
+							visitor.visitMetadata(key, value);
 						}
 					}
 				}
@@ -187,7 +188,5 @@ public final class Tiny1FileReader {
 		}
 	}
 
-	static final String nextIntermediaryClassProperty = "next-intermediary-class";
-	static final String nextIntermediaryFieldProperty = "next-intermediary-field";
-	static final String nextIntermediaryMethodProperty = "next-intermediary-method";
+	private static final MappingFormat format = MappingFormat.TINY_FILE;
 }

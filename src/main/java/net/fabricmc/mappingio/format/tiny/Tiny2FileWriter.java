@@ -29,6 +29,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.StandardProperties;
+import net.fabricmc.mappingio.format.StandardProperty;
 
 /**
  * {@linkplain MappingFormat#TINY_2 Tiny v2 file} writer.
@@ -66,9 +68,16 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		if (key.equals(Tiny2Util.escapedNamesProperty)) {
-			escapeNames = true;
-			wroteEscapedNamesProperty = true;
+		StandardProperty property = StandardProperties.getById(key);
+
+		if (property != null) {
+			if (!property.isApplicableTo(format)) return;
+			key = property.getNameFor(format);
+
+			if (property == StandardProperties.ESCAPED_NAMES) {
+				escapeNames = true;
+				wroteEscapedNamesProperty = true;
+			}
 		}
 
 		writeTab();
@@ -86,7 +95,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 	public boolean visitContent() throws IOException {
 		if (escapeNames && !wroteEscapedNamesProperty) {
 			write("\t");
-			write(Tiny2Util.escapedNamesProperty);
+			write(StandardProperties.ESCAPED_NAMES.getNameFor(format));
 			writeLn();
 		}
 
@@ -206,6 +215,7 @@ public final class Tiny2FileWriter implements MappingWriter {
 		}
 	}
 
+	private static final MappingFormat format = MappingFormat.TINY_2_FILE;
 	private static final Set<MappingFlag> flags = EnumSet.of(
 			MappingFlag.NEEDS_HEADER_METADATA,
 			MappingFlag.NEEDS_METADATA_UNIQUENESS,

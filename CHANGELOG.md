@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Recaf Simple reader and writer
 - Added `OuterClassNameInheritingVisitor`
 - Added `MappingFormat#hasWriter` boolean
+- Added cross-format `StandardProperties` class
+- Allowed Tiny v1 to save arbitrary metadata, not only intermediary counters
 
 ## [0.5.1] - 2023-11-30
 - Improved documentation
