@@ -33,6 +33,8 @@ import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
+import net.fabricmc.mappingio.format.srg.JamFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
 import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -83,9 +85,14 @@ public final class MappingReader {
 			return MappingFormat.ENIGMA_FILE;
 		case "PK:":
 		case "CL:":
-		case "MD:":
 		case "FD:":
+		case "MD:":
 			return detectSrgOrXsrg(br);
+		case "CL ":
+		case "FD ":
+		case "MD ":
+		case "MP ":
+			return MappingFormat.JAM_FILE;
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -102,7 +109,7 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		// TODO: CSRG
+		// TODO: CSRG, Recaf Simple
 
 		return null; // unknown format or corrupted
 	}
@@ -268,6 +275,9 @@ public final class MappingReader {
 		case XSRG_FILE:
 			SrgFileReader.read(reader, visitor);
 			break;
+		case JAM_FILE:
+			JamFileReader.read(reader, visitor);
+			break;
 		case CSRG_FILE:
 		case TSRG_FILE:
 		case TSRG_2_FILE:
@@ -275,6 +285,9 @@ public final class MappingReader {
 			break;
 		case PROGUARD_FILE:
 			ProGuardFileReader.read(reader, visitor);
+			break;
+		case RECAF_SIMPLE_FILE:
+			RecafSimpleFileReader.read(reader, visitor);
 			break;
 		case JOBF_FILE:
 			JobfFileReader.read(reader, visitor);

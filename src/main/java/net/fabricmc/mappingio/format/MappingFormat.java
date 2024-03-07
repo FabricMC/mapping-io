@@ -46,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
+ *     <td>lvIdx, lvtIdx, startOpIdx & srcName</td>
  *     <td>✔</td>
  *   </tr>
  *   <tr>
@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
@@ -78,6 +78,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>-</td>
  *   </tr>
  *   <tr>
+ *     <td>JAM</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>argPos</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
  *     <td>CSRG/TSRG</td>
  *     <td>-</td>
  *     <td>-</td>
@@ -91,7 +100,7 @@ import org.jetbrains.annotations.Nullable;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>-</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
@@ -99,6 +108,15 @@ import org.jetbrains.annotations.Nullable;
  *     <td>ProGuard</td>
  *     <td>-</td>
  *     <td>src</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
+ *     <td>Recaf Simple</td>
+ *     <td>-</td>
+ *     <td>src & dst</td>
  *     <td>-</td>
  *     <td>-</td>
  *     <td>-</td>
@@ -149,25 +167,35 @@ public enum MappingFormat {
 	XSRG_FILE("XSRG file", "xsrg", false, true, false, false, false, true),
 
 	/**
+	 * The {@code JAM} ("Java Associated Mapping"; formerly {@code SRGX}) mapping format, as specified <a href="https://github.com/caseif/JAM">here</a>.
+	 */
+	JAM_FILE("JAM file", "jam", false, true, false, true, false, true),
+
+	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
 	 */
-	CSRG_FILE("CSRG file", "csrg", false, false, false, false, false, false),
+	CSRG_FILE("CSRG file", "csrg", false, false, false, false, false, true),
 
 	/**
 	 * The {@code TSRG} ("Tiny SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
 	 * Same as CSRG, but hierarchical instead of flat.
 	 */
-	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, false),
+	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, true),
 
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false, false),
+	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false, true),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
 	PROGUARD_FILE("ProGuard file", "txt", false, true, false, false, false, true),
+
+	/**
+	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
+	 */
+	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", false, true, false, false, false, true),
 
 	/**
 	 * The {@code JOBF} mapping format, as specified <a href="https://github.com/skylot/jadx/blob/2d5c0fda4a0c5d16207a5f48edb72e6efa7d5bbd/jadx-core/src/main/java/jadx/core/deobf/DeobfPresets.java">here</a>.
