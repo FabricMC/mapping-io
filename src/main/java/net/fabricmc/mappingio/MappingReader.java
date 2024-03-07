@@ -48,15 +48,23 @@ public final class MappingReader {
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
-		} else {
-			try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
-				return detectFormat(reader);
-			}
+		}
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
+			String fileName = file.getFileName().toString();
+			int dotIdx = fileName.lastIndexOf('.');
+			String fileExt = dotIdx >= 0 ? fileName.substring(dotIdx + 1) : null;
+
+			return detectFormat(reader, fileExt);
 		}
 	}
 
 	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
+		return detectFormat(reader, null);
+	}
+
+	private static MappingFormat detectFormat(Reader reader, @Nullable String fileExt) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
@@ -87,7 +95,7 @@ public final class MappingReader {
 		case "CL:":
 		case "FD:":
 		case "MD:":
-			return detectSrgOrXsrg(br);
+			return detectSrgOrXsrg(br, fileExt);
 		case "CL ":
 		case "FD ":
 		case "MD ":
@@ -109,31 +117,33 @@ public final class MappingReader {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		// TODO: CSRG, Recaf Simple
+		if (fileExt != null) {
+			if (fileExt.equals(MappingFormat.CSRG_FILE.fileExt)) return MappingFormat.CSRG_FILE;
+		}
 
-		return null; // unknown format or corrupted
+		// TODO: Recaf Simple
+
+		return null; // format unknown, not easily detectable or corrupted
 	}
 
-	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader, @Nullable String fileExt) throws IOException {
 		String line;
 
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("FD:")) {
 				String[] parts = line.split(" ");
 
-				if (parts.length >= 5) {
-					if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
-						continue;
-					}
-
-					return MappingFormat.XSRG_FILE;
-				} else {
-					break;
+				if (parts.length < 5
+						|| isEmptyOrStartsWithHash(parts[3])
+						|| isEmptyOrStartsWithHash(parts[4])) {
+					return MappingFormat.SRG_FILE;
 				}
+
+				return MappingFormat.XSRG_FILE;
 			}
 		}
 
-		return MappingFormat.SRG_FILE;
+		return MappingFormat.XSRG_FILE.fileExt.equals(fileExt) ? MappingFormat.XSRG_FILE : MappingFormat.SRG_FILE;
 	}
 
 	private static boolean isEmptyOrStartsWithHash(String string) {

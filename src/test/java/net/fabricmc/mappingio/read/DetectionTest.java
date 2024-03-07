@@ -67,7 +67,7 @@ public class DetectionTest {
 	}
 
 	@Test
-	public void xrgFile() throws Exception {
+	public void xsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.XSRG_FILE;
 		check(format);
 	}
@@ -81,7 +81,7 @@ public class DetectionTest {
 	@Test
 	public void csrgFile() throws Exception {
 		MappingFormat format = MappingFormat.CSRG_FILE;
-		assertThrows(AssertionFailedError.class, () -> check(format));
+		check(format);
 	}
 
 	@Test
@@ -119,6 +119,7 @@ public class DetectionTest {
 		assertEquals(format, MappingReader.detectFormat(path));
 
 		if (!format.hasSingleFile()) return;
+		if (format == MappingFormat.CSRG_FILE) return;
 
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
 			assertEquals(format, MappingReader.detectFormat(reader));
