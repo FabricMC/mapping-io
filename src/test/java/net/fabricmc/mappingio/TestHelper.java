@@ -65,6 +65,8 @@ public final class TestHelper {
 			return "proguard.txt";
 		case RECAF_SIMPLE_FILE:
 			return "recaf-simple.txt";
+		case JOBF_FILE:
+			return "jobf.jobf";
 		default:
 			return null;
 		}

@@ -106,6 +106,12 @@ public class VisitEndTest {
 		check(format);
 	}
 
+	@Test
+	public void jobfFile() throws Exception {
+		MappingFormat format = MappingFormat.JOBF_FILE;
+		check(format);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		checkDir(TestHelper.MappingDirs.DETECTION, format);
 		checkDir(TestHelper.MappingDirs.VALID, format);

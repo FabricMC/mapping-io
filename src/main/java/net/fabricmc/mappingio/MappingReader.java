@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
 import net.fabricmc.mappingio.format.srg.JamFileReader;
@@ -96,7 +97,13 @@ public final class MappingReader {
 
 		String headerStr = String.valueOf(buffer, 0, pos);
 
-		if (headerStr.contains(" -> ")) {
+		if ((headerStr.startsWith("p ")
+				|| headerStr.startsWith("c ")
+				|| headerStr.startsWith("f ")
+				|| headerStr.startsWith("m "))
+				&& headerStr.contains(" = ")) {
+			return MappingFormat.JOBF_FILE;
+		} else if (headerStr.contains(" -> ")) {
 			return MappingFormat.PROGUARD_FILE;
 		} else if (headerStr.contains("\n\t")) {
 			return MappingFormat.TSRG_FILE;
@@ -281,6 +288,9 @@ public final class MappingReader {
 			break;
 		case RECAF_SIMPLE_FILE:
 			RecafSimpleFileReader.read(reader, visitor);
+			break;
+		case JOBF_FILE:
+			JobfFileReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();

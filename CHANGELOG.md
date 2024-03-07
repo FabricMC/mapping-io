@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added CSRG writer
 - Added TSRG and TSRG2 writer
 - Added JAM reader and writer
+- Added JOBF reader and writer
 - Added Recaf Simple reader and writer
 - Added `MappingFormat#hasWriter` boolean
 

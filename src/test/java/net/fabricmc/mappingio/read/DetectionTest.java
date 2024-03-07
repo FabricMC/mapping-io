@@ -108,6 +108,12 @@ public class DetectionTest {
 		assertThrows(AssertionFailedError.class, () -> check(format));
 	}
 
+	@Test
+	public void jobfFile() throws Exception {
+		MappingFormat format = MappingFormat.JOBF_FILE;
+		check(format);
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
 		assertEquals(format, MappingReader.detectFormat(path));
