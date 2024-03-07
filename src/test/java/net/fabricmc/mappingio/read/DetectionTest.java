@@ -102,6 +102,12 @@ public class DetectionTest {
 		check(format);
 	}
 
+	@Test
+	public void recafSimpleFile() throws Exception {
+		MappingFormat format = MappingFormat.RECAF_SIMPLE_FILE;
+		assertThrows(AssertionFailedError.class, () -> check(format));
+	}
+
 	private void check(MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
 		assertEquals(format, MappingReader.detectFormat(path));
