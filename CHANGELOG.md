@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Added JAM reader and writer
+- Added `MappingFormat#hasWriter` boolean
 
 ## [0.5.1] - 2023-11-30
 - Improved documentation
