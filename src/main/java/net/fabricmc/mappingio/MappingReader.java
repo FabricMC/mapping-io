@@ -133,12 +133,10 @@ public final class MappingReader {
 			if (line.startsWith("FD:")) {
 				String[] parts = line.split(" ");
 
-				if (parts.length < 5) {
+				if (parts.length < 5
+						|| isEmptyOrStartsWithHash(parts[3])
+						|| isEmptyOrStartsWithHash(parts[4])) {
 					return MappingFormat.SRG_FILE;
-				}
-
-				if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
-					continue;
 				}
 
 				return MappingFormat.XSRG_FILE;
