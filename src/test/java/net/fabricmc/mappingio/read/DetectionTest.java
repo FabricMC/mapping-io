@@ -65,7 +65,7 @@ public class DetectionTest {
 	}
 
 	@Test
-	public void xrgFile() throws Exception {
+	public void xsrgFile() throws Exception {
 		MappingFormat format = MappingFormat.XSRG_FILE;
 		check(format);
 	}

@@ -92,7 +92,7 @@ public final class MappingReader {
 		case "CL:":
 		case "MD:":
 		case "FD:":
-			return detectSrgOrXsrg(br);
+			return detectSrgOrXsrg(br, fileExt);
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
@@ -110,26 +110,26 @@ public final class MappingReader {
 		return null; // format unknown, not easily detectable or corrupted
 	}
 
-	private static MappingFormat detectSrgOrXsrg(BufferedReader reader) throws IOException {
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader, @Nullable String fileExt) throws IOException {
 		String line;
 
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("FD:")) {
 				String[] parts = line.split(" ");
 
-				if (parts.length >= 5) {
-					if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
-						continue;
-					}
-
-					return MappingFormat.XSRG_FILE;
-				} else {
-					break;
+				if (parts.length < 5) {
+					return MappingFormat.SRG_FILE;
 				}
+
+				if (isEmptyOrStartsWithHash(parts[3]) || isEmptyOrStartsWithHash(parts[4])) {
+					continue;
+				}
+
+				return MappingFormat.XSRG_FILE;
 			}
 		}
 
-		return MappingFormat.SRG_FILE;
+		return MappingFormat.XSRG_FILE.fileExt.equals(fileExt) ? MappingFormat.XSRG_FILE : MappingFormat.SRG_FILE;
 	}
 
 	private static boolean isEmptyOrStartsWithHash(String string) {
