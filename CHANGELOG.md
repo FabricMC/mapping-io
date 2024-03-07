@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added JAM reader and writer
 - Added JOBF reader and writer
 - Added Recaf Simple reader and writer
+- Added `OuterClassNameInheritingVisitor`
 - Added `MappingFormat#hasWriter` boolean
 
 ## [0.5.1] - 2023-11-30
