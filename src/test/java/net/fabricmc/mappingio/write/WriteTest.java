@@ -74,6 +74,21 @@ public class WriteTest {
 	}
 
 	@Test
+	public void csrgFile() throws Exception {
+		check(MappingFormat.CSRG_FILE);
+	}
+
+	@Test
+	public void tsrgFile() throws Exception {
+		check(MappingFormat.TSRG_FILE);
+	}
+
+	@Test
+	public void tsrg2File() throws Exception {
+		check(MappingFormat.TSRG_2_FILE);
+	}
+
+	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
 	}

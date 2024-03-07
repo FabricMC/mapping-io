@@ -151,18 +151,18 @@ public enum MappingFormat {
 	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
 	 */
-	CSRG_FILE("CSRG file", "csrg", false, false, false, false, false, false),
+	CSRG_FILE("CSRG file", "csrg", false, false, false, false, false, true),
 
 	/**
 	 * The {@code TSRG} ("Tiny SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
 	 * Same as CSRG, but hierarchical instead of flat.
 	 */
-	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, false),
+	TSRG_FILE("TSRG file", "tsrg", false, false, false, false, false, true),
 
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false, false),
+	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false, true),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
