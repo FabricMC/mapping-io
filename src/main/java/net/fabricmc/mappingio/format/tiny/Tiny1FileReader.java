@@ -19,7 +19,9 @@ package net.fabricmc.mappingio.format.tiny;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -100,11 +102,21 @@ public final class Tiny1FileReader {
 				String lastClass = null;
 				boolean lastClassDstNamed = false;;
 				boolean visitLastClass = false;
+				Map<String, String> potentialFooterMetadata = new LinkedHashMap<>();
 
 				while (reader.nextLine(0)) {
-					boolean isMethod;
+					boolean isClass = false;
+					boolean isMethod = false;
+					boolean isField = false;
 
-					if (reader.nextCol("CLASS")) { // class: CLASS <names>...
+					if ((isClass = reader.nextCol("CLASS"))
+							|| (isMethod = reader.nextCol("METHOD"))
+							|| (isField = reader.nextCol("FIELD"))) {
+						// Footer metadata can't be followed by a new class/method/field, so any stored data was comments
+						potentialFooterMetadata.clear();
+					}
+
+					if (isClass) { // class: CLASS <names>...
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
@@ -118,7 +130,7 @@ public final class Tiny1FileReader {
 								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 							}
 						}
-					} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
+					} else if (isMethod || isField) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
 						String srcOwner = reader.nextCol();
 						if (srcOwner == null || srcOwner.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
@@ -144,11 +156,11 @@ public final class Tiny1FileReader {
 					} else {
 						String line = reader.nextCol();
 
-						if (line.startsWith("# ") && line.length() >= 3 && line.charAt(3) != ' ') { // Metadata
+						if (line.startsWith("# ") && line.length() >= 3 && line.charAt(3) != ' ') { // Potentially metadata
 							line = line.substring(2);
 							String[] parts = line.split(" ");
 							String value = parts[parts.length - 1];
-							String key = line.substring(0, line.lastIndexOf(value));
+							String key = line.substring(0, line.lastIndexOf(value) - 1);
 
 							if (key.isEmpty()) {
 								String oldValue = value;
@@ -163,9 +175,17 @@ public final class Tiny1FileReader {
 								key = property.getId();
 							}
 
-							visitor.visitMetadata(key, value);
+							if (lastClass == null) { // Header metadata
+								visitor.visitMetadata(key, value);
+							} else {
+								potentialFooterMetadata.put(key, value);
+							}
 						}
 					}
+				}
+
+				for (Map.Entry<String, String> entry : potentialFooterMetadata.entrySet()) {
+					visitor.visitMetadata(entry.getKey(), entry.getValue());
 				}
 			}
 
