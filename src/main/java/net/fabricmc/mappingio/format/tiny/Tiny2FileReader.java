@@ -105,10 +105,9 @@ public final class Tiny2FileReader {
 						String key = reader.nextCol();
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
 						String value = reader.nextEscapedCol(); // may be missing -> null
-						StandardProperty property = StandardProperties.getByName(key);
+						StandardProperty property = StandardProperties.getByName(format, key);
 
 						if (property != null) {
-							if (!property.isApplicableTo(format)) continue; // How did it get there?
 							key = property.getId();
 
 							if (property == StandardProperties.ESCAPED_NAMES) {

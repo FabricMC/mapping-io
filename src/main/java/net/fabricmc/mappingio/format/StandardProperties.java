@@ -16,11 +16,11 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +29,13 @@ public final class StandardProperties {
 	private StandardProperties() {
 	}
 
-	public static Set<StandardProperty> values() {
-		return Collections.unmodifiableSet(values);
+	public static Collection<StandardProperty> values() {
+		return Collections.unmodifiableCollection(valuesById.values());
 	}
 
 	@Nullable
-	public static StandardProperty getByName(String name) {
-		return valuesByName.get(name);
+	public static StandardProperty getByName(MappingFormat format, String name) {
+		return valuesByFormatAndName.get(new AbstractMap.SimpleEntry<>(format, name));
 	}
 
 	@Nullable
@@ -50,8 +50,7 @@ public final class StandardProperties {
 	public static final StandardProperty NEXT_INTERMEDIARY_COMPONENT;
 	public static final StandardProperty MISSING_LVT_INDICES;
 	public static final StandardProperty ESCAPED_NAMES;
-	private static final Set<StandardProperty> values = new HashSet<>();
-	private static final Map<String, StandardProperty> valuesByName = new HashMap<>();
+	private static final Map<Map.Entry<MappingFormat, String>, StandardProperty> valuesByFormatAndName = new HashMap<>();
 	private static final Map<String, StandardProperty> valuesById = new HashMap<>();
 
 	static {
@@ -80,13 +79,12 @@ public final class StandardProperties {
 	private static class StandardPropertyImpl implements StandardProperty {
 		StandardPropertyImpl(String id) {
 			this.id = id;
-			values.add(this);
 			valuesById.put(id, this);
 		}
 
 		private StandardPropertyImpl addMapping(MappingFormat format, String name) {
 			nameByFormat.put(format, name);
-			valuesByName.put(name, this);
+			valuesByFormatAndName.put(new AbstractMap.SimpleEntry<>(format, name), this);
 			return this;
 		}
 

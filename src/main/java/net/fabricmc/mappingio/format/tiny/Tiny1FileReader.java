@@ -168,10 +168,9 @@ public final class Tiny1FileReader {
 								key = oldValue;
 							}
 
-							StandardProperty property = StandardProperties.getByName(key);
+							StandardProperty property = StandardProperties.getByName(format, key);
 
 							if (property != null) {
-								if (!property.isApplicableTo(format)) continue; // How did it get there?
 								key = property.getId();
 							}
 
