@@ -27,6 +27,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.ErrorCollector;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
@@ -39,17 +42,27 @@ public final class ProGuardFileReader {
 	private ProGuardFileReader() {
 	}
 
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
-
-		read(br, sourceNs, targetNs, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, errorCollector);
 	}
 
-	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	@Deprecated
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(reader, sourceNs, targetNs, visitor, new ThrowingErrorCollector(Severity.ERROR));
+	}
+
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+
+		read(br, sourceNs, targetNs, visitor, errorCollector);
+	}
+
+	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorCollector errorCollector) throws IOException {
 		CharArrayReader parentReader = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -88,30 +101,59 @@ public final class ProGuardFileReader {
 
 					if (line.endsWith(":")) { // class: <deobf> -> <obf>:
 						int pos = line.indexOf(" -> ");
-						if (pos < 0) throw new IOException("invalid proguard line (invalid separator): "+line);
-						if (pos == 0) throw new IOException("invalid proguard line (empty src class): "+line);
-						if (pos + 4 + 1 >= line.length()) throw new IOException("invalid proguard line (empty dst class): "+line);
+						boolean hasDstName = true;
+
+						if (pos < 0) {
+							errorCollector.addError("invalid proguard line (invalid separator): "+line);
+							visitClass = false;
+							continue;
+						} else if (pos == 0) {
+							errorCollector.addError("invalid proguard line (empty src class): "+line);
+							visitClass = false;
+							continue;
+						} else if (pos + 4 + 1 >= line.length()) {
+							errorCollector.addWarning("invalid proguard line (empty dst class): "+line);
+							hasDstName = false;
+						}
 
 						String name = line.substring(0, pos).replace('.', '/');
 						visitClass = visitor.visitClass(name);
 
 						if (visitClass) {
-							String mappedName = line.substring(pos + 4, line.length() - 1).replace('.', '/');
-							visitor.visitDstName(MappedElementKind.CLASS, 0, mappedName);
+							if (hasDstName) {
+								String mappedName = line.substring(pos + 4, line.length() - 1).replace('.', '/');
+								visitor.visitDstName(MappedElementKind.CLASS, 0, mappedName);
+							}
+
 							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 					} else if (visitClass) { // method or field: <type> <deobf> -> <obf>
 						String[] parts = line.split(" ");
 
-						if (parts.length != 4) throw new IOException("invalid proguard line (extra columns): "+line);
-						if (parts[0].isEmpty()) throw new IOException("invalid proguard line (empty type): "+line);
-						if (parts[1].isEmpty()) throw new IOException("invalid proguard line (empty src member): "+line);
-						if (!parts[2].equals("->")) throw new IOException("invalid proguard line (invalid separator): "+line);
-						if (parts[3].isEmpty()) throw new IOException("invalid proguard line (empty dst member): "+line);
+						if (parts.length < 4) {
+							errorCollector.addError("invalid proguard line (missing columns): "+line);
+							continue;
+						} else if (parts.length > 4) {
+							errorCollector.addInfo("invalid proguard line: expected eol, found content: "+parts[4]);
+						}
+
+						if (parts[0].isEmpty()) errorCollector.addWarning("invalid proguard line (empty type): "+line);
+
+						if (parts[1].isEmpty()) {
+							errorCollector.addError("invalid proguard line (empty src member): "+line);
+							continue;
+						}
+
+						if (!parts[2].equals("->")) {
+							errorCollector.addError("invalid proguard line (invalid separator): "+line);
+							continue;
+						}
+
+						if (parts[3].isEmpty()) errorCollector.addWarning("invalid proguard line (empty dst member): "+line);
 
 						if (parts[1].indexOf('(') < 0) { // field: <type> <deobf> -> <obf>
 							String name = parts[1];
-							String desc = pgTypeToAsm(parts[0], tmp);
+							String desc = parts[0].isEmpty() ? null : pgTypeToAsm(parts[0], tmp);
 
 							if (visitor.visitField(name, desc)) {
 								String mappedName = parts[3];

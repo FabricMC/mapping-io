@@ -31,6 +31,8 @@ import org.opentest4j.AssertionFailedError;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.NopMappingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.format.ErrorCollector.Severity;
+import net.fabricmc.mappingio.format.ErrorCollector.ThrowingErrorCollector;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 public class DetectionTest {
@@ -127,7 +129,7 @@ public class DetectionTest {
 
 		// Make sure that the passed reader still works after implicit format detection (see https://github.com/FabricMC/mapping-io/pull/71).
 		try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-			MappingReader.read(reader, new NopMappingVisitor(true));
+			MappingReader.read(reader, new NopMappingVisitor(true), new ThrowingErrorCollector(Severity.INFO));
 		}
 	}
 }
