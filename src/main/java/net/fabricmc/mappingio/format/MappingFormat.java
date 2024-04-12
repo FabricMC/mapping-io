@@ -159,7 +159,7 @@ public enum MappingFormat {
 					.withStartOpIndices(OptionalFeature.REQUIRED)
 					.withSrcNames(OptionalFeature.OPTIONAL)
 					.withDstNames(OptionalFeature.OPTIONAL))
-			.withElementComments(ElementCommentSupport.SINGLE)
+			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments()), // not sure about this one
 
 	/**
@@ -181,7 +181,7 @@ public enum MappingFormat {
 			.withArgs(a -> a
 					.withLvIndices(OptionalFeature.REQUIRED)
 					.withDstNames(OptionalFeature.OPTIONAL))
-			.withElementComments(ElementCommentSupport.SINGLE)
+			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments()),
 
 	/**
@@ -804,7 +804,7 @@ public enum MappingFormat {
 
 		public enum ElementCommentSupport {
 			NAMESPACED,
-			SINGLE,
+			SHARED,
 			NONE
 		}
 	}
