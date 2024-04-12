@@ -30,7 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.MappingFormat.FeatureSet;
 import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.ElementCommentSupport;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.OptionalFeature;
+import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
+import net.fabricmc.mappingio.format.MappingFormat.FeatureSetImpl;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;
@@ -47,8 +48,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 	public SubsetAssertingVisitor(MappingTreeView supTree, @Nullable MappingFormat supFormat, @Nullable MappingFormat subFormat) {
 		this.supTree = supTree;
 		this.supDstNsCount = supTree.getMaxNamespaceId();
-		this.supFeatures = supFormat == null ? new FeatureSet(true) : supFormat.features;
-		this.subFeatures = subFormat == null ? new FeatureSet(true) : subFormat.features;
+		this.supFeatures = supFormat == null ? new FeatureSetImpl(true) : supFormat.getFeatures();
+		this.subFeatures = subFormat == null ? new FeatureSetImpl(true) : subFormat.getFeatures();
 	}
 
 	@Override
@@ -86,8 +87,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsClasses()) return true; // sub-elements might still be supported
 
 		ClassMappingView supCls = supTree.getClass(srcName);
-		boolean supHasDstNames = supFeatures.classes().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstNames = subFeatures.classes().dstNames() != OptionalFeature.UNSUPPORTED;
+		boolean supHasDstNames = supFeatures.classes().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstNames = subFeatures.classes().dstNames() != SupportLevel.UNSUPPORTED;
 
 		if (supCls == null) { // SupTree doesn't have this class, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {
@@ -132,12 +133,12 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsFields()) return true;
 
 		FieldMappingView supFld = supTree.getClass(srcClsName).getField(srcName, srcDesc);
-		boolean supHasSrcDescs = supFeatures.fields().srcDescs() != OptionalFeature.UNSUPPORTED;
-		boolean subHasSrcDescs = subFeatures.fields().srcDescs() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstNames = supFeatures.fields().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstNames = subFeatures.fields().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstDescs = supFeatures.fields().dstDescs() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstDescs = subFeatures.fields().dstDescs() != OptionalFeature.UNSUPPORTED;
+		boolean supHasSrcDescs = supFeatures.fields().srcDescs() != SupportLevel.UNSUPPORTED;
+		boolean subHasSrcDescs = subFeatures.fields().srcDescs() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstNames = supFeatures.fields().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstNames = subFeatures.fields().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstDescs = supFeatures.fields().dstDescs() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstDescs = subFeatures.fields().dstDescs() != SupportLevel.UNSUPPORTED;
 
 		if (supFld == null) { // SupTree doesn't have this field, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
@@ -202,12 +203,12 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsMethods()) return true;
 
 		MethodMappingView supMth = supTree.getClass(srcClsName).getMethod(srcName, srcDesc);
-		boolean supHasSrcDescs = supFeatures.methods().srcDescs() != OptionalFeature.UNSUPPORTED;
-		boolean subHasSrcDescs = subFeatures.methods().srcDescs() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstNames = supFeatures.methods().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstNames = subFeatures.methods().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstDescs = supFeatures.methods().dstDescs() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstDescs = subFeatures.methods().dstDescs() != OptionalFeature.UNSUPPORTED;
+		boolean supHasSrcDescs = supFeatures.methods().srcDescs() != SupportLevel.UNSUPPORTED;
+		boolean subHasSrcDescs = subFeatures.methods().srcDescs() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstNames = supFeatures.methods().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstNames = subFeatures.methods().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstDescs = supFeatures.methods().dstDescs() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstDescs = subFeatures.methods().dstDescs() != SupportLevel.UNSUPPORTED;
 
 		if (supMth == null) { // SupTree doesn't have this method, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
@@ -272,12 +273,12 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsArgs()) return true;
 
 		MethodArgMappingView supArg = supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getArg(argPosition, lvIndex, srcName);
-		boolean supHasPositions = supFeatures.args().positions() != OptionalFeature.UNSUPPORTED;
-		boolean subHasPositions = subFeatures.args().positions() != OptionalFeature.UNSUPPORTED;
-		boolean supHasLvIndices = supFeatures.args().lvIndices() != OptionalFeature.UNSUPPORTED;
-		boolean subHasLvIndices = subFeatures.args().lvIndices() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstNames = supFeatures.args().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstNames = subFeatures.args().dstNames() != OptionalFeature.UNSUPPORTED;
+		boolean supHasPositions = supFeatures.args().positions() != SupportLevel.UNSUPPORTED;
+		boolean subHasPositions = subFeatures.args().positions() != SupportLevel.UNSUPPORTED;
+		boolean supHasLvIndices = supFeatures.args().lvIndices() != SupportLevel.UNSUPPORTED;
+		boolean subHasLvIndices = subFeatures.args().lvIndices() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstNames = supFeatures.args().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstNames = subFeatures.args().dstNames() != SupportLevel.UNSUPPORTED;
 
 		if (supArg == null) { // SupTree doesn't have this arg, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {
@@ -331,16 +332,16 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsVars()) return true;
 
 		MethodVarMappingView supVar = supTree.getClass(srcClsName).getMethod(srcMethodName, srcMethodDesc).getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
-		boolean supHasLvIndices = supFeatures.vars().lvIndices() != OptionalFeature.UNSUPPORTED;
-		boolean subHasLvIndices = subFeatures.vars().lvIndices() != OptionalFeature.UNSUPPORTED;
-		boolean supHasLvtIndices = supFeatures.vars().lvtRowIndices() != OptionalFeature.UNSUPPORTED;
-		boolean subHasLvtIndices = subFeatures.vars().lvtRowIndices() != OptionalFeature.UNSUPPORTED;
-		boolean supHasStartOpIndices = supFeatures.vars().startOpIndices() != OptionalFeature.UNSUPPORTED;
-		boolean subHasStartOpIndices = subFeatures.vars().startOpIndices() != OptionalFeature.UNSUPPORTED;
-		boolean supHasEndOpIndices = supFeatures.vars().endOpIndices() != OptionalFeature.UNSUPPORTED;
-		boolean subHasEndOpIndices = subFeatures.vars().endOpIndices() != OptionalFeature.UNSUPPORTED;
-		boolean supHasDstNames = supFeatures.vars().dstNames() != OptionalFeature.UNSUPPORTED;
-		boolean subHasDstNames = subFeatures.vars().dstNames() != OptionalFeature.UNSUPPORTED;
+		boolean supHasLvIndices = supFeatures.vars().lvIndices() != SupportLevel.UNSUPPORTED;
+		boolean subHasLvIndices = subFeatures.vars().lvIndices() != SupportLevel.UNSUPPORTED;
+		boolean supHasLvtIndices = supFeatures.vars().lvtRowIndices() != SupportLevel.UNSUPPORTED;
+		boolean subHasLvtIndices = subFeatures.vars().lvtRowIndices() != SupportLevel.UNSUPPORTED;
+		boolean supHasStartOpIndices = supFeatures.vars().startOpIndices() != SupportLevel.UNSUPPORTED;
+		boolean subHasStartOpIndices = subFeatures.vars().startOpIndices() != SupportLevel.UNSUPPORTED;
+		boolean supHasEndOpIndices = supFeatures.vars().endOpIndices() != SupportLevel.UNSUPPORTED;
+		boolean subHasEndOpIndices = subFeatures.vars().endOpIndices() != SupportLevel.UNSUPPORTED;
+		boolean supHasDstNames = supFeatures.vars().dstNames() != SupportLevel.UNSUPPORTED;
+		boolean subHasDstNames = subFeatures.vars().dstNames() != SupportLevel.UNSUPPORTED;
 
 		if (supVar == null) { // SupTree doesn't have this var, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {

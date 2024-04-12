@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.ElementCommentSupport;
 import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.MetadataSupport;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.OptionalFeature;
+import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
 
 /**
  * Represents a supported mapping format. Feature comparison table:
@@ -116,71 +116,71 @@ public enum MappingFormat {
 	/**
 	 * The {@code Tiny} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny">here</a>.
 	 */
-	TINY_FILE("Tiny file", "tiny", new FeatureSet()
+	TINY_FILE("Tiny file", "tiny", new FeatureSetImpl()
 			.withNamespaces()
 			.withFileMetadata(MetadataSupport.FIXED) // TODO: change this to ARBITRARY once https://github.com/FabricMC/mapping-io/pull/29 is merged
 			.withClasses(c -> c
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withFileComments()),
 
 	/**
 	 * The {@code Tiny v2} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny2">here</a>.
 	 */
-	TINY_2_FILE("Tiny v2 file", "tiny", new FeatureSet()
+	TINY_2_FILE("Tiny v2 file", "tiny", new FeatureSetImpl()
 			.withNamespaces()
 			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withClasses(c -> c
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withArgs(a -> a
-					.withLvIndices(OptionalFeature.REQUIRED)
-					.withSrcNames(OptionalFeature.OPTIONAL)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withLvIndices(SupportLevel.REQUIRED)
+					.withSrcNames(SupportLevel.OPTIONAL)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withVars(v -> v
-					.withLvIndices(OptionalFeature.REQUIRED)
-					.withLvtRowIndices(OptionalFeature.OPTIONAL)
-					.withStartOpIndices(OptionalFeature.REQUIRED)
-					.withSrcNames(OptionalFeature.OPTIONAL)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withLvIndices(SupportLevel.REQUIRED)
+					.withLvtRowIndices(SupportLevel.OPTIONAL)
+					.withStartOpIndices(SupportLevel.REQUIRED)
+					.withSrcNames(SupportLevel.OPTIONAL)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments()),
 
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_FILE("Enigma file", "mapping", new FeatureSet()
+	ENIGMA_FILE("Enigma file", "mapping", new FeatureSetImpl()
 			.withElementMetadata(MetadataSupport.FIXED) // access modifiers
 			.withClasses(c -> c
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withArgs(a -> a
-					.withLvIndices(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.OPTIONAL))
+					.withLvIndices(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments()),
 
@@ -192,21 +192,21 @@ public enum MappingFormat {
 	/**
 	 * The {@code SRG} ("Searge RetroGuard") mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L69-L81">here</a>.
 	 */
-	SRG_FILE("SRG file", "srg", new FeatureSet()
+	SRG_FILE("SRG file", "srg", new FeatureSetImpl()
 			.withPackages(p -> p
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
 			.withClasses(c -> c
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED)
-					.withSrcDescs(OptionalFeature.REQUIRED)
-					.withDstDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED)
+					.withDstDescs(SupportLevel.REQUIRED))
 			.withFileComments()),
 
 	/**
@@ -216,15 +216,15 @@ public enum MappingFormat {
 	 */
 	XSRG_FILE("XSRG file", "xsrg", SRG_FILE.features.clone()
 			.withFields(f -> f
-					.withSrcDescs(OptionalFeature.REQUIRED)
-					.withDstDescs(OptionalFeature.REQUIRED))),
+					.withSrcDescs(SupportLevel.REQUIRED)
+					.withDstDescs(SupportLevel.REQUIRED))),
 
 	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
 	 */
 	CSRG_FILE("CSRG file", "csrg", SRG_FILE.features.clone()
 			.withMethods(m -> m
-					.withDstDescs(OptionalFeature.UNSUPPORTED))),
+					.withDstDescs(SupportLevel.UNSUPPORTED))),
 
 	/**
 	 * The {@code TSRG} ("Tiny SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
@@ -239,39 +239,43 @@ public enum MappingFormat {
 			.withNamespaces()
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f
-					.withSrcDescs(OptionalFeature.OPTIONAL))
+					.withSrcDescs(SupportLevel.OPTIONAL))
 			.withArgs(a -> a
-					.withLvIndices(OptionalFeature.REQUIRED)
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED))),
+					.withLvIndices(SupportLevel.REQUIRED)
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", new FeatureSet()
+	PROGUARD_FILE("ProGuard file", "txt", new FeatureSetImpl()
 			.withElementMetadata(MetadataSupport.FIXED) // line numbers
 			.withClasses(c -> c
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(OptionalFeature.REQUIRED)
-					.withDstNames(OptionalFeature.REQUIRED)
-					.withSrcDescs(OptionalFeature.REQUIRED))
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED))
 			.withFileComments());
 
-	MappingFormat(String name, @Nullable String fileExt, FeatureSet features) {
+	MappingFormat(String name, @Nullable String fileExt, FeatureSetImpl features) {
 		this.features = features;
 		this.name = name;
 		this.fileExt = fileExt;
 		this.hasNamespaces = features.hasNamespaces;
-		this.hasFieldDescriptors = features.fields.descriptors.srcDescriptors != OptionalFeature.UNSUPPORTED || features.fields.descriptors.dstDescriptors != OptionalFeature.UNSUPPORTED;
+		this.hasFieldDescriptors = features.fields.descriptors.srcDescriptors != SupportLevel.UNSUPPORTED || features.fields.descriptors.dstDescriptors != SupportLevel.UNSUPPORTED;
 		this.supportsComments = features.elementComments != ElementCommentSupport.NONE;
 		this.supportsArgs = features.supportsArgs();
 		this.supportsLocals = features.supportsVars();
+	}
+
+	public FeatureSet getFeatures() {
+		return features;
 	}
 
 	public boolean hasSingleFile() {
@@ -284,39 +288,62 @@ public enum MappingFormat {
 		return "*."+fileExt;
 	}
 
-	@ApiStatus.Internal
-	public final FeatureSet features;
-
+	private final FeatureSetImpl features;
 	public final String name;
 	@Nullable
 	public final String fileExt;
+
+	/**
+	 * @deprecated Use {@link #getFeatures()} instead.
+	 */
+	@Deprecated
 	public final boolean hasNamespaces;
+
+	/**
+	 * @deprecated Use {@link #getFeatures()} instead.
+	 */
+	@Deprecated
 	public final boolean hasFieldDescriptors;
+
+	/**
+	 * @deprecated Use {@link #getFeatures()} instead.
+	 */
+	@Deprecated
 	public final boolean supportsComments;
+
+	/**
+	 * @deprecated Use {@link #getFeatures()} instead.
+	 */
+	@Deprecated
 	public final boolean supportsArgs;
+
+	/**
+	 * @deprecated Use {@link #getFeatures()} instead.
+	 */
+	@Deprecated
 	public final boolean supportsLocals;
 
 	@ApiStatus.Internal
-	public static class FeatureSet {
-		public FeatureSet() {
+	public static final class FeatureSetImpl implements FeatureSet {
+		public FeatureSetImpl() {
 			this(false);
 		}
 
-		public FeatureSet(boolean initWithFullSupport) {
+		public FeatureSetImpl(boolean initWithFullSupport) {
 			this(initWithFullSupport,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
-					new NameFeature(initWithFullSupport),
-					new NameFeature(initWithFullSupport),
-					new MemberSupport(initWithFullSupport),
-					new MemberSupport(initWithFullSupport),
-					new LocalSupport(initWithFullSupport),
-					new LocalSupport(initWithFullSupport),
+					new NameFeatureImpl(initWithFullSupport),
+					new NameFeatureImpl(initWithFullSupport),
+					new MemberSupportImpl(initWithFullSupport),
+					new MemberSupportImpl(initWithFullSupport),
+					new LocalSupportImpl(initWithFullSupport),
+					new LocalSupportImpl(initWithFullSupport),
 					initWithFullSupport ? ElementCommentSupport.NAMESPACED : ElementCommentSupport.NONE,
 					initWithFullSupport);
 		}
 
-		private FeatureSet(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, NameFeature packages, NameFeature classes, MemberSupport fields, MemberSupport methods, LocalSupport args, LocalSupport vars, ElementCommentSupport elementComments, boolean hasFileComments) {
+		private FeatureSetImpl(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, NameFeatureImpl packages, NameFeatureImpl classes, MemberSupportImpl fields, MemberSupportImpl methods, LocalSupportImpl args, LocalSupportImpl vars, ElementCommentSupport elementComments, boolean hasFileComments) {
 			this.hasNamespaces = hasNamespaces;
 			this.fileMetadata = fileMetadata;
 			this.elementMetadata = elementMetadata;
@@ -330,64 +357,64 @@ public enum MappingFormat {
 			this.hasFileComments = hasFileComments;
 		}
 
-		public FeatureSet withNamespaces() {
+		private FeatureSetImpl withNamespaces() {
 			this.hasNamespaces = true;
 			return this;
 		}
 
-		public FeatureSet withFileMetadata(MetadataSupport supportLevel) {
+		private FeatureSetImpl withFileMetadata(MetadataSupport supportLevel) {
 			this.fileMetadata = supportLevel;
 			return this;
 		}
 
-		public FeatureSet withElementMetadata(MetadataSupport supportLevel) {
+		private FeatureSetImpl withElementMetadata(MetadataSupport supportLevel) {
 			this.elementMetadata = supportLevel;
 			return this;
 		}
 
-		public FeatureSet withPackages(Consumer<NameFeature> featureApplier) {
+		private FeatureSetImpl withPackages(Consumer<NameFeatureImpl> featureApplier) {
 			featureApplier.accept(packages);
 			return this;
 		}
 
-		public FeatureSet withClasses(Consumer<NameFeature> featureApplier) {
+		private FeatureSetImpl withClasses(Consumer<NameFeatureImpl> featureApplier) {
 			featureApplier.accept(classes);
 			return this;
 		}
 
-		public FeatureSet withFields(Consumer<MemberSupport> featureApplier) {
+		private FeatureSetImpl withFields(Consumer<MemberSupportImpl> featureApplier) {
 			featureApplier.accept(fields);
 			return this;
 		}
 
-		public FeatureSet withMethods(Consumer<MemberSupport> featureApplier) {
+		private FeatureSetImpl withMethods(Consumer<MemberSupportImpl> featureApplier) {
 			featureApplier.accept(methods);
 			return this;
 		}
 
-		public FeatureSet withArgs(Consumer<LocalSupport> featureApplier) {
+		private FeatureSetImpl withArgs(Consumer<LocalSupportImpl> featureApplier) {
 			featureApplier.accept(args);
 			return this;
 		}
 
-		public FeatureSet withVars(Consumer<LocalSupport> featureApplier) {
+		private FeatureSetImpl withVars(Consumer<LocalSupportImpl> featureApplier) {
 			featureApplier.accept(vars);
 			return this;
 		}
 
-		public FeatureSet withElementComments(ElementCommentSupport supportLevel) {
+		private FeatureSetImpl withElementComments(ElementCommentSupport supportLevel) {
 			this.elementComments = supportLevel;
 			return this;
 		}
 
-		public FeatureSet withFileComments() {
+		private FeatureSetImpl withFileComments() {
 			this.hasFileComments = true;
 			return this;
 		}
 
 		@Override
-		public FeatureSet clone() {
-			return new FeatureSet(
+		protected FeatureSetImpl clone() {
+			return new FeatureSetImpl(
 					hasNamespaces,
 					fileMetadata,
 					elementMetadata,
@@ -401,101 +428,417 @@ public enum MappingFormat {
 					hasFileComments);
 		}
 
+		@Override
 		public boolean hasNamespaces() {
 			return hasNamespaces;
 		}
 
+		@Override
 		public MetadataSupport fileMetadata() {
 			return fileMetadata;
 		}
 
+		@Override
 		public MetadataSupport elementMetadata() {
 			return elementMetadata;
 		}
 
-		public NameFeature packages() {
+		@Override
+		public NameFeatureImpl packages() {
 			return packages;
 		}
 
-		public NameFeature classes() {
+		@Override
+		public NameFeatureImpl classes() {
 			return classes;
 		}
 
-		public MemberSupport fields() {
+		@Override
+		public MemberSupportImpl fields() {
 			return fields;
 		}
 
-		public MemberSupport methods() {
+		@Override
+		public MemberSupportImpl methods() {
 			return methods;
 		}
 
-		public LocalSupport args() {
+		@Override
+		public LocalSupportImpl args() {
 			return args;
 		}
 
-		public LocalSupport vars() {
+		@Override
+		public LocalSupportImpl vars() {
 			return vars;
 		}
 
+		@Override
 		public ElementCommentSupport elementComments() {
 			return elementComments;
 		}
 
+		@Override
 		public boolean hasFileComments() {
 			return hasFileComments;
-		}
-
-		public boolean supportsClasses() {
-			return classes.srcNames != OptionalFeature.UNSUPPORTED
-					|| classes.dstNames != OptionalFeature.UNSUPPORTED;
-		}
-
-		public boolean supportsFields() {
-			return supports(fields);
-		}
-
-		public boolean supportsMethods() {
-			return supports(methods);
-		}
-
-		private boolean supports(MemberSupport members) {
-			return members.srcNames() != OptionalFeature.UNSUPPORTED
-					|| members.dstNames() != OptionalFeature.UNSUPPORTED
-					|| members.srcDescs() != OptionalFeature.UNSUPPORTED
-					|| members.dstDescs() != OptionalFeature.UNSUPPORTED;
-		}
-
-		public boolean supportsArgs() {
-			return supports(args);
-		}
-
-		public boolean supportsVars() {
-			return supports(vars);
-		}
-
-		private boolean supports(LocalSupport locals) {
-			return locals.positions != OptionalFeature.UNSUPPORTED
-					|| locals.lvIndices != OptionalFeature.UNSUPPORTED
-					|| locals.lvtRowIndices != OptionalFeature.UNSUPPORTED
-					|| locals.startOpIndices != OptionalFeature.UNSUPPORTED
-					|| locals.endOpIndices != OptionalFeature.UNSUPPORTED
-					|| locals.names.srcNames != OptionalFeature.UNSUPPORTED
-					|| locals.names.dstNames != OptionalFeature.UNSUPPORTED
-					|| locals.descriptors.srcDescriptors != OptionalFeature.UNSUPPORTED
-					|| locals.descriptors.dstDescriptors != OptionalFeature.UNSUPPORTED;
 		}
 
 		private boolean hasNamespaces;
 		private MetadataSupport fileMetadata;
 		private MetadataSupport elementMetadata;
-		private NameFeature packages;
-		private NameFeature classes;
-		private MemberSupport fields;
-		private MemberSupport methods;
-		private LocalSupport args;
-		private LocalSupport vars;
+		private NameFeatureImpl packages;
+		private NameFeatureImpl classes;
+		private MemberSupportImpl fields;
+		private MemberSupportImpl methods;
+		private LocalSupportImpl args;
+		private LocalSupportImpl vars;
 		private ElementCommentSupport elementComments;
 		private boolean hasFileComments;
+
+		public static class MemberSupportImpl implements MemberSupport {
+			MemberSupportImpl() {
+				this(false);
+			}
+
+			MemberSupportImpl(boolean initWithFullSupport) {
+				this(new NameFeatureImpl(initWithFullSupport), new DescFeatureImpl(initWithFullSupport));
+			}
+
+			private MemberSupportImpl(NameFeatureImpl names, DescFeatureImpl descriptors) {
+				this.names = names;
+				this.descriptors = descriptors;
+			}
+
+			public MemberSupportImpl withSrcNames(SupportLevel srcNameFeature) {
+				names.withSrcNames(srcNameFeature);
+				return this;
+			}
+
+			public MemberSupportImpl withDstNames(SupportLevel dstNameFeature) {
+				names.withDstNames(dstNameFeature);
+				return this;
+			}
+
+			public MemberSupportImpl withSrcDescs(SupportLevel supportLevel) {
+				descriptors.withSrcDescs(supportLevel);
+				return this;
+			}
+
+			public MemberSupportImpl withDstDescs(SupportLevel supportLevel) {
+				descriptors.withDstDescs(supportLevel);
+				return this;
+			}
+
+			@Override
+			public MemberSupportImpl clone() {
+				return new MemberSupportImpl(names.clone(), descriptors.clone());
+			}
+
+			@Override
+			public SupportLevel srcNames() {
+				return names.srcNames;
+			}
+
+			@Override
+			public SupportLevel dstNames() {
+				return names.dstNames;
+			}
+
+			@Override
+			public SupportLevel srcDescs() {
+				return descriptors.srcDescriptors;
+			}
+
+			@Override
+			public SupportLevel dstDescs() {
+				return descriptors.dstDescriptors;
+			}
+
+			private NameFeatureImpl names;
+			private DescFeatureImpl descriptors;
+		}
+
+		public static class LocalSupportImpl implements LocalSupport {
+			LocalSupportImpl() {
+				this(false);
+			}
+
+			LocalSupportImpl(boolean initWithFullSupport) {
+				this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						new NameFeatureImpl(),
+						new DescFeatureImpl());
+			}
+
+			private LocalSupportImpl(SupportLevel positions, SupportLevel lvIndices, SupportLevel lvtRowIndices, SupportLevel startOpIndices, SupportLevel endOpIndices, NameFeatureImpl names, DescFeatureImpl descriptors) {
+				this.positions = positions;
+				this.lvIndices = lvIndices;
+				this.lvtRowIndices = lvtRowIndices;
+				this.startOpIndices = startOpIndices;
+				this.endOpIndices = endOpIndices;
+				this.names = names;
+				this.descriptors = descriptors;
+			}
+
+			public LocalSupportImpl withPositionSupport(SupportLevel positionFeature) {
+				this.positions = positionFeature;
+				return this;
+			}
+
+			public LocalSupportImpl withLvIndices(SupportLevel lvIndexFeature) {
+				this.lvIndices = lvIndexFeature;
+				return this;
+			}
+
+			public LocalSupportImpl withLvtRowIndices(SupportLevel lvtRowIndexFeature) {
+				this.lvtRowIndices = lvtRowIndexFeature;
+				return this;
+			}
+
+			public LocalSupportImpl withStartOpIndices(SupportLevel startOpIndexFeature) {
+				this.startOpIndices = startOpIndexFeature;
+				return this;
+			}
+
+			public LocalSupportImpl withEndOpIndexSupport(SupportLevel endOpIndexFeature) {
+				this.endOpIndices = endOpIndexFeature;
+				return this;
+			}
+
+			public LocalSupportImpl withSrcNames(SupportLevel supportLevel) {
+				names.withSrcNames(supportLevel);
+				return this;
+			}
+
+			public LocalSupportImpl withDstNames(SupportLevel supportLevel) {
+				names.withDstNames(supportLevel);
+				return this;
+			}
+
+			public LocalSupportImpl withSrcDescs(SupportLevel supportLevel) {
+				descriptors.withSrcDescs(supportLevel);
+				return this;
+			}
+
+			public LocalSupportImpl withDstDescs(SupportLevel supportLevel) {
+				descriptors.withDstDescs(supportLevel);
+				return this;
+			}
+
+			@Override
+			public LocalSupportImpl clone() {
+				return new LocalSupportImpl(
+						positions,
+						lvIndices,
+						lvtRowIndices,
+						startOpIndices,
+						endOpIndices,
+						names.clone(),
+						descriptors.clone());
+			}
+
+			@Override
+			public SupportLevel positions() {
+				return positions;
+			}
+
+			@Override
+			public SupportLevel lvIndices() {
+				return lvIndices;
+			}
+
+			@Override
+			public SupportLevel lvtRowIndices() {
+				return lvtRowIndices;
+			}
+
+			@Override
+			public SupportLevel startOpIndices() {
+				return startOpIndices;
+			}
+
+			@Override
+			public SupportLevel endOpIndices() {
+				return endOpIndices;
+			}
+
+			@Override
+			public SupportLevel srcNames() {
+				return names.srcNames;
+			}
+
+			@Override
+			public SupportLevel dstNames() {
+				return names.dstNames;
+			}
+
+			@Override
+			public SupportLevel srcDescs() {
+				return descriptors.srcDescriptors;
+			}
+
+			@Override
+			public SupportLevel dstDescs() {
+				return descriptors.dstDescriptors;
+			}
+
+			private SupportLevel positions;
+			private SupportLevel lvIndices;
+			private SupportLevel lvtRowIndices;
+			private SupportLevel startOpIndices;
+			private SupportLevel endOpIndices;
+			private NameFeatureImpl names;
+			private DescFeatureImpl descriptors;
+		}
+
+		public static class NameFeatureImpl implements NameFeature {
+			NameFeatureImpl() {
+				this(false);
+			}
+
+			NameFeatureImpl(boolean initWithFullSupport) {
+				this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED);
+			}
+
+			private NameFeatureImpl(SupportLevel srcNames, SupportLevel dstNames) {
+				this.srcNames = srcNames;
+				this.dstNames = dstNames;
+			}
+
+			public NameFeatureImpl withSrcNames(SupportLevel srcNameFeature) {
+				this.srcNames = srcNameFeature;
+				return this;
+			}
+
+			public NameFeatureImpl withDstNames(SupportLevel dstNameFeature) {
+				this.dstNames = dstNameFeature;
+				return this;
+			}
+
+			@Override
+			public NameFeatureImpl clone() {
+				return new NameFeatureImpl(srcNames, dstNames);
+			}
+
+			@Override
+			public SupportLevel srcNames() {
+				return srcNames;
+			}
+
+			@Override
+			public SupportLevel dstNames() {
+				return dstNames;
+			}
+
+			private SupportLevel srcNames;
+			private SupportLevel dstNames;
+		}
+
+		public static class DescFeatureImpl implements DescFeature {
+			DescFeatureImpl() {
+				this(false);
+			}
+
+			DescFeatureImpl(boolean initWithFullSupport) {
+				this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+						initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED);
+			}
+
+			private DescFeatureImpl(SupportLevel srcDescriptors, SupportLevel dstDescriptors) {
+				this.srcDescriptors = srcDescriptors;
+				this.dstDescriptors = dstDescriptors;
+			}
+
+			public DescFeatureImpl withSrcDescs(SupportLevel srcDescriptorFeature) {
+				this.srcDescriptors = srcDescriptorFeature;
+				return this;
+			}
+
+			public DescFeatureImpl withDstDescs(SupportLevel dstDescriptorFeature) {
+				this.dstDescriptors = dstDescriptorFeature;
+				return this;
+			}
+
+			@Override
+			public DescFeatureImpl clone() {
+				return new DescFeatureImpl(srcDescriptors, dstDescriptors);
+			}
+
+			@Override
+			public SupportLevel srcDescs() {
+				return srcDescriptors;
+			}
+
+			@Override
+			public SupportLevel dstDescs() {
+				return dstDescriptors;
+			}
+
+			private SupportLevel srcDescriptors;
+			private SupportLevel dstDescriptors;
+		}
+	}
+
+	public interface FeatureSet {
+		boolean hasNamespaces();
+		MetadataSupport fileMetadata();
+		MetadataSupport elementMetadata();
+		NameFeature packages();
+		NameFeature classes();
+		MemberSupport fields();
+		MemberSupport methods();
+		LocalSupport args();
+		LocalSupport vars();
+		ElementCommentSupport elementComments();
+		boolean hasFileComments();
+
+		default boolean supportsClasses() {
+			return classes().srcNames() != SupportLevel.UNSUPPORTED
+					|| classes().dstNames() != SupportLevel.UNSUPPORTED;
+		}
+
+		default boolean supportsFields() {
+			return supports(fields());
+		}
+
+		default boolean supportsMethods() {
+			return supports(methods());
+		}
+
+		/* TODO: Make private in Java 9+ */
+		@ApiStatus.Internal
+		default boolean supports(MemberSupport members) {
+			return members.srcNames() != SupportLevel.UNSUPPORTED
+					|| members.dstNames() != SupportLevel.UNSUPPORTED
+					|| members.srcDescs() != SupportLevel.UNSUPPORTED
+					|| members.dstDescs() != SupportLevel.UNSUPPORTED;
+		}
+
+		default boolean supportsArgs() {
+			return supports(args());
+		}
+
+		default boolean supportsVars() {
+			return supports(vars());
+		}
+
+		/* TODO: Make private in Java 9+ */
+		@ApiStatus.Internal
+		default boolean supports(LocalSupport locals) {
+			return locals.positions() != SupportLevel.UNSUPPORTED
+					|| locals.lvIndices() != SupportLevel.UNSUPPORTED
+					|| locals.lvtRowIndices() != SupportLevel.UNSUPPORTED
+					|| locals.startOpIndices() != SupportLevel.UNSUPPORTED
+					|| locals.endOpIndices() != SupportLevel.UNSUPPORTED
+					|| locals.srcNames() != SupportLevel.UNSUPPORTED
+					|| locals.dstNames() != SupportLevel.UNSUPPORTED
+					|| locals.srcDescs() != SupportLevel.UNSUPPORTED
+					|| locals.dstDescs() != SupportLevel.UNSUPPORTED;
+		}
 
 		enum MetadataSupport {
 			/** No metadata at all. */
@@ -508,301 +851,44 @@ public enum MappingFormat {
 			ARBITRARY
 		}
 
-		interface NameOwner<T> {
-			T withSrcNames(OptionalFeature supportLevel);
-			T withDstNames(OptionalFeature supportLevel);
-		}
-
-		interface DescOwner<T> {
-			T withSrcDescs(OptionalFeature supportLevel);
-			T withDstDescs(OptionalFeature supportLevel);
-		}
-
-		public static class MemberSupport implements NameOwner<MemberSupport>, DescOwner<MemberSupport> {
-			MemberSupport() {
-				this(false);
-			}
-
-			MemberSupport(boolean initWithFullSupport) {
-				this(new NameFeature(initWithFullSupport), new DescFeature(initWithFullSupport));
-			}
-
-			private MemberSupport(NameFeature names, DescFeature descriptors) {
-				this.names = names;
-				this.descriptors = descriptors;
-			}
-
-			@Override
-			public MemberSupport withSrcNames(OptionalFeature srcNameFeature) {
-				names.withSrcNames(srcNameFeature);
-				return this;
-			}
-
-			@Override
-			public MemberSupport withDstNames(OptionalFeature dstNameFeature) {
-				names.withDstNames(dstNameFeature);
-				return this;
-			}
-
-			@Override
-			public MemberSupport withSrcDescs(OptionalFeature supportLevel) {
-				descriptors.withSrcDescs(supportLevel);
-				return this;
-			}
-
-			@Override
-			public MemberSupport withDstDescs(OptionalFeature supportLevel) {
-				descriptors.withDstDescs(supportLevel);
-				return this;
-			}
-
-			@Override
-			public MemberSupport clone() {
-				return new MemberSupport(names.clone(), descriptors.clone());
-			}
-
-			public OptionalFeature srcNames() {
-				return names.srcNames;
-			}
-
-			public OptionalFeature dstNames() {
-				return names.dstNames;
-			}
-
-			public OptionalFeature srcDescs() {
-				return descriptors.srcDescriptors;
-			}
-
-			public OptionalFeature dstDescs() {
-				return descriptors.dstDescriptors;
-			}
-
-			private NameFeature names;
-			private DescFeature descriptors;
-		}
-
-		public static class LocalSupport implements NameOwner<LocalSupport>, DescOwner<LocalSupport> {
-			LocalSupport() {
-				this(false);
-			}
-
-			LocalSupport(boolean initWithFullSupport) {
-				this(initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						new NameFeature(),
-						new DescFeature());
-			}
-
-			private LocalSupport(OptionalFeature positions, OptionalFeature lvIndices, OptionalFeature lvtRowIndices, OptionalFeature startOpIndices, OptionalFeature endOpIndices, NameFeature names, DescFeature descriptors) {
-				this.positions = positions;
-				this.lvIndices = lvIndices;
-				this.lvtRowIndices = lvtRowIndices;
-				this.startOpIndices = startOpIndices;
-				this.endOpIndices = endOpIndices;
-				this.names = names;
-				this.descriptors = descriptors;
-			}
-
-			public LocalSupport withPositionSupport(OptionalFeature positionFeature) {
-				this.positions = positionFeature;
-				return this;
-			}
-
-			public LocalSupport withLvIndices(OptionalFeature lvIndexFeature) {
-				this.lvIndices = lvIndexFeature;
-				return this;
-			}
-
-			public LocalSupport withLvtRowIndices(OptionalFeature lvtRowIndexFeature) {
-				this.lvtRowIndices = lvtRowIndexFeature;
-				return this;
-			}
-
-			public LocalSupport withStartOpIndices(OptionalFeature startOpIndexFeature) {
-				this.startOpIndices = startOpIndexFeature;
-				return this;
-			}
-
-			public LocalSupport withEndOpIndexSupport(OptionalFeature endOpIndexFeature) {
-				this.endOpIndices = endOpIndexFeature;
-				return this;
-			}
-
-			@Override
-			public LocalSupport withSrcNames(OptionalFeature supportLevel) {
-				names.withSrcNames(supportLevel);
-				return this;
-			}
-
-			@Override
-			public LocalSupport withDstNames(OptionalFeature supportLevel) {
-				names.withDstNames(supportLevel);
-				return this;
-			}
-
-			@Override
-			public LocalSupport withSrcDescs(OptionalFeature supportLevel) {
-				descriptors.withSrcDescs(supportLevel);
-				return this;
-			}
-
-			@Override
-			public LocalSupport withDstDescs(OptionalFeature supportLevel) {
-				descriptors.withDstDescs(supportLevel);
-				return this;
-			}
-
-			@Override
-			public LocalSupport clone() {
-				return new LocalSupport(
-						positions,
-						lvIndices,
-						lvtRowIndices,
-						startOpIndices,
-						endOpIndices,
-						names.clone(),
-						descriptors.clone());
-			}
-
-			public OptionalFeature positions() {
-				return positions;
-			}
-
-			public OptionalFeature lvIndices() {
-				return lvIndices;
-			}
-
-			public OptionalFeature lvtRowIndices() {
-				return lvtRowIndices;
-			}
-
-			public OptionalFeature startOpIndices() {
-				return startOpIndices;
-			}
-
-			public OptionalFeature endOpIndices() {
-				return endOpIndices;
-			}
-
-			public OptionalFeature srcNames() {
-				return names.srcNames;
-			}
-
-			public OptionalFeature dstNames() {
-				return names.dstNames;
-			}
-
-			public OptionalFeature srcDescs() {
-				return descriptors.srcDescriptors;
-			}
-
-			public OptionalFeature dstDescs() {
-				return descriptors.dstDescriptors;
-			}
-
-			private OptionalFeature positions;
-			private OptionalFeature lvIndices;
-			private OptionalFeature lvtRowIndices;
-			private OptionalFeature startOpIndices;
-			private OptionalFeature endOpIndices;
-			private NameFeature names;
-			private DescFeature descriptors;
-		}
-
-		public static class NameFeature {
-			NameFeature() {
-				this(false);
-			}
-
-			NameFeature(boolean initWithFullSupport) {
-				this(initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED);
-			}
-
-			private NameFeature(OptionalFeature srcNames, OptionalFeature dstNames) {
-				this.srcNames = srcNames;
-				this.dstNames = dstNames;
-			}
-
-			public NameFeature withSrcNames(OptionalFeature srcNameFeature) {
-				this.srcNames = srcNameFeature;
-				return this;
-			}
-
-			public NameFeature withDstNames(OptionalFeature dstNameFeature) {
-				this.dstNames = dstNameFeature;
-				return this;
-			}
-
-			@Override
-			public NameFeature clone() {
-				return new NameFeature(srcNames, dstNames);
-			}
-
-			public OptionalFeature srcNames() {
-				return srcNames;
-			}
-
-			public OptionalFeature dstNames() {
-				return dstNames;
-			}
-
-			private OptionalFeature srcNames;
-			private OptionalFeature dstNames;
-		}
-
-		public static class DescFeature {
-			DescFeature() {
-				this(false);
-			}
-
-			DescFeature(boolean initWithFullSupport) {
-				this(initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED,
-						initWithFullSupport ? OptionalFeature.OPTIONAL : OptionalFeature.UNSUPPORTED);
-			}
-
-			private DescFeature(OptionalFeature srcDescriptors, OptionalFeature dstDescriptors) {
-				this.srcDescriptors = srcDescriptors;
-				this.dstDescriptors = dstDescriptors;
-			}
-
-			public DescFeature withSrcDescs(OptionalFeature srcDescriptorFeature) {
-				this.srcDescriptors = srcDescriptorFeature;
-				return this;
-			}
-
-			public DescFeature withDstDescs(OptionalFeature dstDescriptorFeature) {
-				this.dstDescriptors = dstDescriptorFeature;
-				return this;
-			}
-
-			@Override
-			public DescFeature clone() {
-				return new DescFeature(srcDescriptors, dstDescriptors);
-			}
-
-			public OptionalFeature srcDescs() {
-				return srcDescriptors;
-			}
-
-			public OptionalFeature dstDescs() {
-				return dstDescriptors;
-			}
-
-			private OptionalFeature srcDescriptors;
-			private OptionalFeature dstDescriptors;
-		}
-
-		public enum OptionalFeature {
+		enum SupportLevel {
 			REQUIRED,
 			OPTIONAL,
 			UNSUPPORTED
 		}
 
-		public enum ElementCommentSupport {
+		interface NameFeature {
+			SupportLevel srcNames();
+			SupportLevel dstNames();
+		}
+
+		interface NameHolder<T> {
+			SupportLevel srcNames();
+			SupportLevel dstNames();
+		}
+
+		interface DescHolder<T> {
+			SupportLevel srcDescs();
+			SupportLevel dstDescs();
+		}
+
+		interface MemberSupport extends NameHolder<MemberSupport>, DescHolder<MemberSupport> {
+		}
+
+		interface DescFeature {
+			SupportLevel srcDescs();
+			SupportLevel dstDescs();
+		}
+
+		interface LocalSupport extends NameHolder<LocalSupport>, DescHolder<LocalSupport> {
+			SupportLevel positions();
+			SupportLevel lvIndices();
+			SupportLevel lvtRowIndices();
+			SupportLevel startOpIndices();
+			SupportLevel endOpIndices();
+		}
+
+		enum ElementCommentSupport {
 			NAMESPACED,
 			SHARED,
 			NONE
