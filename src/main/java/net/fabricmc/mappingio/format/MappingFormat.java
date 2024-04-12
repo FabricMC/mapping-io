@@ -160,7 +160,7 @@ public enum MappingFormat {
 					.withSrcNames(OptionalFeature.OPTIONAL)
 					.withDstNames(OptionalFeature.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
-			.withFileComments()), // not sure about this one
+			.withFileComments()),
 
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
@@ -207,7 +207,7 @@ public enum MappingFormat {
 					.withDstNames(OptionalFeature.REQUIRED)
 					.withSrcDescs(OptionalFeature.REQUIRED)
 					.withDstDescs(OptionalFeature.REQUIRED))
-			.withFileComments()), // not sure about this one
+			.withFileComments()),
 
 	/**
 	 * The {@code XSRG} ("Extended SRG") mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L69-L84">here</a>.
@@ -242,7 +242,7 @@ public enum MappingFormat {
 					.withSrcDescs(OptionalFeature.OPTIONAL))
 			.withArgs(a -> a
 					.withLvIndices(OptionalFeature.REQUIRED)
-					.withSrcNames(OptionalFeature.OPTIONAL) // unsure about this one
+					.withSrcNames(OptionalFeature.REQUIRED)
 					.withDstNames(OptionalFeature.REQUIRED))),
 
 	/**
