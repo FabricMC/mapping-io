@@ -8,3 +8,5 @@ FD class_32 field_2 I field2Ns0Rename
 FD class_32 field_5 I field5Ns0Rename
 MD class_32 method_2 ()I method2Ns0Rename
 MD class_32 method_5 ()I method5Ns0Rename
+MP class_32 method_7 ()I 4 param3Ns0Rename
+MP class_32 method_7 ()I 8 param5Ns0Rename
