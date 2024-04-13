@@ -31,7 +31,7 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@linkplain MappingFormat#TINY_1 Tiny v1 file} reader.
+ * {@linkplain MappingFormat#TINY_FILE Tiny v1 file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.

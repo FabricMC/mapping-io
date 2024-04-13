@@ -28,7 +28,7 @@ import net.fabricmc.mappingio.format.ColumnFileReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#TINY_2 Tiny v2 file} reader.
+ * {@linkplain MappingFormat#TINY_2_FILE Tiny v2 file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.

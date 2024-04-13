@@ -27,9 +27,10 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain net.fabricmc.mappingio.format.MappingFormat#JAM_FILE JAM file} writer.
+ * {@linkplain MappingFormat#JAM_FILE JAM file} writer.
  */
 public final class JamFileWriter implements MappingWriter {
 	public JamFileWriter(Writer writer) {

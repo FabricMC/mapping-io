@@ -32,7 +32,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#ENIGMA_DIRECTORY Enigma directory} writer.
+ * {@linkplain MappingFormat#ENIGMA_DIR Enigma directory} writer.
  */
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {

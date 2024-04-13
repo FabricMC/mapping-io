@@ -31,7 +31,7 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@linkplain MappingFormat#RECAF_SIMPLE Recaf Simple file} reader.
+ * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} reader.
  */
 public final class RecafSimpleFileReader {
 	private RecafSimpleFileReader() {
