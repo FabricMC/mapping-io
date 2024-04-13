@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Fixed CSRG and JAM writers sometimes skipping over elements whose parents are missing destination names
+- Fixed CSRG and JAM writers sometimes skipping elements whose parents have incomplete destination names
 
 ## [0.6.0] - 2024-4-12
 - Added CSRG writer
