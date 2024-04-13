@@ -74,8 +74,38 @@ public class WriteTest {
 	}
 
 	@Test
+	public void jamFile() throws Exception {
+		check(MappingFormat.JAM_FILE);
+	}
+
+	@Test
+	public void csrgFile() throws Exception {
+		check(MappingFormat.CSRG_FILE);
+	}
+
+	@Test
+	public void tsrgFile() throws Exception {
+		check(MappingFormat.TSRG_FILE);
+	}
+
+	@Test
+	public void tsrg2File() throws Exception {
+		check(MappingFormat.TSRG_2_FILE);
+	}
+
+	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
+	}
+
+	@Test
+	public void recafSimpleFile() throws Exception {
+		check(MappingFormat.RECAF_SIMPLE_FILE);
+	}
+
+	@Test
+	public void jobfFile() throws Exception {
+		check(MappingFormat.JOBF_FILE);
 	}
 
 	private void check(MappingFormat format) throws Exception {

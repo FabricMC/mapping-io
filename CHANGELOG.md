@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Added `MappingFormat#getFeatures()` to allow for more fine-grained programmatic querying of format capabilities
 
+## [0.6.0] - 2024-4-12
+- Added CSRG writer
+- Added TSRG and TSRG2 writer
+- Added JAM reader and writer
+- Added JOBF reader and writer
+- Added Recaf Simple reader and writer
+- Added `OuterClassNameInheritingVisitor`
+- Added `MappingFormat#hasWriter` boolean
+- Added CSRG detection via the path-based API
+
 ## [0.5.1] - 2023-11-30
 - Improved documentation
 - Fixed ProGuard writer producing invalid files when missing destination names

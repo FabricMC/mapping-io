@@ -26,7 +26,9 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.MetadataSupport;
 import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
 
 /**
- * Represents a supported mapping format. Feature comparison table:
+ * Represents a supported mapping format. Every format can be assumed to have an associated reader available.
+ *
+ * <p>Feature comparison table:
  * <table>
  *   <tr>
  *     <th>Format</th>
@@ -51,8 +53,8 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
+ *     <td>lvIdx, lvtIdx, startOpIdx & srcName</td>
  *     <td>✔</td>
  *   </tr>
  *   <tr>
@@ -60,7 +62,7 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
  *     <td>-</td>
  *     <td>src</td>
  *     <td>✔</td>
- *     <td>✔</td>
+ *     <td>lvIdx</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
@@ -83,6 +85,15 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
  *     <td>-</td>
  *   </tr>
  *   <tr>
+ *     <td>JAM</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>argPos</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
  *     <td>CSRG/TSRG</td>
  *     <td>-</td>
  *     <td>-</td>
@@ -96,12 +107,30 @@ import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
  *     <td>✔</td>
  *     <td>src</td>
  *     <td>-</td>
- *     <td>✔</td>
+ *     <td>lvIdx & srcName</td>
  *     <td>-</td>
  *     <td>-</td>
  *   </tr>
  *   <tr>
  *     <td>ProGuard</td>
+ *     <td>-</td>
+ *     <td>src</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
+ *     <td>Recaf Simple</td>
+ *     <td>-</td>
+ *     <td>src & dst</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *     <td>-</td>
+ *   </tr>
+ *   <tr>
+ *     <td>JOBF</td>
  *     <td>-</td>
  *     <td>src</td>
  *     <td>-</td>
@@ -116,7 +145,7 @@ public enum MappingFormat {
 	/**
 	 * The {@code Tiny} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny">here</a>.
 	 */
-	TINY_FILE("Tiny file", "tiny", new FeatureSetImpl()
+	TINY_FILE("Tiny file", "tiny", true, new FeatureSetImpl()
 			.withNamespaces()
 			.withFileMetadata(MetadataSupport.FIXED) // TODO: change this to ARBITRARY once https://github.com/FabricMC/mapping-io/pull/29 is merged
 			.withClasses(c -> c
@@ -135,7 +164,7 @@ public enum MappingFormat {
 	/**
 	 * The {@code Tiny v2} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny2">here</a>.
 	 */
-	TINY_2_FILE("Tiny v2 file", "tiny", new FeatureSetImpl()
+	TINY_2_FILE("Tiny v2 file", "tiny", true, new FeatureSetImpl()
 			.withNamespaces()
 			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withClasses(c -> c
@@ -160,12 +189,12 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.OPTIONAL)
 					.withDstNames(SupportLevel.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
-			.withFileComments()),
+			.withFileComments()), // only in reserved places
 
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_FILE("Enigma file", "mapping", new FeatureSetImpl()
+	ENIGMA_FILE("Enigma file", "mapping", true, new FeatureSetImpl()
 			.withElementMetadata(MetadataSupport.FIXED) // access modifiers
 			.withClasses(c -> c
 					.withSrcNames(SupportLevel.REQUIRED)
@@ -187,12 +216,12 @@ public enum MappingFormat {
 	/**
 	 * Enigma's mapping format (in directory form), as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
 	 */
-	ENIGMA_DIR("Enigma directory", null, ENIGMA_FILE.features.clone()),
+	ENIGMA_DIR("Enigma directory", null, true, ENIGMA_FILE.features.clone()),
 
 	/**
 	 * The {@code SRG} ("Searge RetroGuard") mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L69-L81">here</a>.
 	 */
-	SRG_FILE("SRG file", "srg", new FeatureSetImpl()
+	SRG_FILE("SRG file", "srg", true, new FeatureSetImpl()
 			.withPackages(p -> p
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.REQUIRED))
@@ -214,15 +243,31 @@ public enum MappingFormat {
 	 *
 	 * <p>Same as SRG, but with field descriptors.
 	 */
-	XSRG_FILE("XSRG file", "xsrg", SRG_FILE.features.clone()
+	XSRG_FILE("XSRG file", "xsrg", true, SRG_FILE.features.clone()
 			.withFields(f -> f
 					.withSrcDescs(SupportLevel.REQUIRED)
 					.withDstDescs(SupportLevel.REQUIRED))),
 
 	/**
+	 * The {@code JAM} ("Java Associated Mapping"; formerly {@code SRGX}) mapping format, as specified <a href="https://github.com/caseif/JAM">here</a>.
+	 */
+	JAM_FILE("JAM file", "jam", true, SRG_FILE.features.clone()
+			.withPackages(p -> p
+					.withSrcNames(SupportLevel.UNSUPPORTED)
+					.withDstNames(SupportLevel.UNSUPPORTED))
+			.withFields(f -> f
+					.withSrcDescs(SupportLevel.REQUIRED))
+			.withMethods(m -> m
+					.withDstDescs(SupportLevel.UNSUPPORTED))
+			.withArgs(a -> a
+					.withPositions(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.OPTIONAL)
+					.withDstNames(SupportLevel.REQUIRED))),
+
+	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
 	 */
-	CSRG_FILE("CSRG file", "csrg", SRG_FILE.features.clone()
+	CSRG_FILE("CSRG file", "csrg", true, SRG_FILE.features.clone()
 			.withMethods(m -> m
 					.withDstDescs(SupportLevel.UNSUPPORTED))),
 
@@ -230,12 +275,12 @@ public enum MappingFormat {
 	 * The {@code TSRG} ("Tiny SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
 	 * Same as CSRG, but hierarchical instead of flat.
 	 */
-	TSRG_FILE("TSRG file", "tsrg", CSRG_FILE.features.clone()),
+	TSRG_FILE("TSRG file", "tsrg", true, CSRG_FILE.features.clone()),
 
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", TSRG_FILE.features.clone()
+	TSRG_2_FILE("TSRG2 file", "tsrg", true, TSRG_FILE.features.clone()
 			.withNamespaces()
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f
@@ -248,8 +293,45 @@ public enum MappingFormat {
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", new FeatureSetImpl()
+	PROGUARD_FILE("ProGuard file", "txt", true, new FeatureSetImpl()
 			.withElementMetadata(MetadataSupport.FIXED) // line numbers
+			.withClasses(c -> c
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
+			.withFields(f -> f
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED))
+			.withMethods(m -> m
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED))
+			.withFileComments()),
+
+	/**
+	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
+	 */
+	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", true, new FeatureSetImpl()
+			.withClasses(c -> c
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
+			.withFields(f -> f
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.OPTIONAL)
+					.withDstNames(SupportLevel.REQUIRED))
+			.withMethods(m -> m
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED)
+					.withSrcDescs(SupportLevel.REQUIRED))
+			.withFileComments()),
+
+	/**
+	 * The {@code JOBF} mapping format, as specified <a href="https://github.com/skylot/jadx/blob/2d5c0fda4a0c5d16207a5f48edb72e6efa7d5bbd/jadx-core/src/main/java/jadx/core/deobf/DeobfPresets.java">here</a>.
+	 */
+	JOBF_FILE("JOBF file", "jobf", true, new FeatureSetImpl()
+			.withPackages(c -> c
+					.withSrcNames(SupportLevel.REQUIRED)
+					.withDstNames(SupportLevel.REQUIRED))
 			.withClasses(c -> c
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.REQUIRED))
@@ -263,10 +345,11 @@ public enum MappingFormat {
 					.withSrcDescs(SupportLevel.REQUIRED))
 			.withFileComments());
 
-	MappingFormat(String name, @Nullable String fileExt, FeatureSetImpl features) {
-		this.features = features;
+	MappingFormat(String name, @Nullable String fileExt, boolean hasWriter, FeatureSetImpl features) {
 		this.name = name;
 		this.fileExt = fileExt;
+		this.hasWriter = hasWriter;
+		this.features = features;
 		this.hasNamespaces = features.hasNamespaces;
 		this.hasFieldDescriptors = features.fields.descriptors.srcDescriptors != SupportLevel.UNSUPPORTED || features.fields.descriptors.dstDescriptors != SupportLevel.UNSUPPORTED;
 		this.supportsComments = features.elementComments != ElementCommentSupport.NONE;
@@ -290,6 +373,7 @@ public enum MappingFormat {
 
 	private final FeatureSetImpl features;
 	public final String name;
+	public final boolean hasWriter;
 	@Nullable
 	public final String fileExt;
 
@@ -583,7 +667,7 @@ public enum MappingFormat {
 				this.descriptors = descriptors;
 			}
 
-			public LocalSupportImpl withPositionSupport(SupportLevel positionFeature) {
+			public LocalSupportImpl withPositions(SupportLevel positionFeature) {
 				this.positions = positionFeature;
 				return this;
 			}
