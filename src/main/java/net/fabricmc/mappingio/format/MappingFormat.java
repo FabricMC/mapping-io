@@ -329,12 +329,12 @@ public enum MappingFormat {
 	public final boolean supportsLocals;
 
 	@ApiStatus.Internal
-	public static final class FeatureSetImpl implements FeatureSet {
-		public FeatureSetImpl() {
+	static final class FeatureSetImpl implements FeatureSet {
+		FeatureSetImpl() {
 			this(false);
 		}
 
-		public FeatureSetImpl(boolean initWithFullSupport) {
+		FeatureSetImpl(boolean initWithFullSupport) {
 			this(initWithFullSupport,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
@@ -500,7 +500,7 @@ public enum MappingFormat {
 		private ElementCommentSupport elementComments;
 		private boolean hasFileComments;
 
-		public static class MemberSupportImpl implements MemberSupport {
+		static class MemberSupportImpl implements MemberSupport {
 			MemberSupportImpl() {
 				this(false);
 			}
@@ -514,28 +514,28 @@ public enum MappingFormat {
 				this.descriptors = descriptors;
 			}
 
-			public MemberSupportImpl withSrcNames(SupportLevel srcNameFeature) {
+			private MemberSupportImpl withSrcNames(SupportLevel srcNameFeature) {
 				names.withSrcNames(srcNameFeature);
 				return this;
 			}
 
-			public MemberSupportImpl withDstNames(SupportLevel dstNameFeature) {
+			private MemberSupportImpl withDstNames(SupportLevel dstNameFeature) {
 				names.withDstNames(dstNameFeature);
 				return this;
 			}
 
-			public MemberSupportImpl withSrcDescs(SupportLevel supportLevel) {
+			private MemberSupportImpl withSrcDescs(SupportLevel supportLevel) {
 				descriptors.withSrcDescs(supportLevel);
 				return this;
 			}
 
-			public MemberSupportImpl withDstDescs(SupportLevel supportLevel) {
+			private MemberSupportImpl withDstDescs(SupportLevel supportLevel) {
 				descriptors.withDstDescs(supportLevel);
 				return this;
 			}
 
 			@Override
-			public MemberSupportImpl clone() {
+			protected MemberSupportImpl clone() {
 				return new MemberSupportImpl(names.clone(), descriptors.clone());
 			}
 
@@ -563,7 +563,7 @@ public enum MappingFormat {
 			private DescFeatureImpl descriptors;
 		}
 
-		public static class LocalSupportImpl implements LocalSupport {
+		static class LocalSupportImpl implements LocalSupport {
 			LocalSupportImpl() {
 				this(false);
 			}
@@ -588,53 +588,53 @@ public enum MappingFormat {
 				this.descriptors = descriptors;
 			}
 
-			public LocalSupportImpl withPositions(SupportLevel positionFeature) {
+			private LocalSupportImpl withPositions(SupportLevel positionFeature) {
 				this.positions = positionFeature;
 				return this;
 			}
 
-			public LocalSupportImpl withLvIndices(SupportLevel lvIndexFeature) {
+			private LocalSupportImpl withLvIndices(SupportLevel lvIndexFeature) {
 				this.lvIndices = lvIndexFeature;
 				return this;
 			}
 
-			public LocalSupportImpl withLvtRowIndices(SupportLevel lvtRowIndexFeature) {
+			private LocalSupportImpl withLvtRowIndices(SupportLevel lvtRowIndexFeature) {
 				this.lvtRowIndices = lvtRowIndexFeature;
 				return this;
 			}
 
-			public LocalSupportImpl withStartOpIndices(SupportLevel startOpIndexFeature) {
+			private LocalSupportImpl withStartOpIndices(SupportLevel startOpIndexFeature) {
 				this.startOpIndices = startOpIndexFeature;
 				return this;
 			}
 
-			public LocalSupportImpl withEndOpIndexSupport(SupportLevel endOpIndexFeature) {
+			private LocalSupportImpl withEndOpIndexSupport(SupportLevel endOpIndexFeature) {
 				this.endOpIndices = endOpIndexFeature;
 				return this;
 			}
 
-			public LocalSupportImpl withSrcNames(SupportLevel supportLevel) {
+			private LocalSupportImpl withSrcNames(SupportLevel supportLevel) {
 				names.withSrcNames(supportLevel);
 				return this;
 			}
 
-			public LocalSupportImpl withDstNames(SupportLevel supportLevel) {
+			private LocalSupportImpl withDstNames(SupportLevel supportLevel) {
 				names.withDstNames(supportLevel);
 				return this;
 			}
 
-			public LocalSupportImpl withSrcDescs(SupportLevel supportLevel) {
+			private LocalSupportImpl withSrcDescs(SupportLevel supportLevel) {
 				descriptors.withSrcDescs(supportLevel);
 				return this;
 			}
 
-			public LocalSupportImpl withDstDescs(SupportLevel supportLevel) {
+			private LocalSupportImpl withDstDescs(SupportLevel supportLevel) {
 				descriptors.withDstDescs(supportLevel);
 				return this;
 			}
 
 			@Override
-			public LocalSupportImpl clone() {
+			protected LocalSupportImpl clone() {
 				return new LocalSupportImpl(
 						positions,
 						lvIndices,
@@ -699,7 +699,7 @@ public enum MappingFormat {
 			private DescFeatureImpl descriptors;
 		}
 
-		public static class NameFeatureImpl implements NameFeature {
+		static class NameFeatureImpl implements NameFeature {
 			NameFeatureImpl() {
 				this(false);
 			}
@@ -714,18 +714,18 @@ public enum MappingFormat {
 				this.dstNames = dstNames;
 			}
 
-			public NameFeatureImpl withSrcNames(SupportLevel srcNameFeature) {
+			private NameFeatureImpl withSrcNames(SupportLevel srcNameFeature) {
 				this.srcNames = srcNameFeature;
 				return this;
 			}
 
-			public NameFeatureImpl withDstNames(SupportLevel dstNameFeature) {
+			private NameFeatureImpl withDstNames(SupportLevel dstNameFeature) {
 				this.dstNames = dstNameFeature;
 				return this;
 			}
 
 			@Override
-			public NameFeatureImpl clone() {
+			protected NameFeatureImpl clone() {
 				return new NameFeatureImpl(srcNames, dstNames);
 			}
 
@@ -743,7 +743,7 @@ public enum MappingFormat {
 			private SupportLevel dstNames;
 		}
 
-		public static class DescFeatureImpl implements DescFeature {
+		static class DescFeatureImpl implements DescFeature {
 			DescFeatureImpl() {
 				this(false);
 			}
@@ -758,18 +758,18 @@ public enum MappingFormat {
 				this.dstDescriptors = dstDescriptors;
 			}
 
-			public DescFeatureImpl withSrcDescs(SupportLevel srcDescriptorFeature) {
+			private DescFeatureImpl withSrcDescs(SupportLevel srcDescriptorFeature) {
 				this.srcDescriptors = srcDescriptorFeature;
 				return this;
 			}
 
-			public DescFeatureImpl withDstDescs(SupportLevel dstDescriptorFeature) {
+			private DescFeatureImpl withDstDescs(SupportLevel dstDescriptorFeature) {
 				this.dstDescriptors = dstDescriptorFeature;
 				return this;
 			}
 
 			@Override
-			public DescFeatureImpl clone() {
+			protected DescFeatureImpl clone() {
 				return new DescFeatureImpl(srcDescriptors, dstDescriptors);
 			}
 
