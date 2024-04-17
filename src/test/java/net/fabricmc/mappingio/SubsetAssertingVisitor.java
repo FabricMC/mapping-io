@@ -27,11 +27,11 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.format.FeatureSet;
+import net.fabricmc.mappingio.format.FeatureSet.ElementCommentSupport;
+import net.fabricmc.mappingio.format.FeatureSet.SupportLevel;
+import net.fabricmc.mappingio.format.FeatureSetInstantiator;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSet;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.ElementCommentSupport;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSet.SupportLevel;
-import net.fabricmc.mappingio.format.MappingFormat.FeatureSetImpl;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;
@@ -48,8 +48,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 	public SubsetAssertingVisitor(MappingTreeView supTree, @Nullable MappingFormat supFormat, @Nullable MappingFormat subFormat) {
 		this.supTree = supTree;
 		this.supDstNsCount = supTree.getMaxNamespaceId();
-		this.supFeatures = supFormat == null ? new FeatureSetImpl(true) : supFormat.getFeatures();
-		this.subFeatures = subFormat == null ? new FeatureSetImpl(true) : subFormat.getFeatures();
+		this.supFeatures = supFormat == null ? FeatureSetInstantiator.withFullSupport() : supFormat.getFeatures();
+		this.subFeatures = subFormat == null ? FeatureSetInstantiator.withFullSupport() : subFormat.getFeatures();
 	}
 
 	@Override
