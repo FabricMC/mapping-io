@@ -16,8 +16,6 @@
 
 package net.fabricmc.mappingio.format;
 
-import org.jetbrains.annotations.ApiStatus;
-
 public interface FeatureSet {
 	boolean hasNamespaces();
 	MetadataSupport fileMetadata();
@@ -37,42 +35,19 @@ public interface FeatureSet {
 	}
 
 	default boolean supportsFields() {
-		return supports(fields());
+		return FeatureSetHelper.isSupported(fields());
 	}
 
 	default boolean supportsMethods() {
-		return supports(methods());
-	}
-
-	/* TODO: Make private in Java 9+ */
-	@ApiStatus.Internal
-	default boolean supports(MemberSupport members) {
-		return members.srcNames() != SupportLevel.UNSUPPORTED
-				|| members.dstNames() != SupportLevel.UNSUPPORTED
-				|| members.srcDescs() != SupportLevel.UNSUPPORTED
-				|| members.dstDescs() != SupportLevel.UNSUPPORTED;
+		return FeatureSetHelper.isSupported(methods());
 	}
 
 	default boolean supportsArgs() {
-		return supports(args());
+		return FeatureSetHelper.isSupported(args());
 	}
 
 	default boolean supportsVars() {
-		return supports(vars());
-	}
-
-	/* TODO: Make private in Java 9+ */
-	@ApiStatus.Internal
-	default boolean supports(LocalSupport locals) {
-		return locals.positions() != SupportLevel.UNSUPPORTED
-				|| locals.lvIndices() != SupportLevel.UNSUPPORTED
-				|| locals.lvtRowIndices() != SupportLevel.UNSUPPORTED
-				|| locals.startOpIndices() != SupportLevel.UNSUPPORTED
-				|| locals.endOpIndices() != SupportLevel.UNSUPPORTED
-				|| locals.srcNames() != SupportLevel.UNSUPPORTED
-				|| locals.dstNames() != SupportLevel.UNSUPPORTED
-				|| locals.srcDescs() != SupportLevel.UNSUPPORTED
-				|| locals.dstDescs() != SupportLevel.UNSUPPORTED;
+		return FeatureSetHelper.isSupported(vars());
 	}
 
 	enum MetadataSupport {
