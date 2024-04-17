@@ -329,12 +329,12 @@ public enum MappingFormat {
 	public final boolean supportsLocals;
 
 	@ApiStatus.Internal
-	static final class FeatureSetImpl implements FeatureSet {
+	public static final class FeatureSetImpl implements FeatureSet {
 		FeatureSetImpl() {
 			this(false);
 		}
 
-		FeatureSetImpl(boolean initWithFullSupport) {
+		public FeatureSetImpl(boolean initWithFullSupport) {
 			this(initWithFullSupport,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 					initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
