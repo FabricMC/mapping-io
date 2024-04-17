@@ -31,7 +31,7 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@linkplain MappingFormat#RECAF_SIMPLE Recaf Simple file} reader.
+ * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} reader.
  */
 public final class RecafSimpleFileReader {
 	private RecafSimpleFileReader() {
@@ -42,7 +42,7 @@ public final class RecafSimpleFileReader {
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
 	}
 
 	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {

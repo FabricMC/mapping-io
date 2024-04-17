@@ -31,7 +31,7 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#TINY_1 Tiny v1 file} writer.
+ * {@linkplain MappingFormat#TINY_FILE Tiny v1 file} writer.
  */
 public final class Tiny1FileWriter implements MappingWriter {
 	public Tiny1FileWriter(Writer writer) {

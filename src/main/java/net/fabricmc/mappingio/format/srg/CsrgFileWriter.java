@@ -93,27 +93,27 @@ public final class CsrgFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		if (dstName == null) return false;
+		if (dstName != null) {
+			write(classSrcName);
 
-		write(classSrcName);
-
-		if (targetKind != MappedElementKind.CLASS) {
-			writeSpace();
-			write(memberSrcName);
-
-			if (targetKind == MappedElementKind.METHOD) {
+			if (targetKind != MappedElementKind.CLASS) {
 				writeSpace();
-				write(methodSrcDesc);
+				write(memberSrcName);
+
+				if (targetKind == MappedElementKind.METHOD) {
+					writeSpace();
+					write(methodSrcDesc);
+				}
+
+				memberSrcName = methodSrcDesc = null;
 			}
 
-			memberSrcName = methodSrcDesc = null;
+			writeSpace();
+			write(dstName);
+			writeLn();
+
+			dstName = null;
 		}
-
-		writeSpace();
-		write(dstName);
-		writeLn();
-
-		dstName = null;
 
 		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
 	}

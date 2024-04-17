@@ -28,7 +28,7 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#RECAF_SIMPLE Recaf Simple file} writer.
+ * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} writer.
  */
 public final class RecafSimpleFileWriter implements MappingWriter {
 	public RecafSimpleFileWriter(Writer writer) {

@@ -27,10 +27,11 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain net.fabricmc.mappingio.format.MappingFormat#SRG_FILE SRG file} and
- * {@linkplain net.fabricmc.mappingio.format.MappingFormat#XSRG_FILE XSRG file} writer.
+ * {@linkplain MappingFormat#SRG_FILE SRG file} and
+ * {@linkplain MappingFormat#XSRG_FILE XSRG file} writer.
  */
 public final class SrgFileWriter implements MappingWriter {
 	public SrgFileWriter(Writer writer, boolean xsrg) {
