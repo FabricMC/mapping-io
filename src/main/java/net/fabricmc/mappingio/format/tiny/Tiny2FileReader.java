@@ -134,6 +134,7 @@ public final class Tiny2FileReader {
 				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
 			}
 
+			firstIteration = false;
 			int markIdx = reader.reset();
 			assert markIdx == 1;
 		}
