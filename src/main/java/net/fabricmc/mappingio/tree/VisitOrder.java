@@ -35,6 +35,9 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  * Visitation order configuration for {@link MappingTreeView#accept(net.fabricmc.mappingio.MappingVisitor, VisitOrder)}.
  */
 public final class VisitOrder {
+	private VisitOrder() {
+	}
+
 	// pre-defined orders
 
 	public static VisitOrder createByInputOrder() {
