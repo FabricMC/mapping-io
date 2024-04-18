@@ -48,7 +48,7 @@ public final class EnigmaFileReader {
 		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 
