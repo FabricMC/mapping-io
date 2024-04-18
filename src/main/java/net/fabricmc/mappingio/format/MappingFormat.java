@@ -36,7 +36,7 @@ public enum MappingFormat {
 	 * File metadata only has limited support as of now, and is hardcoded to intermediary counters.
 	 */
 	TINY_FILE("Tiny file", "tiny", true, FeatureSetBuilder.create()
-			.withNamespaces()
+			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.FIXED) // TODO: change this to ARBITRARY once https://github.com/FabricMC/mapping-io/pull/29 is merged
 			.withClasses(c -> c
 					.withSrcNames(SupportLevel.REQUIRED)
@@ -49,13 +49,13 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.OPTIONAL)
 					.withSrcDescs(SupportLevel.REQUIRED))
-			.withFileComments()),
+			.withFileComments(true)),
 
 	/**
 	 * The {@code Tiny v2} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny2">here</a>.
 	 */
 	TINY_2_FILE("Tiny v2 file", "tiny", true, FeatureSetBuilder.create()
-			.withNamespaces()
+			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withClasses(c -> c
 					.withSrcNames(SupportLevel.REQUIRED)
@@ -79,7 +79,7 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.OPTIONAL)
 					.withDstNames(SupportLevel.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
-			.withFileComments()), // only in reserved places
+			.withFileComments(true)), // only in reserved places
 
 	/**
 	 * Enigma's mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
@@ -104,7 +104,7 @@ public enum MappingFormat {
 					.withLvIndices(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
-			.withFileComments()),
+			.withFileComments(true)),
 
 	/**
 	 * Enigma's mapping format (in directory form), as specified <a href="https://fabricmc.net/wiki/documentation:enigma_mappings">here</a>.
@@ -135,7 +135,7 @@ public enum MappingFormat {
 					.withDstNames(SupportLevel.REQUIRED)
 					.withSrcDescs(SupportLevel.REQUIRED)
 					.withDstDescs(SupportLevel.REQUIRED))
-			.withFileComments()),
+			.withFileComments(true)),
 
 	/**
 	 * The {@code XSRG} ("Extended SRG") mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L69-L84">here</a>.
@@ -193,7 +193,7 @@ public enum MappingFormat {
 	 * Package mappings and static markers for methods are currently not supported.
 	 */
 	TSRG_2_FILE("TSRG2 file", "tsrg", true, FeatureSetBuilder.createFrom(TSRG_FILE.features)
-			.withNamespaces()
+			.withNamespaces(true)
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f
 					.withSrcDescs(SupportLevel.OPTIONAL))
@@ -221,7 +221,7 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.REQUIRED)
 					.withSrcDescs(SupportLevel.REQUIRED))
-			.withFileComments()),
+			.withFileComments(true)),
 
 	/**
 	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
@@ -238,7 +238,7 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.REQUIRED)
 					.withSrcDescs(SupportLevel.REQUIRED))
-			.withFileComments()),
+			.withFileComments(true)),
 
 	/**
 	 * The {@code JOBF} mapping format, as specified <a href="https://github.com/skylot/jadx/blob/2d5c0fda4a0c5d16207a5f48edb72e6efa7d5bbd/jadx-core/src/main/java/jadx/core/deobf/DeobfPresets.java">here</a>.
@@ -261,7 +261,7 @@ public enum MappingFormat {
 					.withSrcNames(SupportLevel.REQUIRED)
 					.withDstNames(SupportLevel.REQUIRED)
 					.withSrcDescs(SupportLevel.REQUIRED))
-			.withFileComments());
+			.withFileComments(true));
 
 	MappingFormat(String name, @Nullable String fileExt, boolean hasWriter, FeatureSetBuilder featureBuilder) {
 		this.name = name;

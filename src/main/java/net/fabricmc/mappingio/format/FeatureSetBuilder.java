@@ -81,8 +81,8 @@ public class FeatureSetBuilder {
 		this.hasFileComments = hasFileComments;
 	}
 
-	public FeatureSetBuilder withNamespaces() {
-		this.hasNamespaces = true;
+	public FeatureSetBuilder withNamespaces(boolean value) {
+		this.hasNamespaces = value;
 		return this;
 	}
 
@@ -131,8 +131,8 @@ public class FeatureSetBuilder {
 		return this;
 	}
 
-	public FeatureSetBuilder withFileComments() {
-		this.hasFileComments = true;
+	public FeatureSetBuilder withFileComments(boolean value) {
+		this.hasFileComments = value;
 		return this;
 	}
 
