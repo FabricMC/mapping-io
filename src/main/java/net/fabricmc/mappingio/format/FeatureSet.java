@@ -29,6 +29,11 @@ public interface FeatureSet {
 	ElementCommentSupport elementComments();
 	boolean hasFileComments();
 
+	default boolean supportsPackages() {
+		return packages().srcNames() != SupportLevel.UNSUPPORTED
+				|| packages().dstNames() != SupportLevel.UNSUPPORTED;
+	}
+
 	default boolean supportsClasses() {
 		return classes().srcNames() != SupportLevel.UNSUPPORTED
 				|| classes().dstNames() != SupportLevel.UNSUPPORTED;
