@@ -36,6 +36,7 @@ allprojects {
 		testImplementation "net.neoforged:srgutils:${srgutils_version}"
 		testImplementation "org.cadixdev:lorenz:${lorenz_version}"
 		testImplementation "org.cadixdev:lorenz-io-enigma:${lorenz_version}"
+		testImplementation "org.cadixdev:lorenz-io-jam:${lorenz_version}"
 		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 		testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"

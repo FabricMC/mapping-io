@@ -87,11 +87,15 @@ public final class TestHelper {
 			return MappingFormats.TSRG;
 		case ENIGMA_FILE:
 			return MappingFormats.byId("enigma");
+		case JAM_FILE:
+			return MappingFormats.byId("jam");
 		case TINY_FILE:
 		case TINY_2_FILE:
 		case ENIGMA_DIR:
 		case TSRG_2_FILE:
 		case PROGUARD_FILE:
+		case RECAF_SIMPLE_FILE:
+		case JOBF_FILE:
 			return null;
 		default:
 			throw new IllegalArgumentException("Unknown format: " + format);
@@ -119,6 +123,9 @@ public final class TestHelper {
 			return IMappingFile.Format.PG;
 		case ENIGMA_FILE:
 		case ENIGMA_DIR:
+		case JAM_FILE:
+		case RECAF_SIMPLE_FILE:
+		case JOBF_FILE:
 			return null;
 		default:
 			throw new IllegalArgumentException("Unknown format: " + format);
