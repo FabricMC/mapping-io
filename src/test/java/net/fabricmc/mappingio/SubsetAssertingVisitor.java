@@ -80,7 +80,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		if (supCls == null) {
 			String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
-			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return true;
 			throw new RuntimeException("SubTree class not contained in SupTree: " + srcName);
 		}
 
@@ -111,7 +111,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		if (supFld == null) {
 			String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
-			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return true;
 			throw new RuntimeException("SubTree field not contained in SupTree: " + srcName);
 		}
 
@@ -149,7 +149,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		if (supMth == null) {
 			String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
-			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return true;
 			throw new RuntimeException("SubTree method not contained in SupTree: " + srcName);
 		}
 
@@ -187,7 +187,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		if (supArg == null) {
 			String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
-			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return true;
 			throw new RuntimeException("SubTree arg not contained in SupTree: " + srcName);
 		}
 
@@ -221,7 +221,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		if (supVar == null) {
 			String[] tmpDst = supHasNamespaces ? dstNames : new String[]{dstNames[0]};
-			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return false;
+			if (!Arrays.stream(tmpDst).anyMatch(Objects::nonNull)) return true;
 			throw new RuntimeException("SubTree var not contained in SupTree: " + srcName);
 		}
 

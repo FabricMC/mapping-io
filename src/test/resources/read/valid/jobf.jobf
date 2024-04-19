@@ -1,0 +1,6 @@
+c class_1 = class1Ns0Rename
+f class_1.field_1:I = field1Ns0Rename
+m class_1.method_1()I = method1Ns0Rename
+c class_1$class_2 = class1Ns0Rename$class2Ns0Rename
+f class_1$class_2.field_2:I = field2Ns0Rename
+c class_3 = class3Ns0Rename

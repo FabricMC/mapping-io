@@ -30,13 +30,11 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#SRG_FILE SRG file} and
- * {@linkplain MappingFormat#XSRG_FILE XSRG file} writer.
+ * {@linkplain MappingFormat#JAM_FILE JAM file} writer.
  */
-public final class SrgFileWriter implements MappingWriter {
-	public SrgFileWriter(Writer writer, boolean xsrg) {
+public final class JamFileWriter implements MappingWriter {
+	public JamFileWriter(Writer writer) {
 		this.writer = writer;
-		this.xsrg = xsrg;
 	}
 
 	@Override
@@ -46,7 +44,7 @@ public final class SrgFileWriter implements MappingWriter {
 
 	@Override
 	public Set<MappingFlag> getFlags() {
-		return xsrg ? xsrgFlags : srgFlags;
+		return flags;
 	}
 
 	@Override
@@ -66,7 +64,6 @@ public final class SrgFileWriter implements MappingWriter {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 		memberDstName = null;
-		memberDstDesc = null;
 
 		return true;
 	}
@@ -76,14 +73,16 @@ public final class SrgFileWriter implements MappingWriter {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 		memberDstName = null;
-		memberDstDesc = null;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		return false; // not supported, skip
+		argSrcPosition = argPosition;
+		argDstName = null;
+
+		return true;
 	}
 
 	@Override
@@ -103,66 +102,71 @@ public final class SrgFileWriter implements MappingWriter {
 		case METHOD:
 			memberDstName = name;
 			break;
+		case METHOD_ARG:
+			argDstName = name;
+			break;
 		default:
 			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
-	}
-
-	@Override
-	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
-		if (namespace != 0) return;
-
-		memberDstDesc = desc;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		switch (targetKind) {
-		case CLASS:
-			if (classDstName == null) return true;
-			write("CL: ");
-			break;
-		case FIELD:
-			if (memberSrcDesc == null || memberDstName == null || (xsrg && memberDstDesc == null)) return false;
-			write("FD: ");
-			break;
-		case METHOD:
-			if (memberSrcDesc == null || memberDstName == null || memberDstDesc == null) return false;
-			write("MD: ");
-			break;
-		default:
+		boolean isClass = targetKind == MappedElementKind.CLASS;
+		boolean isMethod = false;
+		boolean isArg = false;
+
+		if (isClass) {
+			if (!classOnlyPass || classDstName == null) {
+				return true;
+			}
+
+			write("CL ");
+		} else if (targetKind == MappedElementKind.FIELD
+				|| (isMethod = targetKind == MappedElementKind.METHOD)
+				|| (isArg = targetKind == MappedElementKind.METHOD_ARG)) {
+			if (classOnlyPass) {
+				return false;
+			} else if (memberSrcDesc == null || (!isArg && memberDstName == null)) {
+				return isMethod;
+			}
+
+			if (isMethod) {
+				write("MD ");
+			} else if (!isArg) {
+				write("FD ");
+			} else {
+				if (argSrcPosition == -1 || argDstName == null) return false;
+				write("MP ");
+			}
+		} else {
 			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
 
 		write(classSrcName);
+		writeSpace();
 
-		if (targetKind != MappedElementKind.CLASS) {
-			write("/");
+		if (isClass) {
+			write(classDstName);
+		} else {
 			write(memberSrcName);
+			writeSpace();
 
-			if (targetKind == MappedElementKind.METHOD || xsrg) {
-				write(" ");
-				write(memberSrcDesc);
-			}
-		}
+			write(memberSrcDesc);
+			writeSpace();
 
-		write(" ");
-		if (classDstName == null) classDstName = classSrcName;
-		write(classDstName);
-
-		if (targetKind != MappedElementKind.CLASS) {
-			write("/");
-			write(memberDstName);
-
-			if (targetKind == MappedElementKind.METHOD || xsrg) {
-				write(" ");
-				write(memberDstDesc);
+			if (!isArg) {
+				write(memberDstName);
+			} else {
+				write(Integer.toString(argSrcPosition));
+				writeSpace();
+				write(argDstName);
 			}
 		}
 
 		writeLn();
 
-		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
+		return isClass || isMethod;
 	}
 
 	@Override
@@ -170,29 +174,41 @@ public final class SrgFileWriter implements MappingWriter {
 		// not supported, skip
 	}
 
+	@Override
+	public boolean visitEnd() throws IOException {
+		if (classOnlyPass) {
+			classOnlyPass = false;
+			return false;
+		}
+
+		classOnlyPass = true;
+		return MappingWriter.super.visitEnd();
+	}
+
 	private void write(String str) throws IOException {
 		writer.write(str);
+	}
+
+	private void writeSpace() throws IOException {
+		writer.write(' ');
 	}
 
 	private void writeLn() throws IOException {
 		writer.write('\n');
 	}
 
-	private static final Set<MappingFlag> srgFlags = EnumSet.of(MappingFlag.NEEDS_SRC_METHOD_DESC, MappingFlag.NEEDS_DST_METHOD_DESC);
-	private static final Set<MappingFlag> xsrgFlags;
-
-	static {
-		xsrgFlags = EnumSet.copyOf(srgFlags);
-		xsrgFlags.add(MappingFlag.NEEDS_SRC_FIELD_DESC);
-		xsrgFlags.add(MappingFlag.NEEDS_DST_FIELD_DESC);
-	}
+	private static final Set<MappingFlag> flags = EnumSet.of(
+			MappingFlag.NEEDS_SRC_FIELD_DESC,
+			MappingFlag.NEEDS_SRC_METHOD_DESC,
+			MappingFlag.NEEDS_MULTIPLE_PASSES);
 
 	private final Writer writer;
-	private final boolean xsrg;
+	private boolean classOnlyPass = true;
 	private String classSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;
+	private int argSrcPosition = -1;
 	private String classDstName;
 	private String memberDstName;
-	private String memberDstDesc;
+	private String argDstName;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 FabricMC
+ * Copyright (c) 2023 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.format.tiny;
+package net.fabricmc.mappingio.format.simple;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-
-import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
@@ -31,10 +28,10 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#TINY_FILE Tiny v1 file} writer.
+ * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} writer.
  */
-public final class Tiny1FileWriter implements MappingWriter {
-	public Tiny1FileWriter(Writer writer) {
+public final class RecafSimpleFileWriter implements MappingWriter {
+	public RecafSimpleFileWriter(Writer writer) {
 		this.writer = writer;
 	}
 
@@ -50,45 +47,6 @@ public final class Tiny1FileWriter implements MappingWriter {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		dstNames = new String[dstNamespaces.size()];
-
-		write("v1\t");
-		write(srcNamespace);
-
-		for (String dstNamespace : dstNamespaces) {
-			writeTab();
-			write(dstNamespace);
-		}
-
-		writeLn();
-	}
-
-	@Override
-	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		switch (key) {
-		case Tiny1FileReader.nextIntermediaryClassProperty:
-		case Tiny1FileReader.nextIntermediaryFieldProperty:
-		case Tiny1FileReader.nextIntermediaryMethodProperty:
-			write("# INTERMEDIARY-COUNTER ");
-
-			switch (key) {
-			case Tiny1FileReader.nextIntermediaryClassProperty:
-				write("class");
-				break;
-			case Tiny1FileReader.nextIntermediaryFieldProperty:
-				write("field");
-				break;
-			case Tiny1FileReader.nextIntermediaryMethodProperty:
-				write("method");
-				break;
-			default:
-				throw new IllegalStateException();
-			}
-
-			write(" ");
-			write(value);
-			writeLn();
-		}
 	}
 
 	@Override
@@ -99,7 +57,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
+	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -107,7 +65,7 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
 		memberSrcName = srcName;
 		memberSrcDesc = srcDesc;
 
@@ -115,66 +73,41 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
 		return false; // not supported, skip
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
 		return false; // not supported, skip
 	}
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
-		dstNames[namespace] = name;
+		if (namespace != 0) return;
+		dstName = name;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		// determine if there is any useful data to emit
-		boolean found = false;
-
-		for (String dstName : dstNames) {
-			if (dstName != null) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) return true;
-
-		switch (targetKind) {
-		case CLASS:
-			write("CLASS");
-			break;
-		case FIELD:
-			write("FIELD");
-			break;
-		case METHOD:
-			write("METHOD");
-			break;
-		default:
-			throw new IllegalStateException("unexpected invocation for "+targetKind);
-		}
-
-		writeTab();
+		if (dstName == null) return true;
 		write(classSrcName);
 
 		if (targetKind != MappedElementKind.CLASS) {
-			writeTab();
-			write(memberSrcDesc);
-			writeTab();
+			if (memberSrcName == null) throw new IllegalArgumentException("member source name cannot be null!");
+			writer.write('.');
 			write(memberSrcName);
+
+			if (memberSrcDesc != null) {
+				if (targetKind == MappedElementKind.FIELD) writeSpace();
+				write(memberSrcDesc);
+			}
 		}
 
-		for (String dstName : dstNames) {
-			writeTab();
-			if (dstName != null) write(dstName);
-		}
-
+		writeSpace();
+		write(dstName);
 		writeLn();
-
-		Arrays.fill(dstNames, null);
+		dstName = null;
 
 		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
 	}
@@ -192,8 +125,8 @@ public final class Tiny1FileWriter implements MappingWriter {
 		writer.write('\n');
 	}
 
-	private void writeTab() throws IOException {
-		writer.write('\t');
+	private void writeSpace() throws IOException {
+		writer.write(' ');
 	}
 
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
@@ -202,5 +135,5 @@ public final class Tiny1FileWriter implements MappingWriter {
 	private String classSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;
-	private String[] dstNames;
+	private String dstName;
 }

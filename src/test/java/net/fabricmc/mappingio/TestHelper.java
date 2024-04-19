@@ -55,6 +55,8 @@ public final class TestHelper {
 			return "srg.srg";
 		case XSRG_FILE:
 			return "xsrg.xsrg";
+		case JAM_FILE:
+			return "jam.jam";
 		case CSRG_FILE:
 			return "csrg.csrg";
 		case TSRG_FILE:
@@ -63,6 +65,10 @@ public final class TestHelper {
 			return "tsrg2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case RECAF_SIMPLE_FILE:
+			return "recaf-simple.txt";
+		case JOBF_FILE:
+			return "jobf.jobf";
 		default:
 			return null;
 		}

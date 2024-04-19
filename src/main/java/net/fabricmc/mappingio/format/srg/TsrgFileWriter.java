@@ -18,6 +18,7 @@ package net.fabricmc.mappingio.format.srg;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -30,13 +31,13 @@ import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * {@linkplain MappingFormat#SRG_FILE SRG file} and
- * {@linkplain MappingFormat#XSRG_FILE XSRG file} writer.
+ * {@linkplain MappingFormat#TSRG_FILE TSRG file} and
+ * {@linkplain MappingFormat#TSRG_2_FILE TSRG v2 file} writer.
  */
-public final class SrgFileWriter implements MappingWriter {
-	public SrgFileWriter(Writer writer, boolean xsrg) {
+public final class TsrgFileWriter implements MappingWriter {
+	public TsrgFileWriter(Writer writer, boolean tsrg2) {
 		this.writer = writer;
-		this.xsrg = xsrg;
+		this.tsrg2 = tsrg2;
 	}
 
 	@Override
@@ -46,44 +47,63 @@ public final class SrgFileWriter implements MappingWriter {
 
 	@Override
 	public Set<MappingFlag> getFlags() {
-		return xsrg ? xsrgFlags : srgFlags;
+		return tsrg2 ? tsrg2Flags : tsrgFlags;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
+		dstNames = new String[dstNamespaces.size()];
+
+		if (tsrg2) {
+			write("tsrg2 ");
+			write(srcNamespace);
+
+			for (String dstNamespace : dstNamespaces) {
+				writeSpace();
+				write(dstNamespace);
+			}
+
+			writeLn();
+		}
+	}
+
+	@Override
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
+		// TODO: Support the static method marker once https://github.com/FabricMC/mapping-io/pull/41 is merged
 	}
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		classSrcName = srcName;
-		classDstName = null;
+		this.srcName = srcName;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
-		memberSrcName = srcName;
-		memberSrcDesc = srcDesc;
-		memberDstName = null;
-		memberDstDesc = null;
+		this.srcName = srcName;
+		this.srcDesc = srcDesc;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		memberSrcName = srcName;
-		memberSrcDesc = srcDesc;
-		memberDstName = null;
-		memberDstDesc = null;
+		this.srcName = srcName;
+		this.srcDesc = srcDesc;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		return false; // not supported, skip
+		if (tsrg2) {
+			this.srcName = srcName;
+			this.lvIndex = lvIndex;
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -93,76 +113,55 @@ public final class SrgFileWriter implements MappingWriter {
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
-		if (namespace != 0) return;
+		if (!tsrg2 && namespace != 0) return;
 
-		switch (targetKind) {
-		case CLASS:
-			classDstName = name;
-			break;
-		case FIELD:
-		case METHOD:
-			memberDstName = name;
-			break;
-		default:
-			throw new IllegalStateException("unexpected invocation for "+targetKind);
-		}
-	}
-
-	@Override
-	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
-		if (namespace != 0) return;
-
-		memberDstDesc = desc;
+		dstNames[namespace] = name;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		switch (targetKind) {
 		case CLASS:
-			if (classDstName == null) return true;
-			write("CL: ");
 			break;
 		case FIELD:
-			if (memberSrcDesc == null || memberDstName == null || (xsrg && memberDstDesc == null)) return false;
-			write("FD: ");
-			break;
 		case METHOD:
-			if (memberSrcDesc == null || memberDstName == null || memberDstDesc == null) return false;
-			write("MD: ");
+			writeTab();
 			break;
-		default:
-			throw new IllegalStateException("unexpected invocation for "+targetKind);
+		case METHOD_ARG:
+			assert tsrg2;
+			writeTab();
+			writeTab();
+			write(Integer.toString(lvIndex));
+			writeSpace();
+		case METHOD_VAR:
+			assert tsrg2;
+			break;
 		}
 
-		write(classSrcName);
+		write(srcName);
 
-		if (targetKind != MappedElementKind.CLASS) {
-			write("/");
-			write(memberSrcName);
-
-			if (targetKind == MappedElementKind.METHOD || xsrg) {
-				write(" ");
-				write(memberSrcDesc);
-			}
+		if (targetKind == MappedElementKind.METHOD
+				|| (targetKind == MappedElementKind.FIELD && tsrg2)) {
+			writeSpace();
+			write(srcDesc);
 		}
 
-		write(" ");
-		if (classDstName == null) classDstName = classSrcName;
-		write(classDstName);
+		int dstNsCount = tsrg2 ? dstNames.length : 1;
 
-		if (targetKind != MappedElementKind.CLASS) {
-			write("/");
-			write(memberDstName);
-
-			if (targetKind == MappedElementKind.METHOD || xsrg) {
-				write(" ");
-				write(memberDstDesc);
-			}
+		for (int i = 0; i < dstNsCount; i++) {
+			String dstName = dstNames[i];
+			writeSpace();
+			write(dstName != null ? dstName : srcName);
 		}
 
 		writeLn();
 
-		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
+		srcName = srcDesc = null;
+		Arrays.fill(dstNames, null);
+		lvIndex = -1;
+
+		return targetKind == MappedElementKind.CLASS
+				|| (tsrg2 && targetKind == MappedElementKind.METHOD);
 	}
 
 	@Override
@@ -174,25 +173,30 @@ public final class SrgFileWriter implements MappingWriter {
 		writer.write(str);
 	}
 
+	private void writeTab() throws IOException {
+		writer.write('\t');
+	}
+
+	private void writeSpace() throws IOException {
+		writer.write(' ');
+	}
+
 	private void writeLn() throws IOException {
 		writer.write('\n');
 	}
 
-	private static final Set<MappingFlag> srgFlags = EnumSet.of(MappingFlag.NEEDS_SRC_METHOD_DESC, MappingFlag.NEEDS_DST_METHOD_DESC);
-	private static final Set<MappingFlag> xsrgFlags;
+	private static final Set<MappingFlag> tsrgFlags = EnumSet.of(MappingFlag.NEEDS_ELEMENT_UNIQUENESS, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	private static final Set<MappingFlag> tsrg2Flags;
 
 	static {
-		xsrgFlags = EnumSet.copyOf(srgFlags);
-		xsrgFlags.add(MappingFlag.NEEDS_SRC_FIELD_DESC);
-		xsrgFlags.add(MappingFlag.NEEDS_DST_FIELD_DESC);
+		tsrg2Flags = EnumSet.copyOf(tsrgFlags);
+		tsrg2Flags.add(MappingFlag.NEEDS_SRC_FIELD_DESC);
 	}
 
 	private final Writer writer;
-	private final boolean xsrg;
-	private String classSrcName;
-	private String memberSrcName;
-	private String memberSrcDesc;
-	private String classDstName;
-	private String memberDstName;
-	private String memberDstDesc;
+	private final boolean tsrg2;
+	private String srcName;
+	private String srcDesc;
+	private String[] dstNames;
+	private int lvIndex = -1;
 }

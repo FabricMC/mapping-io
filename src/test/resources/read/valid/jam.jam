@@ -1,0 +1,7 @@
+CL class_1 class1Ns0Rename
+CL class_1$class_2 class1Ns0Rename$class2Ns0Rename
+CL class_3 class3Ns0Rename
+FD class_1 field_1 I field1Ns0Rename
+MD class_1 method_1 ()I method1Ns0Rename
+MP class_1 method_1 ()I 0 param1Ns0Rename
+FD class_1$class_2 field_2 I field2Ns0Rename

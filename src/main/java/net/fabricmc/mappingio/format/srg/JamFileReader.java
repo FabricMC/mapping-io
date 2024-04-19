@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 FabricMC
+ * Copyright (c) 2023 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,13 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
- * {@linkplain MappingFormat#SRG_FILE SRG file} and
- * {@linkplain MappingFormat#XSRG_FILE XSRG file} reader.
+ * {@linkplain MappingFormat#JAM_FILE JAM file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
  */
-public final class SrgFileReader {
-	private SrgFileReader() {
+public final class JamFileReader {
+	private JamFileReader() {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
@@ -50,7 +49,6 @@ public final class SrgFileReader {
 	}
 
 	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		MappingFormat format = MappingFormat.SRG_FILE;
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 		boolean readerMarked = false;
@@ -74,8 +72,9 @@ public final class SrgFileReader {
 
 				do {
 					boolean isMethod;
+					boolean isArg = false;
 
-					if (reader.nextCol("CL:")) { // class: CL: <src> <dst>
+					if (reader.nextCol("CL")) { // class: CL <src> <dst>
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
@@ -91,63 +90,70 @@ public final class SrgFileReader {
 								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 							}
 						}
-					} else if ((isMethod = reader.nextCol("MD:")) || reader.nextCol("FD:")) { // method: MD: <cls-a><name-a> <desc-a> <cls-b><name-b> <desc-b> or field: FD: <cls-a><name-a> <cls-b><name-b>
-						String src = reader.nextCol();
-						if (src == null) throw new IOException("missing class/name a in line "+reader.getLineNumber());
+					} else if ((isMethod = reader.nextCol("MD")) || reader.nextCol("FD") // method/field: MD/FD <cls-a> <name-a> <desc-a> <name-b>
+							|| (isArg = reader.nextCol("MP"))) { // parameter: MP <cls-a> <mth-name-a> <mth-desc-a> <arg-pos> [<arg-desc-a>] <name-b>
+						String clsSrcClsName = reader.nextCol();
+						if (clsSrcClsName == null) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-						int srcSepPos = src.lastIndexOf('/');
-						if (srcSepPos <= 0 || srcSepPos == src.length() - 1) throw new IOException("invalid class/name a in line "+reader.getLineNumber());
+						String memberSrcName = reader.nextCol();
+						if (memberSrcName == null || memberSrcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
 
-						String[] cols = new String[3];
+						String memberSrcDesc = reader.nextCol();
+						if (memberSrcDesc == null || memberSrcDesc.isEmpty()) throw new IOException("missing member-desc-a in line "+reader.getLineNumber());
 
-						for (int i = 0; i < 3; i++) {
-							cols[i] = reader.nextCol();
-						}
+						String col5 = reader.nextCol();
+						String col6 = reader.nextCol();
+						String col7 = reader.nextCol();
 
-						if (!isMethod && cols[1] != null && cols[2] != null) format = MappingFormat.XSRG_FILE;
-						String srcDesc;
+						int argSrcPos = -1;
 						String dstName;
-						String dstDesc;
+						String argSrcDesc;
 
-						if (isMethod || format == MappingFormat.XSRG_FILE) {
-							srcDesc = cols[0];
-							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
-							dstName = cols[1];
-							dstDesc = cols[2];
-							if (dstDesc == null || dstDesc.isEmpty()) throw new IOException("missing desc b in line "+reader.getLineNumber());
+						if (!isArg) {
+							dstName = col5;
 						} else {
-							srcDesc = null;
-							dstName = cols[0];
-							dstDesc = null;
+							argSrcPos = Integer.parseInt(col5);
+
+							if (col7 == null || col7.isEmpty()) {
+								dstName = col6;
+							} else {
+								argSrcDesc = col6;
+								if (argSrcDesc == null || argSrcDesc.isEmpty()) throw new IOException("missing parameter-desc-a in line "+reader.getLineNumber());
+
+								dstName = col7;
+							}
 						}
 
-						if (dstName == null) throw new IOException("missing class/name b in line "+reader.getLineNumber());
+						if (dstName == null || dstName.isEmpty()) throw new IOException("missing name-b in line "+reader.getLineNumber());
 
-						int dstSepPos = dstName.lastIndexOf('/');
-						if (dstSepPos <= 0 || dstSepPos == dstName.length() - 1) throw new IOException("invalid class/name b in line "+reader.getLineNumber());
-
-						String srcOwner = src.substring(0, srcSepPos);
-
-						if (!srcOwner.equals(lastClass)) {
-							lastClass = srcOwner;
-							visitLastClass = visitor.visitClass(srcOwner);
+						if (!clsSrcClsName.equals(lastClass)) {
+							lastClass = clsSrcClsName;
+							visitLastClass = visitor.visitClass(clsSrcClsName);
 
 							if (visitLastClass) {
-								visitor.visitDstName(MappedElementKind.CLASS, 0, dstName.substring(0, dstSepPos));
 								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 							}
 						}
 
-						if (visitLastClass) {
-							String srcName = src.substring(srcSepPos + 1);
+						if (!visitLastClass) continue;
+						boolean visitMethod = false;
 
-							if (isMethod && visitor.visitMethod(srcName, srcDesc)
-									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
-								MappedElementKind kind = isMethod ? MappedElementKind.METHOD : MappedElementKind.FIELD;
-								visitor.visitDstName(kind, 0, dstName.substring(dstSepPos + 1));
-								visitor.visitDstDesc(kind, 0, dstDesc);
-								visitor.visitElementContent(kind);
+						if (isMethod || isArg) {
+							visitMethod = visitor.visitMethod(memberSrcName, memberSrcDesc);
+						}
+
+						if (visitMethod) {
+							if (isMethod) {
+								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.METHOD);
+							} else {
+								visitor.visitMethodArg(argSrcPos, -1, null);
+								visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.METHOD_ARG);
 							}
+						} else if (!isMethod && !isArg && visitor.visitField(memberSrcName, memberSrcDesc)) {
+							visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
 					}
 				} while (reader.nextLine(0));
