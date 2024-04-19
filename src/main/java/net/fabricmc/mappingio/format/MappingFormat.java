@@ -99,7 +99,7 @@ public enum MappingFormat {
 	 * <h2>Implementation notes</h2>
 	 * Package mappings and static markers for methods are currently not supported.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, true, false, true, false, true),
+	TSRG_2_FILE("TSRG v2 file", "tsrg", true, true, false, true, false, true),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.

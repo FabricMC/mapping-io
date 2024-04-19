@@ -34,6 +34,9 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
  * {@linkplain MappingFormat#JOBF_FILE JOBF file} reader.
  */
 public class JobfFileReader {
+	private JobfFileReader() {
+	}
+
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
