@@ -375,11 +375,6 @@ public class FeatureSetBuilder {
 			return this;
 		}
 
-		@Override
-		protected DescFeatureBuilder clone() {
-			return new DescFeatureBuilder(srcDescriptors, dstDescriptors);
-		}
-
 		public DescSupport build() {
 			return new DescSupportImpl(srcDescriptors, dstDescriptors);
 		}
