@@ -42,7 +42,7 @@ public final class ProGuardFileReader {
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, Character.MIN_VALUE, ' '), sourceNs, targetNs, visitor);
+		read(new ColumnFileReader(reader, /* random illegal character */ ';', ' '), sourceNs, targetNs, visitor);
 	}
 
 	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
