@@ -181,13 +181,13 @@ public class FeatureSetBuilder {
 			this.descriptors = descriptors;
 		}
 
-		public MemberSupportBuilder withSrcNames(SupportLevel srcNameFeature) {
-			names.withSrcNames(srcNameFeature);
+		public MemberSupportBuilder withSrcNames(SupportLevel supportLevel) {
+			names.withSrcNames(supportLevel);
 			return this;
 		}
 
-		public MemberSupportBuilder withDstNames(SupportLevel dstNameFeature) {
-			names.withDstNames(dstNameFeature);
+		public MemberSupportBuilder withDstNames(SupportLevel supportLevel) {
+			names.withDstNames(supportLevel);
 			return this;
 		}
 
@@ -244,28 +244,28 @@ public class FeatureSetBuilder {
 			this.descriptors = descriptors;
 		}
 
-		public LocalSupportBuilder withPositions(SupportLevel positionFeature) {
-			this.positions = positionFeature;
+		public LocalSupportBuilder withPositions(SupportLevel supportLevel) {
+			this.positions = supportLevel;
 			return this;
 		}
 
-		public LocalSupportBuilder withLvIndices(SupportLevel lvIndexFeature) {
-			this.lvIndices = lvIndexFeature;
+		public LocalSupportBuilder withLvIndices(SupportLevel supportLevel) {
+			this.lvIndices = supportLevel;
 			return this;
 		}
 
-		public LocalSupportBuilder withLvtRowIndices(SupportLevel lvtRowIndexFeature) {
-			this.lvtRowIndices = lvtRowIndexFeature;
+		public LocalSupportBuilder withLvtRowIndices(SupportLevel supportLevel) {
+			this.lvtRowIndices = supportLevel;
 			return this;
 		}
 
-		public LocalSupportBuilder withStartOpIndices(SupportLevel startOpIndexFeature) {
-			this.startOpIndices = startOpIndexFeature;
+		public LocalSupportBuilder withStartOpIndices(SupportLevel supportLevel) {
+			this.startOpIndices = supportLevel;
 			return this;
 		}
 
-		public LocalSupportBuilder withEndOpIndexSupport(SupportLevel endOpIndexFeature) {
-			this.endOpIndices = endOpIndexFeature;
+		public LocalSupportBuilder withEndOpIndices(SupportLevel supportLevel) {
+			this.endOpIndices = supportLevel;
 			return this;
 		}
 
@@ -328,13 +328,13 @@ public class FeatureSetBuilder {
 			this.dstNames = dstNames;
 		}
 
-		public NameFeatureBuilder withSrcNames(SupportLevel srcNameFeature) {
-			this.srcNames = srcNameFeature;
+		public NameFeatureBuilder withSrcNames(SupportLevel supportLevel) {
+			this.srcNames = supportLevel;
 			return this;
 		}
 
-		public NameFeatureBuilder withDstNames(SupportLevel dstNameFeature) {
-			this.dstNames = dstNameFeature;
+		public NameFeatureBuilder withDstNames(SupportLevel supportLevel) {
+			this.dstNames = supportLevel;
 			return this;
 		}
 
@@ -365,13 +365,13 @@ public class FeatureSetBuilder {
 			this.dstDescriptors = dstDescriptors;
 		}
 
-		public DescFeatureBuilder withSrcDescs(SupportLevel srcDescriptorFeature) {
-			this.srcDescriptors = srcDescriptorFeature;
+		public DescFeatureBuilder withSrcDescs(SupportLevel supportLevel) {
+			this.srcDescriptors = supportLevel;
 			return this;
 		}
 
-		public DescFeatureBuilder withDstDescs(SupportLevel dstDescriptorFeature) {
-			this.dstDescriptors = dstDescriptorFeature;
+		public DescFeatureBuilder withDstDescs(SupportLevel supportLevel) {
+			this.dstDescriptors = supportLevel;
 			return this;
 		}
 
