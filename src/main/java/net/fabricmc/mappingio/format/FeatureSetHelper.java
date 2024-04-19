@@ -22,6 +22,9 @@ import net.fabricmc.mappingio.format.FeatureSet.SupportLevel;
 
 // Only exists since Java 8 doesn't support private interface methods yet
 final class FeatureSetHelper {
+	private FeatureSetHelper() {
+	}
+
 	static boolean isSupported(MemberSupport members) {
 		return members.srcNames() != SupportLevel.UNSUPPORTED
 				|| members.dstNames() != SupportLevel.UNSUPPORTED
