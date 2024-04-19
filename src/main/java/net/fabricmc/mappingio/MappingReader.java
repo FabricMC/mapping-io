@@ -161,7 +161,7 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
-		if (format.hasNamespaces) {
+		if (format.getFeatures().hasNamespaces()) {
 			try (Reader reader = Files.newBufferedReader(file)) {
 				return getNamespaces(reader, format);
 			}
@@ -183,7 +183,7 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
-		if (format.hasNamespaces) {
+		if (format.getFeatures().hasNamespaces()) {
 			checkReaderCompatible(format);
 
 			switch (format) {
