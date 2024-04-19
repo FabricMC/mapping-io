@@ -32,7 +32,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
  * {@linkplain MappingFormat#TSRG_FILE TSRG file} and
- * {@linkplain MappingFormat#TSRG_2_FILE TSRG2 file} writer.
+ * {@linkplain MappingFormat#TSRG_2_FILE TSRG v2 file} writer.
  */
 public final class TsrgFileWriter implements MappingWriter {
 	public TsrgFileWriter(Writer writer, boolean tsrg2) {

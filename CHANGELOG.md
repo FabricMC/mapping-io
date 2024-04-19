@@ -4,8 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Overhauled the internal `ColumnFileReader` to behave more consistently and future-proof
 - Added `MappingFormat#getFeatures()` to allow for more fine-grained programmatic querying of format capabilities
+- Overhauled the internal `ColumnFileReader` to behave more consistently
+- Made handling of the `NEEDS_MULTIPLE_PASSES` flag more consistent, reducing memory usage in a few cases
+- Made some internal methods in Enigma and TSRG readers actually private
 
 ## [0.6.1] - 2024-04-15
 - Fixed CSRG and JAM writers sometimes skipping elements whose parents have incomplete destination names
@@ -13,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - 2024-04-12
 - Added CSRG writer
-- Added TSRG and TSRG2 writer
+- Added TSRG and TSRG v2 writer
 - Added JAM reader and writer
 - Added JOBF reader and writer
 - Added Recaf Simple reader and writer
@@ -26,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed ProGuard writer producing invalid files when missing destination names
 - Fixed Enigma reader throwing incorrect error message
 - Fixed NPE in `MemoryMappingTree`
-- Fixed TSRG2 reader not handling multiple passes correctly
+- Fixed TSRG v2 reader not handling multiple passes correctly
 
 ## [0.5.0] - 2023-11-15
 - Actually marked `HierarchyInfoProvider` as experimental
@@ -44,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deferred existing Enigma directory deletion to writer visit pass start
 - Made `MappingWriter#create` return null instead of throwing an exception
 - Moved `MappingTreeRemapper`, `TinyRemapperHierarchyProvider` and `ClassAnalysisDescCompleter` to new `mapping-io-extras` publication
-- Fixed TSRG2 reporting itself as not supporting field descriptors
+- Fixed TSRG v2 reporting itself as not supporting field descriptors
 - Fixed regular <-> flat visitor adapter methods
 
 ## [0.5.0-beta.1] - 2023-10-09

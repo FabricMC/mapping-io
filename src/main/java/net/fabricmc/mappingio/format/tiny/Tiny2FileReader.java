@@ -78,9 +78,11 @@ public final class Tiny2FileReader {
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		boolean readerMarked = false;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		boolean firstIteration = true;
@@ -128,8 +130,13 @@ public final class Tiny2FileReader {
 
 			if (visitor.visitEnd()) break;
 
-			reader.reset();
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
 			firstIteration = false;
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 	}
 

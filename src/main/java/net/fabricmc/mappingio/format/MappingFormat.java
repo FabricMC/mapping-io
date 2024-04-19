@@ -192,7 +192,7 @@ public enum MappingFormat {
 	 * <h2>Implementation notes</h2>
 	 * Package mappings and static markers for methods are currently not supported.
 	 */
-	TSRG_2_FILE("TSRG2 file", "tsrg", true, FeatureSetBuilder.createFrom(TSRG_FILE.features)
+	TSRG_2_FILE("TSRG v2 file", "tsrg", true, FeatureSetBuilder.createFrom(TSRG_FILE.features)
 			.withNamespaces(true)
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f

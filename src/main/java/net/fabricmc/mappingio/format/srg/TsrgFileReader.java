@@ -33,7 +33,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 /**
  * {@linkplain MappingFormat#CSRG_FILE CSRG file},
  * {@linkplain MappingFormat#TSRG_FILE TSRG file} and
- * {@linkplain MappingFormat#TSRG_2_FILE TSRG2 file} reader.
+ * {@linkplain MappingFormat#TSRG_2_FILE TSRG v2 file} reader.
  *
  * <p>Crashes if a second visit pass is requested without
  * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
@@ -69,10 +69,11 @@ public final class TsrgFileReader {
 		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		MappingFormat format = reader.nextCol("tsrg2") ? format = MappingFormat.TSRG_2_FILE : MappingFormat.TSRG_FILE;
 		String srcNamespace;
 		List<String> dstNamespaces;
+		boolean readerMarked = false;
 
 		if (format == MappingFormat.TSRG_2_FILE) {
 			srcNamespace = reader.nextCol();
@@ -91,6 +92,7 @@ public final class TsrgFileReader {
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		int dstNsCount = dstNamespaces.size();
@@ -177,6 +179,10 @@ public final class TsrgFileReader {
 			}
 
 			if (visitor.visitEnd()) break;
+
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
 
 			int markIdx = reader.reset();
 			assert markIdx == 1;
