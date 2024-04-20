@@ -26,7 +26,9 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.ErrorSink;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.ParsingError.Severity;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -37,15 +39,24 @@ public class JobfFileReader {
 	private JobfFileReader() {
 	}
 
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
+		read(reader, visitor, ErrorSink.throwingOnSeverity(Severity.WARNING));
+	}
+
+	public static void read(Reader reader, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, errorSink);
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
+		read(reader, sourceNs, targetNs, visitor, ErrorSink.throwingOnSeverity(Severity.WARNING));
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
+		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor, errorSink);
+	}
+
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 		boolean readerMarked = false;
@@ -72,7 +83,12 @@ public class JobfFileReader {
 
 					if (reader.nextCol("c")) { // class: c <name-a> = <name-b>
 						String srcName = reader.nextCol();
-						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+						if (srcName == null || srcName.isEmpty()) {
+							errorSink.addError("missing class-name-a in line "+reader.getLineNumber());
+							continue;
+						}
+
 						srcName = srcName.replace('.', '/');
 
 						if (!srcName.equals(lastClass)) {
@@ -80,10 +96,13 @@ public class JobfFileReader {
 							visitLastClass = visitor.visitClass(srcName);
 
 							if (visitLastClass) {
-								readSeparator(reader);
-
+								if (!readSeparator(reader, errorSink)) continue;
 								String dstName = reader.nextCol();
-								if (dstName == null || dstName.isEmpty()) throw new IOException("missing class-name-b in line "+reader.getLineNumber());
+
+								if (dstName == null || dstName.isEmpty()) {
+									errorSink.addWarning("missing class-name-b in line "+reader.getLineNumber());
+									continue;
+								}
 
 								visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
 								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
@@ -93,18 +112,34 @@ public class JobfFileReader {
 						// field: f <cls-a>.<name-a>:<desc-a> = <name-b>
 						// method: m <cls-a>.<name-a><desc-a> = <name-b>
 						String src = reader.nextCol();
-						if (src == null || src.isEmpty()) throw new IOException("missing class/name/desc a in line "+reader.getLineNumber());
+
+						if (src == null || src.isEmpty()) {
+							errorSink.addError("missing class-/name-/desc-a in line "+reader.getLineNumber());
+							continue;
+						}
 
 						int nameSepPos = src.lastIndexOf('.');
-						if (nameSepPos <= 0 || nameSepPos == src.length() - 1) throw new IOException("invalid class/name/desc a in line "+reader.getLineNumber());
+
+						if (nameSepPos <= 0 || nameSepPos == src.length() - 1) {
+							errorSink.addError("invalid class-/name-/desc-a in line "+reader.getLineNumber());
+							continue;
+						}
 
 						int descSepPos = src.lastIndexOf(isField ? ':' : '(');
-						if (descSepPos <= 0 || descSepPos == src.length() - 1) throw new IOException("invalid name/desc a in line "+reader.getLineNumber());
 
-						readSeparator(reader);
+						if (descSepPos <= 0 || descSepPos == src.length() - 1) {
+							errorSink.addError("invalid name-/desc-a in line "+reader.getLineNumber());
+							continue;
+						}
+
+						if (!readSeparator(reader, errorSink)) continue;
 
 						String dstName = reader.nextCol();
-						if (dstName == null || dstName.isEmpty()) throw new IOException("missing name-b in line "+reader.getLineNumber());
+
+						if (dstName == null || dstName.isEmpty()) {
+							errorSink.addWarning("missing name-b in line "+reader.getLineNumber());
+							continue;
+						}
 
 						String srcOwner = src.substring(0, nameSepPos).replace('.', '/');
 
@@ -149,9 +184,12 @@ public class JobfFileReader {
 		}
 	}
 
-	private static void readSeparator(ColumnFileReader reader) throws IOException {
+	private static boolean readSeparator(ColumnFileReader reader, ErrorSink errorSink) throws IOException {
 		if (!reader.nextCol("=")) {
-			throw new IOException("missing separator in line "+reader.getLineNumber()+" (expected \" = \")");
+			errorSink.addError("missing separator in line "+reader.getLineNumber()+" (expected \" = \")");
+			return false;
 		}
+
+		return true;
 	}
 }

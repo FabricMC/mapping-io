@@ -34,7 +34,9 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
+import net.fabricmc.mappingio.format.ErrorSink;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.ParsingError.Severity;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -95,7 +97,7 @@ public class VisitEndTest {
 	}
 
 	@Test
-	public void tsrg2File() throws Exception {
+	public void tsrgV2File() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
 		check(format);
 	}
@@ -142,7 +144,7 @@ public class VisitEndTest {
 
 	private VisitEndTestVisitor checkCompliance(MappingFormat format, Path path, int visitPassCountToFinish, boolean setFlag, MappingTreeView supTree) throws Exception {
 		VisitEndTestVisitor visitor = new VisitEndTestVisitor(visitPassCountToFinish, setFlag, supTree, format);
-		MappingReader.read(path, format, visitor);
+		MappingReader.read(path, format, visitor, ErrorSink.throwingOnSeverity(Severity.INFO));
 		assertTrue(visitor.finishedVisitPassCount == visitPassCountToFinish);
 		return visitor;
 	}

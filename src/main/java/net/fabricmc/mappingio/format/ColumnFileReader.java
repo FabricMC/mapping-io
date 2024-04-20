@@ -227,13 +227,17 @@ public final class ColumnFileReader implements Closeable {
 	 *
 	 * @return -1 if nothing has been read (first char was EOL), otherwise the number present.
 	 */
-	public int nextIntCol() throws IOException {
+	public int nextIntCol(boolean rethrowNumberFormatExceptionAsIOException) throws IOException {
 		String str = nextCol(false);
 
 		try {
 			return str != null ? Integer.parseInt(str) : -1;
 		} catch (NumberFormatException e) {
-			throw new IOException("invalid number in line "+lineNumber+": "+str);
+			if (rethrowNumberFormatExceptionAsIOException) {
+				throw new IOException("invalid number in line "+lineNumber+": "+str);
+			} else {
+				throw e;
+			}
 		}
 	}
 

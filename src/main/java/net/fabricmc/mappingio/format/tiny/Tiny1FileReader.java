@@ -26,7 +26,9 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.ErrorSink;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.ParsingError.Severity;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -59,11 +61,16 @@ public final class Tiny1FileReader {
 		return ret;
 	}
 
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
+		read(reader, visitor, ErrorSink.throwingOnSeverity(Severity.WARNING));
 	}
 
-	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+	public static void read(Reader reader, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor, errorSink);
+	}
+
+	private static void read(ColumnFileReader reader, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
 		if (!reader.nextCol("v1")) { // magic/version
 			throw new IOException("invalid/unsupported tiny file: no tiny 1 header");
 		}
@@ -104,7 +111,11 @@ public final class Tiny1FileReader {
 
 					if (reader.nextCol("CLASS")) { // class: CLASS <names>...
 						String srcName = reader.nextCol();
-						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+						if (srcName == null || srcName.isEmpty()) {
+							errorSink.addError("missing class-name-a in line "+reader.getLineNumber());
+							continue;
+						}
 
 						if (!lastClassDstNamed || !srcName.equals(lastClass)) {
 							lastClass = srcName;
@@ -112,13 +123,17 @@ public final class Tiny1FileReader {
 							visitLastClass = visitor.visitClass(srcName);
 
 							if (visitLastClass) {
-								readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
+								readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor, errorSink);
 								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 							}
 						}
 					} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
 						String srcOwner = reader.nextCol();
-						if (srcOwner == null || srcOwner.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+
+						if (srcOwner == null || srcOwner.isEmpty()) {
+							errorSink.addError("missing class-name-a in line "+reader.getLineNumber());
+							continue;
+						}
 
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;
@@ -128,14 +143,23 @@ public final class Tiny1FileReader {
 
 						if (visitLastClass) {
 							String srcDesc = reader.nextCol();
-							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
+
+							if (srcDesc == null || srcDesc.isEmpty()) {
+								errorSink.addError("missing desc-a in line "+reader.getLineNumber());
+								continue;
+							}
+
 							String srcName = reader.nextCol();
-							if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
+
+							if (srcName == null || srcName.isEmpty()) {
+								errorSink.addError("missing name-a in line "+reader.getLineNumber());
+								continue;
+							}
 
 							if (isMethod && visitor.visitMethod(srcName, srcDesc)
 									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
 								MappedElementKind kind = isMethod ? MappedElementKind.METHOD : MappedElementKind.FIELD;
-								readDstNames(reader, kind, dstNsCount, visitor);
+								readDstNames(reader, kind, dstNsCount, visitor, errorSink);
 								visitor.visitElementContent(kind);
 							}
 						}
@@ -183,10 +207,14 @@ public final class Tiny1FileReader {
 		}
 	}
 
-	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor) throws IOException {
+	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
 		for (int dstNs = 0; dstNs < dstNsCount; dstNs++) {
 			String name = reader.nextCol();
-			if (name == null) throw new IOException("missing name columns in line "+reader.getLineNumber());
+
+			if (name == null) {
+				errorSink.addError("missing name columns in line "+reader.getLineNumber());
+				break;
+			}
 
 			if (!name.isEmpty()) visitor.visitDstName(subjectKind, dstNs, name);
 		}

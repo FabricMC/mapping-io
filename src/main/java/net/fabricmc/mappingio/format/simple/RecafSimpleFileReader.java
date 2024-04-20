@@ -26,26 +26,41 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.ErrorSink;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.ParsingError.Severity;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
  * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
  */
 public final class RecafSimpleFileReader {
 	private RecafSimpleFileReader() {
 	}
 
+	@Deprecated
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
-	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
+	public static void read(Reader reader, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
+		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor, errorSink);
 	}
 
-	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	@Deprecated
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		read(reader, sourceNs, targetNs, visitor, ErrorSink.throwingOnSeverity(Severity.WARNING));
+	}
+
+	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
+		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor, errorSink);
+	}
+
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor, ErrorSink errorSink) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 		boolean readerMarked = false;
@@ -75,6 +90,12 @@ public final class RecafSimpleFileReader {
 					if (line == null || line.trim().isEmpty() || line.trim().startsWith("#")) continue;
 
 					String[] parts = line.split(" ");
+
+					if (parts.length < 2) {
+						insufficientColumnCount(reader, errorSink);
+						continue;
+					}
+
 					int dotPos = parts[0].lastIndexOf('.');
 					String clsSrcName;
 					String clsDstName = null;
@@ -106,7 +127,8 @@ public final class RecafSimpleFileReader {
 								memberSrcDesc = memberIdentifier.substring(mthDescPos);
 							}
 						} else {
-							throw new IOException("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
+							insufficientColumnCount(reader, errorSink);
+							continue;
 						}
 					}
 
@@ -143,5 +165,9 @@ public final class RecafSimpleFileReader {
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
+	}
+
+	private static void insufficientColumnCount(ColumnFileReader reader, ErrorSink errorSink) throws IOException {
+		errorSink.addError("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
 	}
 }

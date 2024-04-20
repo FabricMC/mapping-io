@@ -23,6 +23,8 @@ import java.io.StringReader;
 
 import org.junit.jupiter.api.Test;
 
+import net.fabricmc.mappingio.format.ErrorSink;
+import net.fabricmc.mappingio.format.ParsingError.Severity;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
@@ -37,49 +39,50 @@ import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class EmptyContentReadTest {
 	private static final VisitableMappingTree tree = new MemoryMappingTree();
+	private static final ErrorSink errorSink = ErrorSink.throwingOnSeverity(Severity.INFO);
 
 	@Test
 	public void emptyEnigmaFile() throws Exception {
-		EnigmaFileReader.read(new StringReader(""), tree);
+		EnigmaFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptyTinyFile() throws Exception {
-		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(""), tree));
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(""), tree, errorSink));
 	}
 
 	@Test
 	public void emptyTinyV2File() throws Exception {
-		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(""), tree));
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(""), tree, errorSink));
 	}
 
 	@Test
 	public void emptyProguardFile() throws Exception {
-		ProGuardFileReader.read(new StringReader(""), tree);
+		ProGuardFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptySrgFile() throws Exception {
-		SrgFileReader.read(new StringReader(""), tree);
+		SrgFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptyJamFile() throws Exception {
-		JamFileReader.read(new StringReader(""), tree);
+		JamFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptyTsrgFile() throws Exception {
-		TsrgFileReader.read(new StringReader(""), tree);
+		TsrgFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptyRecafSimpleFile() throws Exception {
-		RecafSimpleFileReader.read(new StringReader(""), tree);
+		RecafSimpleFileReader.read(new StringReader(""), tree, errorSink);
 	}
 
 	@Test
 	public void emptyJobfFile() throws Exception {
-		JobfFileReader.read(new StringReader(""), tree);
+		JobfFileReader.read(new StringReader(""), tree, errorSink);
 	}
 }
