@@ -86,17 +86,17 @@ class FeatureSetImpl implements FeatureSet {
 		return hasFileComments;
 	}
 
-	private boolean hasNamespaces;
-	private MetadataSupport fileMetadata;
-	private MetadataSupport elementMetadata;
-	private NameSupport packages;
-	private NameSupport classes;
-	private MemberSupport fields;
-	private MemberSupport methods;
-	private LocalSupport args;
-	private LocalSupport vars;
-	private ElementCommentSupport elementComments;
-	private boolean hasFileComments;
+	private final boolean hasNamespaces;
+	private final MetadataSupport fileMetadata;
+	private final MetadataSupport elementMetadata;
+	private final NameSupport packages;
+	private final NameSupport classes;
+	private final MemberSupport fields;
+	private final MemberSupport methods;
+	private final LocalSupport args;
+	private final LocalSupport vars;
+	private final ElementCommentSupport elementComments;
+	private final boolean hasFileComments;
 
 	static class MemberSupportImpl implements MemberSupport {
 		MemberSupportImpl(NameSupport names, DescSupport descriptors) {
@@ -124,8 +124,8 @@ class FeatureSetImpl implements FeatureSet {
 			return descriptors.dstDescs();
 		}
 
-		private NameSupport names;
-		private DescSupport descriptors;
+		private final NameSupport names;
+		private final DescSupport descriptors;
 	}
 
 	static class LocalSupportImpl implements LocalSupport {
@@ -184,13 +184,13 @@ class FeatureSetImpl implements FeatureSet {
 			return descriptors.dstDescs();
 		}
 
-		private SupportLevel positions;
-		private SupportLevel lvIndices;
-		private SupportLevel lvtRowIndices;
-		private SupportLevel startOpIndices;
-		private SupportLevel endOpIndices;
-		private NameSupport names;
-		private DescSupport descriptors;
+		private final SupportLevel positions;
+		private final SupportLevel lvIndices;
+		private final SupportLevel lvtRowIndices;
+		private final SupportLevel startOpIndices;
+		private final SupportLevel endOpIndices;
+		private final NameSupport names;
+		private final DescSupport descriptors;
 	}
 
 	static class NameSupportImpl implements NameSupport {
@@ -209,8 +209,8 @@ class FeatureSetImpl implements FeatureSet {
 			return dstNames;
 		}
 
-		private SupportLevel srcNames;
-		private SupportLevel dstNames;
+		private final SupportLevel srcNames;
+		private final SupportLevel dstNames;
 	}
 
 	static class DescSupportImpl implements DescSupport {
@@ -229,7 +229,7 @@ class FeatureSetImpl implements FeatureSet {
 			return dstDescriptors;
 		}
 
-		private SupportLevel srcDescriptors;
-		private SupportLevel dstDescriptors;
+		private final SupportLevel srcDescriptors;
+		private final SupportLevel dstDescriptors;
 	}
 }
