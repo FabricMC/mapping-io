@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled the internal `ColumnFileReader` to behave more consistently
 - Made handling of the `NEEDS_MULTIPLE_PASSES` flag more consistent, reducing memory usage in a few cases
 - Made some internal methods in Enigma and TSRG readers actually private
+- Added missing `visitElementContent` calls to CSRG and Recaf Simple readers
 
 ## [0.6.1] - 2024-04-15
 - Fixed CSRG and JAM writers sometimes skipping elements whose parents have incomplete destination names
