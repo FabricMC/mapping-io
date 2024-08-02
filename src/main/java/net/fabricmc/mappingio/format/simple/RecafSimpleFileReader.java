@@ -132,8 +132,10 @@ public final class RecafSimpleFileReader {
 					if (visitClass && memberSrcName != null) {
 						if (!isMethod && visitor.visitField(memberSrcName, memberSrcDesc)) {
 							visitor.visitDstName(MappedElementKind.FIELD, 0, memberDstName);
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						} else if (isMethod && visitor.visitMethod(memberSrcName, memberSrcDesc)) {
 							visitor.visitDstName(MappedElementKind.METHOD, 0, memberDstName);
+							visitor.visitElementContent(MappedElementKind.METHOD);
 						}
 					}
 				} while (reader.nextLine(0));

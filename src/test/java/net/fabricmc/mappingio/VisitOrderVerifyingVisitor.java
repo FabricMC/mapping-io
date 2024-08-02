@@ -49,6 +49,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		resetVisitedElementContentUpTo(0);
 		visitedEnd = false;
 		lastVisitedElement = null;
+		visitedLastElement = false;
 		lastSrcInfo.clear();
 	}
 
@@ -104,6 +105,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		SrcInfo srcInfo = new SrcInfo().srcName(srcName);
 
 		assertContentVisited();
+		assertLastElementContentVisited();
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedClass = true;
@@ -115,7 +117,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		lastSrcInfo.put(elementKind, srcInfo);
 		resetVisitedElementContentUpTo(elementKind.level);
 
-		return super.visitClass(srcName);
+		return visitedLastElement = super.visitClass(srcName);
 	}
 
 	@Override
@@ -126,6 +128,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 				.srcDesc(srcDesc);
 
 		assertClassVisited();
+		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
 		assertNewSrcInfo(elementKind, srcInfo);
 
@@ -137,7 +140,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		lastSrcInfo.put(elementKind, srcInfo);
 		resetVisitedElementContentUpTo(elementKind.level);
 
-		return super.visitField(srcName, srcDesc);
+		return visitedLastElement = super.visitField(srcName, srcDesc);
 	}
 
 	@Override
@@ -148,6 +151,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 				.srcDesc(srcDesc);
 
 		assertClassVisited();
+		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
 		assertNewSrcInfo(elementKind, srcInfo);
 
@@ -159,7 +163,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		lastSrcInfo.put(elementKind, srcInfo);
 		resetVisitedElementContentUpTo(elementKind.level);
 
-		return super.visitMethod(srcName, srcDesc);
+		return visitedLastElement = super.visitMethod(srcName, srcDesc);
 	}
 
 	@Override
@@ -172,6 +176,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 		assertFieldNotVisited();
 		assertMethodVisited();
+		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
 		assertNewSrcInfo(elementKind, srcInfo);
 
@@ -181,7 +186,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		lastSrcInfo.put(elementKind, srcInfo);
 		resetVisitedElementContentUpTo(elementKind.level);
 
-		return super.visitMethodArg(argPosition, lvIndex, srcName);
+		return visitedLastElement = super.visitMethodArg(argPosition, lvIndex, srcName);
 	}
 
 	@Override
@@ -196,6 +201,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 		assertFieldNotVisited();
 		assertMethodVisited();
+		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
 		assertNewSrcInfo(elementKind, srcInfo);
 
@@ -205,7 +211,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		lastSrcInfo.put(elementKind, srcInfo);
 		resetVisitedElementContentUpTo(elementKind.level);
 
-		return super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
+		return visitedLastElement = super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 	}
 
 	@Override
@@ -219,7 +225,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		assertElementVisited(targetKind);
-		assertElementContentNotVisitedUpTo(targetKind.level + 1);
+		assertElementContentNotVisitedUpTo(targetKind.level + 1); // prevent visitation after visitElementContent of same level
 
 		super.visitDstDesc(targetKind, namespace, desc);
 	}
@@ -245,8 +251,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		assertElementVisited(targetKind);
-		assertElementContentVisited(targetKind.level);
-		assertElementContentNotVisitedUpTo(targetKind.level + 1);
+		assertLastElementContentVisited();
 
 		super.visitComment(targetKind, comment);
 	}
@@ -254,6 +259,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public boolean visitEnd() throws IOException {
 		assertContentVisited();
+		assertLastElementContentVisited();
 		assertEndNotVisited();
 
 		init();
@@ -375,17 +381,24 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		}
 	}
 
+	private void assertLastElementContentVisited() {
+		if (visitedLastElement) {
+			assertElementContentVisited(lastVisitedElement.level);
+			assertElementContentNotVisitedUpTo(lastVisitedElement.level + 1);
+		}
+	}
+
 	private void assertElementContentNotVisitedUpTo(int inclusiveLevel) {
 		for (int i = visitedElementContent.length - 1; i >= inclusiveLevel; i--) {
 			if (visitedElementContent[i]) {
-				throw new IllegalStateException("Element content already visited");
+				throw new IllegalStateException(lastVisitedElement + " element content already visited");
 			}
 		}
 	}
 
 	private void assertElementContentVisited(int depth) {
 		if (!visitedElementContent[depth]) {
-			throw new IllegalStateException("Element content not visited");
+			throw new IllegalStateException(lastVisitedElement + " element content not visited");
 		}
 	}
 
@@ -413,6 +426,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	boolean[] visitedElementContent = new boolean[3];
 	boolean visitedEnd;
 	MappedElementKind lastVisitedElement;
+	boolean visitedLastElement;
 	Map<MappedElementKind, SrcInfo> lastSrcInfo = new HashMap<>();
 
 	private static class SrcInfo {

@@ -143,6 +143,7 @@ public final class TsrgFileReader {
 
 							if (visitor.visitMethod(parts[2], parts[4])) {
 								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.METHOD);
 							}
 
 							continue;
@@ -155,6 +156,7 @@ public final class TsrgFileReader {
 
 							if (visitor.visitField(parts[2], null)) {
 								visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.FIELD);
 							}
 
 							continue;
