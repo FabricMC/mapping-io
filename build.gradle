@@ -34,6 +34,7 @@ allprojects {
 		compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 
 		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"
+		testImplementation "org.jooq:joor-java-8:${project.joor_version}"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 		testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 	}
