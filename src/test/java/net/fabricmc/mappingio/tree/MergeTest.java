@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 
-import org.joor.Reflect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +28,7 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
+import net.fabricmc.mappingio.tree.MemoryMappingTree.ClassEntry;
 import net.fabricmc.mappingio.tree.MemoryMappingTree.FieldEntry;
 
 public class MergeTest {
@@ -60,11 +60,7 @@ public class MergeTest {
 		delegate.visitEnd();
 
 		ClassMapping cls = tree.getClass(clsName);
-		FieldMapping fld = Reflect
-				.onClass(FieldEntry.class)
-				.create(cls, fldName, fldDesc)
-				.get();
-		fld = cls.addField(fld);
+		FieldMapping fld = cls.addField(fieldMappingOf(cls, fldName, fldDesc));
 
 		assertEquals(fldComment, fld.getComment());
 	}
@@ -82,12 +78,15 @@ public class MergeTest {
 		delegate.visitEnd();
 
 		ClassMapping cls = tree.getClass(clsName);
-		FieldMapping fld = Reflect
-				.onClass(FieldEntry.class)
-				.create(cls, fldName, null)
-				.get();
-		fld = cls.addField(fld);
+		FieldMapping fld = cls.addField(fieldMappingOf(cls, fldName, fldDesc));
 
 		assertEquals(fldDesc, fld.getSrcDesc());
 	}
+
+	private FieldMapping fieldMappingOf(ClassMapping cls, String name, String desc) throws Exception {
+		return FieldEntry.class
+				.getDeclaredConstructor(ClassEntry.class, String.class, String.class)
+				.newInstance(cls, name, desc);
+	}
 }
+
