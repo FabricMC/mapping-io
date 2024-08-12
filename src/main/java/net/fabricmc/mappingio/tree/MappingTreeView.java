@@ -26,6 +26,9 @@ import net.fabricmc.mappingio.MappingVisitor;
 
 /**
  * Read-only mapping tree.
+ *
+ * <p>All returned collections are to be assumed unmodifiable,
+ * unless implementation-specific documentation states otherwise.
  */
 public interface MappingTreeView {
 	/**
@@ -70,7 +73,16 @@ public interface MappingTreeView {
 		return getDstNamespaces().get(id);
 	}
 
+	/**
+	 * @return A list of all metadata entries currently present in the tree.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
 	List<? extends MetadataEntryView> getMetadata();
+
+	/**
+	 * @return A list of all currently present metadata entries whose key is equal to the passed one.
+	 * The list's order is equal to the order in which the entries have been originally added.
+	 */
 	List<? extends MetadataEntryView> getMetadata(String key);
 
 	Collection<? extends ClassMappingView> getClasses();

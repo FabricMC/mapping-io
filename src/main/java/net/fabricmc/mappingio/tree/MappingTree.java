@@ -23,22 +23,32 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Mutable mapping tree.
+ *
+ * <p>All returned collections are to be assumed unmodifiable, unless explicitly stated otherwise.
  */
 public interface MappingTree extends MappingTreeView {
+	/**
+	 * Sets the tree's and all of its contained elements' source namespace.
+	 *
+	 * @return The previous source namespace, if present.
+	 */
 	@Nullable
 	String setSrcNamespace(String namespace);
+
+	/**
+	 * @return The previous destination namespaces.
+	 */
 	List<String> setDstNamespaces(List<String> namespaces);
 
 	/**
-	 * @return A modifiable list of all metadata entries currently present in the tree.
+	 * @return An unmodifiable list of all metadata entries currently present in the tree.
 	 * The list's order is equal to the order in which the entries have been originally added.
 	 */
 	@Override
 	List<? extends MetadataEntry> getMetadata();
 
 	/**
-	 * @return An unmodifiable list of all metadata entries currently present
-	 * in the tree whose key is equal to the passed one.
+	 * @return An unmodifiable list of all currently present metadata entries whose key is equal to the passed one.
 	 * The list's order is equal to the order in which the entries have been originally added.
 	 */
 	@Override
@@ -65,7 +75,19 @@ public interface MappingTree extends MappingTreeView {
 		return (ClassMapping) MappingTreeView.super.getClass(name, namespace);
 	}
 
+	/**
+	 * Merges a class mapping into the tree.
+	 *
+	 * @return The {@link ClassMapping} instance present in the tree after the merge has occurred.
+	 * May or may not be the passed instance.
+	 */
 	ClassMapping addClass(ClassMapping cls);
+
+	/**
+	 * Removes a class mapping from the tree.
+	 *
+	 * @return The removed class mapping, if any.
+	 */
 	@Nullable
 	ClassMapping removeClass(String srcName);
 
@@ -117,7 +139,19 @@ public interface MappingTree extends MappingTreeView {
 			return (FieldMapping) ClassMappingView.super.getField(name, desc, namespace);
 		}
 
+		/**
+		 * Merges a field mapping into the class.
+		 *
+		 * @return The {@link FieldMapping} instance present in the parent {@link ClassMapping} after the merge has occurred.
+		 * May or may not be the passed instance.
+		 */
 		FieldMapping addField(FieldMapping field);
+
+		/**
+		 * Removes a field mapping from the class.
+		 *
+		 * @return The removed field mapping, if any.
+		 */
 		@Nullable
 		FieldMapping removeField(String srcName, @Nullable String srcDesc);
 
@@ -133,7 +167,19 @@ public interface MappingTree extends MappingTreeView {
 			return (MethodMapping) ClassMappingView.super.getMethod(name, desc, namespace);
 		}
 
+		/**
+		 * Merges a method mapping into the class.
+		 *
+		 * @return The {@link MethodMapping} instance present in the parent {@link ClassMapping} after the merge has occurred.
+		 * May or may not be the passed instance.
+		 */
 		MethodMapping addMethod(MethodMapping method);
+
+		/**
+		 * Removes a method mapping from the class.
+		 *
+		 * @return The removed method mapping, if any.
+		 */
 		@Nullable
 		MethodMapping removeMethod(String srcName, @Nullable String srcDesc);
 	}
@@ -153,6 +199,12 @@ public interface MappingTree extends MappingTreeView {
 		@Nullable
 		MethodArgMapping getArg(int argPosition, int lvIndex, @Nullable String srcName);
 		MethodArgMapping addArg(MethodArgMapping arg);
+
+		/**
+		 * Removes an argument mapping from the method.
+		 *
+		 * @return The removed argument mapping, if any.
+		 */
 		@Nullable
 		MethodArgMapping removeArg(int argPosition, int lvIndex, @Nullable String srcName);
 
@@ -161,7 +213,20 @@ public interface MappingTree extends MappingTreeView {
 		@Override
 		@Nullable
 		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
+
+		/**
+		 * Merges a variable mapping into the method.
+		 *
+		 * @return The {@link MethodVarMapping} instance present in the parent {@link MethodMapping} after the merge has occurred.
+		 * May or may not be the passed instance.
+		 */
 		MethodVarMapping addVar(MethodVarMapping var);
+
+		/**
+		 * Removes a variable mapping from the method.
+		 *
+		 * @return The removed variable mapping, if any.
+		 */
 		@Nullable
 		MethodVarMapping removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 	}

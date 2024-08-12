@@ -20,6 +20,11 @@ import net.fabricmc.mappingio.MappingVisitor;
 
 /**
  * {@link MappingTree} that can be visited.
+ *
+ * <p>Accessing data manipulating {@link MappingTree} methods during an ongoing visitation pass
+ * may lead to undefined behavior and data corruption.
+ *
+ * <p>Visited data isn't guaranteed to be available until the visitation pass is complete.
  */
 public interface VisitableMappingTree extends MappingTree, MappingVisitor {
 }

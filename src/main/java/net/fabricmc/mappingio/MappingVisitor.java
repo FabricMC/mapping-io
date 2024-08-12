@@ -47,6 +47,9 @@ import org.jetbrains.annotations.Nullable;
  * something else after a {@link #reset()}.
  *
  * <p>The same element may be visited more than once unless the flags contain {@link MappingFlag#NEEDS_ELEMENT_UNIQUENESS}.
+ *
+ * <p>If an exception is thrown during visitation, the visitor is to be considered in an invalid state.
+ * {@link #reset()} must be called clear the internal state before further visitations can happen.
  */
 public interface MappingVisitor {
 	default Set<MappingFlag> getFlags() {
