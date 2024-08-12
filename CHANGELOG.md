@@ -8,7 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made handling of the `NEEDS_MULTIPLE_PASSES` flag more consistent, reducing memory usage in a few cases
 - Made some internal methods in Enigma and TSRG readers actually private
 - Added missing `visitElementContent` calls to CSRG and Recaf Simple readers
+- Fixed `MemoryMappingTree#reset` to actually reset all its internal state related to the current visitation pass
+- Added basic protection to `MemoryMappingTree` guarding against external data modification while a visitation pass is in progress
+- Clearly defined Tree-API contracts regarding returned collections' mutability
 - Fixed member mapping merging via tree-API in `MemoryMappingTree`
+- Improved `MemoryMappingTree`'s merging capabilities:
+  - Fixed NPE when visiting with disassociated namespaces ([issue 68](https://github.com/FabricMC/mapping-io/issues/68))
+  - Made merging with disassociated namespaces actually work and handle both names and descriptors
+  - Fixed potentially incorrect descriptor computation due to wrong timing
 
 ## [0.6.1] - 2024-04-15
 - Fixed CSRG and JAM writers sometimes skipping elements whose parents have incomplete destination names
