@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `MemoryMappingTree#reset` to actually reset all its internal state related to the current visitation pass
 - Added basic protection to `MemoryMappingTree` guarding against external data modification while a visitation pass is in progress
 - Clearly defined Tree-API contracts regarding returned collections' mutability
-- Fixed member mapping merging via tree-API in `MemoryMappingTree`
-- Improved `MemoryMappingTree`'s merging capabilities:
+- Fixed and improved `MemoryMappingTree`'s merging capabilities:
+  - Fixed broken member mapping merging via tree-API in `MemoryMappingTree`
+  - Fixed existing entries' data not getting overridden when merging elements into `MemoryMappingTree` via tree-API
   - Fixed NPE when visiting with disassociated namespaces ([issue 68](https://github.com/FabricMC/mapping-io/issues/68))
   - Made merging with disassociated namespaces actually work and handle both names and descriptors
   - Fixed potentially incorrect descriptor computation due to wrong timing

@@ -274,7 +274,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		ClassEntry ret = classesBySrcName.putIfAbsent(cls.getSrcName(), entry);
 
 		if (ret != null) {
-			ret.copyFrom(entry, false);
+			ret.copyFrom(entry, true);
 			entry = ret;
 		}
 
@@ -565,7 +565,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		if (existing == null) {
 			classesBySrcName.put(srcName, cls);
 		} else { // copy remaining data
-			existing.copyFrom(cls, false);
+			existing.copyFrom(cls, true);
 		}
 	}
 
@@ -595,7 +595,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (existingField == null) {
 				owner.addField(queuedField);
 			} else { // copy remaining data
-				existingField.copyFrom(queuedField, false);
+				existingField.copyFrom(queuedField, true);
 			}
 		} else {
 			MethodEntry queuedMethod = (MethodEntry) member;
@@ -604,7 +604,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (existingMethod == null) {
 				owner.addMethod(queuedMethod);
 			} else { // copy remaining data
-				existingMethod.copyFrom(queuedMethod, false);
+				existingMethod.copyFrom(queuedMethod, true);
 			}
 		}
 	}
@@ -1129,7 +1129,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			T ret = map.putIfAbsent(entry.getKey(), entry);
 
 			if (ret != null) { // same desc
-				ret.copyFrom(entry, false);
+				ret.copyFrom(entry, true);
 
 				return ret;
 			} else if (isValidDescriptor(entry.srcDesc, true)) { // may have replaced desc-less
@@ -1142,7 +1142,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 						ret.setKey(entry.getKey());
 						ret.srcDesc = entry.srcDesc;
 						map.put(ret.getKey(), ret);
-						ret.copyFrom(entry, false);
+						ret.copyFrom(entry, true);
 						entry = ret;
 					}
 				}
@@ -1153,7 +1153,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					for (T prevEntry : map.values()) {
 						if (prevEntry != entry && prevEntry.getSrcName().equals(entry.getSrcName()) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
 							map.remove(entry.getKey());
-							prevEntry.copyFrom(entry, false);
+							prevEntry.copyFrom(entry, true);
 
 							return prevEntry;
 						}
