@@ -574,9 +574,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			return;
 		}
 
-		ClassEntry owner = member.getOwner();
+		// Make sure the owner reference is pointing to an in-tree entry
+		ClassEntry owner = classesBySrcName.get(member.getOwner().getSrcName());
+		member.setOwner(owner);
 		boolean isField = member.getKind() == MappedElementKind.FIELD;
-		// tree-side src
 		String srcName = member.getSrcName();
 		String dstDesc = member.getSrcDesc(); // pending members' srcDesc is actually their dst desc
 		String srcDesc = null;
@@ -1278,6 +1279,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			return owner;
 		}
 
+		void setOwner(ClassEntry owner) {
+			assert this.owner.getSrcName().equals(owner.getSrcName());
+			this.owner = owner;
+		}
+
 		@Override
 		void setSrcName(String name) {
 			super.setSrcName(name);
@@ -1316,7 +1322,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			return acceptElement(visitor, dstDescs);
 		}
 
-		protected final ClassEntry owner;
+		protected ClassEntry owner;
 		protected String srcDesc;
 		private MemberKey key;
 	}
