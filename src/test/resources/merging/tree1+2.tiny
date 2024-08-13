@@ -1,0 +1,7 @@
+tiny	2	0	source	target	target2
+c	class_1	class1Ns0Rename	class1Ns1Rename
+	f	I	field_1		field1Ns1Rename
+	f	I	field_2	field2Ns0Rename	
+	m	()I	method_1	method1Ns0Rename	method1Ns1Rename
+		p	1	param_1	param1Ns0Rename	param1Ns1Rename
+		v	2	2	2	var_1	var1Ns0Rename	var1Ns1Rename

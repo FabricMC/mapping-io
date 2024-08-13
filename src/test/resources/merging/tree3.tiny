@@ -1,0 +1,6 @@
+tiny	2	0	target2	target	source
+c	class1Ns1Rename2		class_1
+	f	I	field1Ns1Rename		field_1
+		c	field_1 comment
+	f	I	field2Ns1Rename	field2Ns0Rename	
+	f	I	field3Ns1Rename	field3Ns0Rename	field_3
