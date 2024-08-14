@@ -17,10 +17,12 @@
 package net.fabricmc.mappingio.tree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,10 +46,15 @@ public class MergeTest {
 	private static final String ns2 = "ns2";
 	private static final String ns3 = "ns3";
 	private static final String ns4 = "ns4";
-	private static final String clsName = "cls";
-	private static final String fldName = "fld";
-	private static final String fldComment = "fldComment";
-	private static final String fldDesc = "I";
+	private static final String cls1Ns1Name = "cls1Ns1Name";
+	private static final String cls1Ns2Name = "cls1Ns2Name";
+	private static final String cls2Ns1Name = "cls2Ns1Name";
+	private static final String cls2Ns2Name = "cls2Ns2Name";
+	private static final String fld1Ns1Name = "fld1Ns1Name";
+	private static final String fld1Ns2Name = "fld1Ns2Name";
+	private static final String fld1Ns1Desc = "L" + cls1Ns1Name + ";";
+	private static final String fld1Ns2Desc = "L" + cls1Ns2Name + ";";
+	private static final String fld1Comment = "fld1Comment";
 	private MemoryMappingTree tree;
 	private MappingVisitor delegate;
 
@@ -62,17 +69,17 @@ public class MergeTest {
 		delegate.visitHeader();
 		delegate.visitNamespaces(ns1, Collections.singletonList(ns2));
 		delegate.visitContent();
-		delegate.visitClass(clsName);
+		delegate.visitClass(cls1Ns1Name);
 		delegate.visitElementContent(MappedElementKind.CLASS);
-		delegate.visitField(fldName, null);
+		delegate.visitField(fld1Ns1Name, null);
 		delegate.visitElementContent(MappedElementKind.FIELD);
-		delegate.visitComment(MappedElementKind.FIELD, fldComment);
+		delegate.visitComment(MappedElementKind.FIELD, fld1Comment);
 		delegate.visitEnd();
 
-		ClassMapping cls = tree.getClass(clsName);
-		FieldMapping fld = cls.addField(fieldMappingOf(cls, fldName, fldDesc));
+		ClassMapping cls = tree.getClass(cls1Ns1Name);
+		FieldMapping fld = cls.addField(fieldMappingOf(cls, fld1Ns1Name, fld1Ns1Desc));
 
-		assertEquals(fldComment, fld.getComment());
+		assertEquals(fld1Comment, fld.getComment());
 	}
 
 	@Test
@@ -80,17 +87,17 @@ public class MergeTest {
 		delegate.visitHeader();
 		delegate.visitNamespaces(ns1, Collections.singletonList(ns2));
 		delegate.visitContent();
-		delegate.visitClass(clsName);
+		delegate.visitClass(cls1Ns1Name);
 		delegate.visitElementContent(MappedElementKind.CLASS);
-		delegate.visitField(fldName, fldDesc);
+		delegate.visitField(fld1Ns1Name, fld1Ns1Desc);
 		delegate.visitElementContent(MappedElementKind.FIELD);
-		delegate.visitComment(MappedElementKind.FIELD, fldComment);
+		delegate.visitComment(MappedElementKind.FIELD, fld1Comment);
 		delegate.visitEnd();
 
-		ClassMapping cls = tree.getClass(clsName);
-		FieldMapping fld = cls.addField(fieldMappingOf(cls, fldName, fldDesc));
+		ClassMapping cls = tree.getClass(cls1Ns1Name);
+		FieldMapping fld = cls.addField(fieldMappingOf(cls, fld1Ns1Name, fld1Ns1Desc));
 
-		assertEquals(fldDesc, fld.getSrcDesc());
+		assertEquals(fld1Ns1Desc, fld.getSrcDesc());
 	}
 
 	private FieldMapping fieldMappingOf(ClassMapping cls, String name, String desc) throws Exception {
@@ -103,20 +110,38 @@ public class MergeTest {
 	 * Test for <a href="https://github.com/FabricMC/mapping-io/issues/68">issue 68</a>.
 	 */
 	@Test
-	public void issue68() throws Exception {
+	public void ns1ToNs2ThenNs2ToNs3() throws Exception {
+		String cls1Ns3Name = "cls1Ns3Name";
+
 		delegate.visitHeader();
 		delegate.visitNamespaces(ns1, Collections.singletonList(ns2));
 		delegate.visitContent();
+		delegate.visitClass(cls1Ns1Name);
+		delegate.visitDstName(MappedElementKind.CLASS, 0, cls1Ns2Name);
+		delegate.visitElementContent(MappedElementKind.CLASS);
 		delegate.visitEnd();
 
 		delegate.visitHeader();
-		delegate.visitNamespaces(ns2, Collections.singletonList(ns3));
+		delegate.visitNamespaces(ns2, Arrays.asList(ns3, ns1));
 		delegate.visitContent();
-		delegate.visitClass(clsName);
+		delegate.visitClass(cls1Ns2Name);
+		delegate.visitDstName(MappedElementKind.CLASS, 0, cls1Ns3Name);
 		delegate.visitElementContent(MappedElementKind.CLASS);
-		delegate.visitField(fldName, fldDesc);
+		delegate.visitField(fld1Ns2Name, fld1Ns2Desc);
+		delegate.visitDstName(MappedElementKind.FIELD, 1, fld1Ns1Name);
 		delegate.visitElementContent(MappedElementKind.FIELD);
 		delegate.visitEnd();
+
+		ClassMapping cls = tree.getClass(cls1Ns1Name);
+		assertNotNull(cls);
+		assertEquals(cls1Ns2Name, cls.getDstName(0));
+		assertEquals(cls1Ns3Name, cls.getDstName(1));
+
+		FieldMapping fld = cls.getField(fld1Ns1Name, fld1Ns1Desc);
+		assertNotNull(fld);
+		assertEquals(fld1Ns2Name, fld.getDstName(0));
+		assertEquals(null, fld.getDstName(1));
+		assertEquals(fld1Ns1Desc, fld.getSrcDesc());
 	}
 
 	@Test
@@ -157,11 +182,6 @@ public class MergeTest {
 	}
 
 	private void pendingElementsQueue0(boolean visitDstNames) throws IOException {
-		String cls1Ns1Name = "cls1Ns1Name";
-		String cls1Ns2Name = "cls1Ns2Name";
-		String fld1Ns1Name = "fld1Ns1Name";
-		String fld1Ns2Name = "fld1Ns2Name";
-
 		delegate.visitHeader();
 		delegate.visitNamespaces(ns1, Collections.singletonList(ns2));
 		delegate.visitContent();
@@ -177,7 +197,7 @@ public class MergeTest {
 		}
 
 		delegate.visitElementContent(MappedElementKind.CLASS);
-		delegate.visitField(fld1Ns2Name, fldDesc);
+		delegate.visitField(fld1Ns2Name, fld1Ns1Desc);
 
 		if (visitDstNames) {
 			delegate.visitDstName(MappedElementKind.FIELD, 0, fld1Ns1Name);
@@ -187,7 +207,7 @@ public class MergeTest {
 		delegate.visitEnd();
 
 		assertEquals(tree.getClass(cls1Ns1Name) != null, visitDstNames);
-		assertEquals(tree.getField(cls1Ns1Name, fld1Ns1Name, fldDesc) != null, visitDstNames);
+		assertEquals(tree.getField(cls1Ns1Name, fld1Ns1Name, fld1Ns1Desc) != null, visitDstNames);
 	}
 
 	/*
@@ -235,15 +255,6 @@ public class MergeTest {
 	 */
 	@Test
 	public void descriptorCompletion() throws IOException {
-		String cls1Ns1Name = "cls1Ns1Name";
-		String cls1Ns2Name = "cls1Ns2Name";
-		String cls2Ns1Name = "cls2Ns1Name";
-		String cls2Ns2Name = "cls2Ns2Name";
-		String fldNs1Name = "fldNs1Name";
-		String fldNs2Name = "fldNs2Name";
-		String fldNs1Desc = "L" + cls1Ns1Name + ";";
-		String fldNs2Desc = "L" + cls1Ns2Name + ";";
-
 		delegate.visitHeader();
 		delegate.visitNamespaces(ns1, Collections.singletonList(ns2));
 		delegate.visitContent();
@@ -258,12 +269,12 @@ public class MergeTest {
 		delegate.visitClass(cls2Ns2Name);
 		delegate.visitDstName(MappedElementKind.CLASS, 0, cls2Ns1Name);
 		delegate.visitElementContent(MappedElementKind.CLASS);
-		delegate.visitField(fldNs2Name, fldNs2Desc);
-		delegate.visitDstName(MappedElementKind.FIELD, 0, fldNs1Name);
+		delegate.visitField(fld1Ns2Name, fld1Ns2Desc);
+		delegate.visitDstName(MappedElementKind.FIELD, 0, fld1Ns1Name);
 		delegate.visitElementContent(MappedElementKind.FIELD);
 		delegate.visitEnd();
 
-		assertEquals(fldNs1Desc, tree.getField(cls2Ns1Name, fldNs1Name, null).getSrcDesc());
+		assertEquals(fld1Ns1Desc, tree.getField(cls2Ns1Name, fld1Ns1Name, null).getSrcDesc());
 	}
 
 	@Test
