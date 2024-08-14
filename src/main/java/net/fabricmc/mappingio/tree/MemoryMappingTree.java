@@ -946,8 +946,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (o.comment != null && (replace || comment == null)) {
 				comment = o.comment;
 			}
-
-			// TODO: copy args+vars
 		}
 
 		private final boolean missingSrcNameAllowed = getKind().level > MappedElementKind.METHOD.level; // args and vars
@@ -1528,17 +1526,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 				args.add(entry);
 			} else {
-				updateArg(prev, entry, false);
+				prev.copyFrom(entry, true);
 			}
 
 			return entry;
-		}
-
-		private void updateArg(MethodArgEntry existing, MethodArgEntry toAdd, boolean replace) {
-			if (toAdd.argPosition >= 0 && existing.argPosition < 0) existing.setArgPositionInternal(toAdd.argPosition);
-			if (toAdd.lvIndex >= 0 && existing.lvIndex < 0) existing.setLvIndexInternal(toAdd.getLvIndex());
-
-			existing.copyFrom(toAdd, replace);
 		}
 
 		@Override
@@ -1652,20 +1643,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 				vars.add(entry);
 			} else {
-				updateVar(prev, entry, false);
+				prev.copyFrom(entry, true);
 			}
 
 			return entry;
-		}
-
-		private void updateVar(MethodVarEntry existing, MethodVarEntry toAdd, boolean replace) {
-			if (toAdd.lvtRowIndex >= 0 && existing.lvtRowIndex < 0) existing.setLvtRowIndexInternal(toAdd.lvtRowIndex);
-
-			if (toAdd.lvIndex >= 0 && toAdd.startOpIdx >= 0 && (existing.lvIndex < 0 || existing.startOpIdx < 0)) {
-				existing.setLvIndexInternal(toAdd.lvIndex, toAdd.startOpIdx, toAdd.endOpIdx);
-			}
-
-			existing.copyFrom(toAdd, replace);
 		}
 
 		@Override
@@ -1714,7 +1695,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					if (arg == null) { // missing
 						addArgInternal(oArg);
 					} else {
-						updateArg(arg, oArg, replace);
+						arg.copyFrom(oArg, replace);
 					}
 				}
 			}
@@ -1726,7 +1707,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					if (var == null) { // missing
 						addVarInternal(oVar);
 					} else {
-						updateVar(var, oVar, replace);
+						var.copyFrom(oVar, replace);
 					}
 				}
 			}
@@ -1813,11 +1794,19 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		@Override
 		protected void copyFrom(MethodArgEntry o, boolean replace) {
-			super.copyFrom(o, replace);
+			if (o.argPosition >= 0 && (replace || argPosition < 0)) {
+				setArgPositionInternal(o.argPosition);
+			}
+
+			if (o.lvIndex >= 0 && (replace || lvIndex < 0)) {
+				setLvIndexInternal(o.getLvIndex());
+			}
 
 			if (o.getSrcName() != null && (replace || getSrcName() == null)) {
 				setSrcName(o.getSrcName());
 			}
+
+			super.copyFrom(o, replace);
 		}
 
 		@Override
@@ -1916,11 +1905,19 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		@Override
 		protected void copyFrom(MethodVarEntry o, boolean replace) {
-			super.copyFrom(o, replace);
+			if (o.lvtRowIndex >= 0 && (replace || lvtRowIndex < 0)) {
+				setLvtRowIndexInternal(o.lvtRowIndex);
+			}
+
+			if (o.lvIndex >= 0 && o.startOpIdx >= 0 && (replace || lvIndex < 0 || startOpIdx < 0)) {
+				setLvIndexInternal(o.lvIndex, o.startOpIdx, o.endOpIdx);
+			}
 
 			if (o.getSrcName() != null && (replace || getSrcName() == null)) {
 				setSrcName(o.getSrcName());
 			}
+
+			super.copyFrom(o, replace);
 		}
 
 		@Override
