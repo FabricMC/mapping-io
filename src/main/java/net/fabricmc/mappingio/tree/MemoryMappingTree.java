@@ -226,7 +226,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public List<? extends MetadataEntry> getMetadata() {
-		return Collections.unmodifiableList(metadata);
+		return metadataView;
 	}
 
 	@Override
@@ -248,7 +248,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public Collection<? extends ClassMapping> getClasses() {
-		return Collections.unmodifiableCollection(classesBySrcName.values());
+		return classesView;
 	}
 
 	@Override
@@ -1008,7 +1008,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		public Collection<FieldEntry> getFields() {
 			if (fields == null) return Collections.emptyList();
 
-			return fields.values();
+			return fieldsView;
 		}
 
 		@Override
@@ -1032,7 +1032,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		FieldEntry addFieldInternal(FieldMapping field) {
 			FieldEntry entry = field instanceof FieldEntry && field.getOwner() == this ? (FieldEntry) field : new FieldEntry(this, field, tree.getSrcNsEquivalent(field));
 
-			if (fields == null) fields = new LinkedHashMap<>();
+			if (fields == null) {
+				fields = new LinkedHashMap<>();
+				fieldsView = Collections.unmodifiableCollection(fields.values());
+			}
 
 			return addMember(entry, fields, FLAG_HAS_ANY_FIELD_DESC, FLAG_MISSES_ANY_FIELD_DESC);
 		}
@@ -1052,7 +1055,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		public Collection<MethodEntry> getMethods() {
 			if (methods == null) return Collections.emptyList();
 
-			return methods.values();
+			return methodsView;
 		}
 
 		@Override
@@ -1076,7 +1079,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		MethodEntry addMethodInternal(MethodMapping method) {
 			MethodEntry entry = method instanceof MethodEntry && method.getOwner() == this ? (MethodEntry) method : new MethodEntry(this, method, tree.getSrcNsEquivalent(method));
 
-			if (methods == null) methods = new LinkedHashMap<>();
+			if (methods == null) {
+				methods = new LinkedHashMap<>();
+				methodsView = Collections.unmodifiableCollection(methods.values());
+			}
 
 			return addMember(entry, methods, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
 		}
@@ -1275,6 +1281,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		private Map<MemberKey, FieldEntry> fields = null;
 		private Map<MemberKey, MethodEntry> methods = null;
+		private Collection<FieldEntry> fieldsView = null;
+		private Collection<MethodEntry> methodsView = null;
 		private byte flags;
 	}
 
@@ -1471,7 +1479,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		public Collection<MethodArgEntry> getArgs() {
 			if (args == null) return Collections.emptyList();
 
-			return args;
+			return argsView;
 		}
 
 		@Override
@@ -1513,7 +1521,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			MethodArgEntry prev = getArg(arg.getArgPosition(), arg.getLvIndex(), arg.getSrcName());
 
 			if (prev == null) {
-				if (args == null) args = new ArrayList<>();
+				if (args == null) {
+					args = new ArrayList<>();
+					argsView = Collections.unmodifiableList(args);
+				}
+
 				args.add(entry);
 			} else {
 				updateArg(prev, entry, false);
@@ -1544,7 +1556,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		public Collection<MethodVarEntry> getVars() {
 			if (vars == null) return Collections.emptyList();
 
-			return vars;
+			return varsView;
 		}
 
 		@Override
@@ -1633,7 +1645,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getEndOpIdx(), var.getSrcName());
 
 			if (prev == null) {
-				if (vars == null) vars = new ArrayList<>();
+				if (vars == null) {
+					vars = new ArrayList<>();
+					varsView = Collections.unmodifiableList(vars);
+				}
+
 				vars.add(entry);
 			} else {
 				updateVar(prev, entry, false);
@@ -1723,6 +1739,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		private List<MethodArgEntry> args = null;
 		private List<MethodVarEntry> vars = null;
+		private List<MethodArgEntry> argsView = null;
+		private List<MethodVarEntry> varsView = null;
 	}
 
 	static final class MethodArgEntry extends Entry<MethodArgEntry> implements MethodArgMapping {
@@ -2046,7 +2064,9 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<MetadataEntry> metadata = new ArrayList<>();
+	private final List<MetadataEntry> metadataView = Collections.unmodifiableList(metadata);
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
+	private final Collection<ClassEntry> classesView = Collections.unmodifiableCollection(classesBySrcName.values());
 	private Map<String, ClassEntry>[] classesByDstNames;
 
 	private HierarchyInfoProvider<?> hierarchyInfo;
