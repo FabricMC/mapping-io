@@ -106,9 +106,6 @@ public class MergeTest {
 				.newInstance(cls, name, desc);
 	}
 
-	/**
-	 * Test for <a href="https://github.com/FabricMC/mapping-io/issues/68">issue 68</a>.
-	 */
 	@Test
 	public void ns1ToNs2ThenNs2ToNs3() throws Exception {
 		String cls1Ns3Name = "cls1Ns3Name";
