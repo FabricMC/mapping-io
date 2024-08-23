@@ -42,7 +42,7 @@ public class EmptyContentReadTest {
 
 	@BeforeEach
 	public void instantiateTree() {
-		target = new VisitOrderVerifyingVisitor(new MemoryMappingTree());
+		target = new VisitOrderVerifyingVisitor(false, new MemoryMappingTree());
 	}
 
 	@Test

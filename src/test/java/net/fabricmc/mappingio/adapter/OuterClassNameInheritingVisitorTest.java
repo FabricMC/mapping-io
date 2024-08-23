@@ -35,7 +35,7 @@ import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class OuterClassNameInheritingVisitorTest {
 	private static void accept(MappingVisitor visitor) throws IOException {
-		visitor = new VisitOrderVerifyingVisitor(visitor);
+		visitor = new VisitOrderVerifyingVisitor(false, visitor);
 
 		do {
 			if (visitor.visitHeader()) {

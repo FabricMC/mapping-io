@@ -374,6 +374,7 @@ public final class TestHelper {
 		public static final Path DETECTION = getResource("/detection/");
 		public static final Path VALID = getResource("/read/valid/");
 		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
+		public static final Path REPEATED_ELEMENTS = getResource("/read/repeated-elements/");
 	}
 
 	private static final String fldDesc = "I";

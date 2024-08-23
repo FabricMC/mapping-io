@@ -95,8 +95,24 @@ public final class RecafSimpleFileReader {
 					if (dotPos < 0) { // class
 						clsSrcName = parts[0];
 						clsDstName = parts[1];
+
+						lastClass = clsSrcName;
+						visitClass = visitor.visitClass(clsSrcName);
+
+						if (visitClass) {
+							visitor.visitDstName(MappedElementKind.CLASS, 0, clsDstName);
+							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
+						}
 					} else { // member
 						clsSrcName = parts[0].substring(0, dotPos);
+
+						if (!clsSrcName.equals(lastClass)) {
+							lastClass = clsSrcName;
+							visitClass = visitor.visitClass(clsSrcName) && visitor.visitElementContent(MappedElementKind.CLASS);
+						}
+
+						if (!visitClass) continue;
+
 						String memberIdentifier = parts[0].substring(dotPos + 1);
 						memberDstName = parts[1];
 
@@ -117,19 +133,7 @@ public final class RecafSimpleFileReader {
 						} else {
 							insufficientColumnCount(reader);
 						}
-					}
 
-					if (!clsSrcName.equals(lastClass)) {
-						visitClass = visitor.visitClass(clsSrcName);
-						lastClass = clsSrcName;
-
-						if (visitClass) {
-							if (clsDstName != null) visitor.visitDstName(MappedElementKind.CLASS, 0, clsDstName);
-							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
-						}
-					}
-
-					if (visitClass && memberSrcName != null) {
 						if (!isMethod && visitor.visitField(memberSrcName, memberSrcDesc)) {
 							visitor.visitDstName(MappedElementKind.FIELD, 0, memberDstName);
 							visitor.visitElementContent(MappedElementKind.FIELD);

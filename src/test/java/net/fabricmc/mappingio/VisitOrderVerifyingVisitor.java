@@ -31,8 +31,9 @@ import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
  * with the expected order of visitation, as defined in {@link MappingVisitor}'s Javadocs.
  */
 public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
-	public VisitOrderVerifyingVisitor(MappingVisitor next) {
+	public VisitOrderVerifyingVisitor(boolean allowConsecutiveDuplicateElementVisits, MappingVisitor next) {
 		super(next);
+		this.allowConsecutiveDuplicateElementVisits = allowConsecutiveDuplicateElementVisits;
 		init();
 	}
 
@@ -46,16 +47,24 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		visitedMethod = false;
 		visitedMethodArg = false;
 		visitedMethodVar = false;
-		resetVisitedElementContentUpTo(0);
+		resetVisitedElementContentDownTo(0);
 		visitedEnd = false;
 		lastVisitedElement = null;
 		visitedLastElement = false;
-		lastSrcInfo.clear();
+		resetLastSrcInfoDownTo(0);
 	}
 
-	private void resetVisitedElementContentUpTo(int inclusiveLevel) {
+	private void resetVisitedElementContentDownTo(int inclusiveLevel) {
 		for (int i = visitedElementContent.length - 1; i >= inclusiveLevel; i--) {
 			visitedElementContent[i] = false;
+		}
+	}
+
+	private void resetLastSrcInfoDownTo(int inclusiveLevel) {
+		for (MappedElementKind kind : MappedElementKind.values()) {
+			if (kind.level >= inclusiveLevel) {
+				lastSrcInfo.remove(kind);
+			}
 		}
 	}
 
@@ -106,6 +115,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 		assertContentVisited();
 		assertLastElementContentVisited();
+		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedClass = true;
@@ -115,7 +125,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		visitedMethodVar = false;
 		lastVisitedElement = elementKind;
 		lastSrcInfo.put(elementKind, srcInfo);
-		resetVisitedElementContentUpTo(elementKind.level);
+		resetVisitedElementContentDownTo(elementKind.level);
 
 		return visitedLastElement = super.visitClass(srcName);
 	}
@@ -130,6 +140,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		assertClassVisited();
 		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
+		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedField = true;
@@ -138,7 +149,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		visitedMethodVar = false;
 		lastVisitedElement = elementKind;
 		lastSrcInfo.put(elementKind, srcInfo);
-		resetVisitedElementContentUpTo(elementKind.level);
+		resetVisitedElementContentDownTo(elementKind.level);
 
 		return visitedLastElement = super.visitField(srcName, srcDesc);
 	}
@@ -153,6 +164,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		assertClassVisited();
 		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
+		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedField = false;
@@ -161,7 +173,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		visitedMethodVar = false;
 		lastVisitedElement = elementKind;
 		lastSrcInfo.put(elementKind, srcInfo);
-		resetVisitedElementContentUpTo(elementKind.level);
+		resetVisitedElementContentDownTo(elementKind.level);
 
 		return visitedLastElement = super.visitMethod(srcName, srcDesc);
 	}
@@ -178,13 +190,14 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		assertMethodVisited();
 		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
+		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedMethodArg = true;
 		visitedMethodVar = false;
 		lastVisitedElement = elementKind;
 		lastSrcInfo.put(elementKind, srcInfo);
-		resetVisitedElementContentUpTo(elementKind.level);
+		resetVisitedElementContentDownTo(elementKind.level);
 
 		return visitedLastElement = super.visitMethodArg(argPosition, lvIndex, srcName);
 	}
@@ -203,13 +216,14 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		assertMethodVisited();
 		assertLastElementContentVisited();
 		assertElementContentVisited(elementKind.level - 1);
+		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
 		visitedMethodArg = false;
 		visitedMethodVar = true;
 		lastVisitedElement = elementKind;
 		lastSrcInfo.put(elementKind, srcInfo);
-		resetVisitedElementContentUpTo(elementKind.level);
+		resetVisitedElementContentDownTo(elementKind.level);
 
 		return visitedLastElement = super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 	}
@@ -217,7 +231,8 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
 		assertElementVisited(targetKind);
-		assertElementContentNotVisitedUpTo(targetKind.level + 1); // prevent visitation after visitElementContent of same level
+		assertLastVisitedElement(targetKind);
+		assertElementContentNotVisitedDownTo(targetKind.level + 1); // prevent visitation after visitElementContent of same level
 
 		super.visitDstName(targetKind, namespace, name);
 	}
@@ -225,7 +240,8 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
 		assertElementVisited(targetKind);
-		assertElementContentNotVisitedUpTo(targetKind.level + 1); // prevent visitation after visitElementContent of same level
+		assertLastVisitedElement(targetKind);
+		assertElementContentNotVisitedDownTo(targetKind.level + 1); // prevent visitation after visitElementContent of same level
 
 		super.visitDstDesc(targetKind, namespace, desc);
 	}
@@ -233,17 +249,14 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		assertElementVisited(targetKind);
-		assertElementContentNotVisitedUpTo(targetKind.level); // no +1 to prevent repeated visitation
+		assertLastVisitedElement(targetKind);
+		assertElementContentNotVisitedDownTo(targetKind.level); // no +1 to prevent repeated visitation
 
 		if (targetKind.level > 0) {
 			assertElementContentVisited(targetKind.level - 1);
 		}
 
 		visitedElementContent[targetKind.level] = true;
-
-		if (targetKind.level < visitedElementContent.length - 1) {
-			resetVisitedElementContentUpTo(targetKind.level + 1);
-		}
 
 		return super.visitElementContent(targetKind);
 	}
@@ -316,8 +329,14 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	}
 
 	private void assertElementVisited(MappedElementKind kind) {
-		if (lastVisitedElement != kind) {
+		if (lastVisitedElement.level < kind.level) {
 			throw new IllegalStateException("Element not visited");
+		}
+	}
+
+	private void assertLastVisitedElement(MappedElementKind kind) {
+		if (lastVisitedElement != kind) {
+			throw new IllegalStateException("Last visited element is not " + kind);
 		}
 	}
 
@@ -384,11 +403,11 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	private void assertLastElementContentVisited() {
 		if (visitedLastElement) {
 			assertElementContentVisited(lastVisitedElement.level);
-			assertElementContentNotVisitedUpTo(lastVisitedElement.level + 1);
+			assertElementContentNotVisitedDownTo(lastVisitedElement.level + 1);
 		}
 	}
 
-	private void assertElementContentNotVisitedUpTo(int inclusiveLevel) {
+	private void assertElementContentNotVisitedDownTo(int inclusiveLevel) {
 		for (int i = visitedElementContent.length - 1; i >= inclusiveLevel; i--) {
 			if (visitedElementContent[i]) {
 				throw new IllegalStateException(lastVisitedElement + " element content already visited");
@@ -409,25 +428,26 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	}
 
 	private void assertNewSrcInfo(MappedElementKind kind, SrcInfo srcInfo) {
-		if (srcInfo.equals(lastSrcInfo.get(kind))) {
-			throw new IllegalStateException("Same source name visited twice in a row");
+		if (!allowConsecutiveDuplicateElementVisits && srcInfo.equals(lastSrcInfo.get(kind))) {
+			throw new IllegalStateException("Same element visited twice in a row");
 		}
 	}
 
-	boolean visitedHeader;
-	boolean visitedNamespaces;
-	boolean visitedMetadata;
-	boolean visitedContent;
-	boolean visitedClass;
-	boolean visitedField;
-	boolean visitedMethod;
-	boolean visitedMethodArg;
-	boolean visitedMethodVar;
-	boolean[] visitedElementContent = new boolean[3];
-	boolean visitedEnd;
-	MappedElementKind lastVisitedElement;
-	boolean visitedLastElement;
-	Map<MappedElementKind, SrcInfo> lastSrcInfo = new HashMap<>();
+	private final boolean allowConsecutiveDuplicateElementVisits;
+	private boolean visitedHeader;
+	private boolean visitedNamespaces;
+	private boolean visitedMetadata;
+	private boolean visitedContent;
+	private boolean visitedClass;
+	private boolean visitedField;
+	private boolean visitedMethod;
+	private boolean visitedMethodArg;
+	private boolean visitedMethodVar;
+	private boolean[] visitedElementContent = new boolean[3];
+	private boolean visitedEnd;
+	private MappedElementKind lastVisitedElement;
+	private boolean visitedLastElement;
+	private Map<MappedElementKind, SrcInfo> lastSrcInfo = new HashMap<>();
 
 	private static class SrcInfo {
 		SrcInfo srcName(String srcName) {

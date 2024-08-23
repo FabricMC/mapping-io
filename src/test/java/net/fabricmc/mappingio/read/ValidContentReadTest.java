@@ -33,11 +33,13 @@ import net.fabricmc.mappingio.tree.VisitableMappingTree;
 public class ValidContentReadTest {
 	private static MappingTree testTree;
 	private static MappingTree testTreeWithHoles;
+	private static MappingTree testTreeWithRepeatedElements;
 
 	@BeforeAll
 	public static void setup() throws Exception {
 		testTree = TestHelper.createTestTree();
 		testTreeWithHoles = TestHelper.createTestTreeWithHoles();
+		testTreeWithRepeatedElements = testTree;
 	}
 
 	@Test
@@ -45,6 +47,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.ENIGMA_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -59,6 +62,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.TINY_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -66,6 +70,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.TINY_2_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true); // TODO: The Tiny v2 spec disallows repeated elements, there should at least be a warning
 	}
 
 	@Test
@@ -73,6 +78,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.SRG_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -80,6 +86,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.XSRG_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -87,6 +94,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.JAM_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -94,6 +102,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.CSRG_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -101,6 +110,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.TSRG_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -108,6 +118,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -115,6 +126,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.PROGUARD_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -122,6 +134,7 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.RECAF_SIMPLE_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	@Test
@@ -129,31 +142,45 @@ public class ValidContentReadTest {
 		MappingFormat format = MappingFormat.JOBF_FILE;
 		checkDefault(format);
 		checkHoles(format);
+		checkRepeated(format, true);
 	}
 
 	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
+		boolean allowConsecutiveDuplicateElementVisits = false;
+		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
 
-		assertSubset(tree, format, testTree, null);
-		assertSubset(testTree, null, tree, format);
+		assertSubset(tree, format, testTree, null, allowConsecutiveDuplicateElementVisits);
+		assertSubset(testTree, null, tree, format, allowConsecutiveDuplicateElementVisits);
 
 		return tree;
 	}
 
 	private VisitableMappingTree checkHoles(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
+		boolean allowConsecutiveDuplicateElementVisits = false;
+		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
 
-		assertSubset(tree, format, testTreeWithHoles, null);
-		assertSubset(testTreeWithHoles, null, tree, format);
+		assertSubset(tree, format, testTreeWithHoles, null, allowConsecutiveDuplicateElementVisits);
+		assertSubset(testTreeWithHoles, null, tree, format, allowConsecutiveDuplicateElementVisits);
 
 		return tree;
 	}
 
-	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat) throws Exception {
+	private VisitableMappingTree checkRepeated(MappingFormat format, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
+		VisitableMappingTree tree = new MemoryMappingTree();
+		MappingReader.read(TestHelper.MappingDirs.REPEATED_ELEMENTS.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
+
+		assertSubset(tree, format, testTreeWithRepeatedElements, null, allowConsecutiveDuplicateElementVisits);
+		assertSubset(testTreeWithRepeatedElements, null, tree, format, allowConsecutiveDuplicateElementVisits);
+
+		return tree;
+	}
+
+	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
 		subTree.accept(
 				new VisitOrderVerifyingVisitor(
+						allowConsecutiveDuplicateElementVisits,
 						new FlatAsRegularMappingVisitor(
 								new SubsetAssertingVisitor(supTree, supFormat, subFormat))));
 	}

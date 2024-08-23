@@ -169,13 +169,11 @@ public final class TsrgFileReader {
 					if (srcName == null || srcName.endsWith("/")) continue;
 					if (srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-					if (!srcName.equals(lastClass)) {
-						lastClass = srcName;
-						visitLastClass = visitor.visitClass(srcName);
+					lastClass = srcName;
+					visitLastClass = visitor.visitClass(srcName);
 
-						if (visitLastClass) {
-							visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor);
-						}
+					if (visitLastClass) {
+						visitLastClass = readClass(reader, format == MappingFormat.TSRG_2_FILE, dstNsCount, nameTmp, visitor);
 					}
 				} while (reader.nextLine(0));
 			}
