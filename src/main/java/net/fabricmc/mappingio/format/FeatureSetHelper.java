@@ -16,31 +16,31 @@
 
 package net.fabricmc.mappingio.format;
 
+import net.fabricmc.mappingio.format.FeatureSet.FeaturePresence;
 import net.fabricmc.mappingio.format.FeatureSet.LocalSupport;
 import net.fabricmc.mappingio.format.FeatureSet.MemberSupport;
-import net.fabricmc.mappingio.format.FeatureSet.SupportLevel;
 
-// Only exists since Java 8 doesn't support private interface methods yet
+// Only exists since Java 8 doesn't support private interface methods
 final class FeatureSetHelper {
 	private FeatureSetHelper() {
 	}
 
 	static boolean isSupported(MemberSupport members) {
-		return members.srcNames() != SupportLevel.UNSUPPORTED
-				|| members.dstNames() != SupportLevel.UNSUPPORTED
-				|| members.srcDescs() != SupportLevel.UNSUPPORTED
-				|| members.dstDescs() != SupportLevel.UNSUPPORTED;
+		return members.srcNames() != FeaturePresence.ABSENT
+				|| members.dstNames() != FeaturePresence.ABSENT
+				|| members.srcDescs() != FeaturePresence.ABSENT
+				|| members.dstDescs() != FeaturePresence.ABSENT;
 	}
 
 	static boolean isSupported(LocalSupport locals) {
-		return locals.positions() != SupportLevel.UNSUPPORTED
-				|| locals.lvIndices() != SupportLevel.UNSUPPORTED
-				|| locals.lvtRowIndices() != SupportLevel.UNSUPPORTED
-				|| locals.startOpIndices() != SupportLevel.UNSUPPORTED
-				|| locals.endOpIndices() != SupportLevel.UNSUPPORTED
-				|| locals.srcNames() != SupportLevel.UNSUPPORTED
-				|| locals.dstNames() != SupportLevel.UNSUPPORTED
-				|| locals.srcDescs() != SupportLevel.UNSUPPORTED
-				|| locals.dstDescs() != SupportLevel.UNSUPPORTED;
+		return locals.positions() != FeaturePresence.ABSENT
+				|| locals.lvIndices() != FeaturePresence.ABSENT
+				|| locals.lvtRowIndices() != FeaturePresence.ABSENT
+				|| locals.startOpIndices() != FeaturePresence.ABSENT
+				|| locals.endOpIndices() != FeaturePresence.ABSENT
+				|| locals.srcNames() != FeaturePresence.ABSENT
+				|| locals.dstNames() != FeaturePresence.ABSENT
+				|| locals.srcDescs() != FeaturePresence.ABSENT
+				|| locals.dstDescs() != FeaturePresence.ABSENT;
 	}
 }

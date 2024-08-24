@@ -30,13 +30,13 @@ public interface FeatureSet {
 	boolean hasFileComments();
 
 	default boolean supportsPackages() {
-		return packages().srcNames() != SupportLevel.UNSUPPORTED
-				|| packages().dstNames() != SupportLevel.UNSUPPORTED;
+		return packages().srcNames() != FeaturePresence.ABSENT
+				|| packages().dstNames() != FeaturePresence.ABSENT;
 	}
 
 	default boolean supportsClasses() {
-		return classes().srcNames() != SupportLevel.UNSUPPORTED
-				|| classes().dstNames() != SupportLevel.UNSUPPORTED;
+		return classes().srcNames() != FeaturePresence.ABSENT
+				|| classes().dstNames() != FeaturePresence.ABSENT;
 	}
 
 	default boolean supportsFields() {
@@ -66,31 +66,31 @@ public interface FeatureSet {
 		ARBITRARY
 	}
 
-	enum SupportLevel {
+	enum FeaturePresence {
 		REQUIRED,
 		OPTIONAL,
-		UNSUPPORTED
+		ABSENT
 	}
 
 	interface NameSupport {
-		SupportLevel srcNames();
-		SupportLevel dstNames();
+		FeaturePresence srcNames();
+		FeaturePresence dstNames();
 	}
 
 	interface DescSupport {
-		SupportLevel srcDescs();
-		SupportLevel dstDescs();
+		FeaturePresence srcDescs();
+		FeaturePresence dstDescs();
 	}
 
 	interface MemberSupport extends NameSupport, DescSupport {
 	}
 
 	interface LocalSupport extends NameSupport, DescSupport {
-		SupportLevel positions();
-		SupportLevel lvIndices();
-		SupportLevel lvtRowIndices();
-		SupportLevel startOpIndices();
-		SupportLevel endOpIndices();
+		FeaturePresence positions();
+		FeaturePresence lvIndices();
+		FeaturePresence lvtRowIndices();
+		FeaturePresence startOpIndices();
+		FeaturePresence endOpIndices();
 	}
 
 	enum ElementCommentSupport {

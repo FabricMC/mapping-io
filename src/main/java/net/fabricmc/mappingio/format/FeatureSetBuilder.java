@@ -22,11 +22,11 @@ import org.jetbrains.annotations.ApiStatus;
 
 import net.fabricmc.mappingio.format.FeatureSet.DescSupport;
 import net.fabricmc.mappingio.format.FeatureSet.ElementCommentSupport;
+import net.fabricmc.mappingio.format.FeatureSet.FeaturePresence;
 import net.fabricmc.mappingio.format.FeatureSet.LocalSupport;
 import net.fabricmc.mappingio.format.FeatureSet.MemberSupport;
 import net.fabricmc.mappingio.format.FeatureSet.MetadataSupport;
 import net.fabricmc.mappingio.format.FeatureSet.NameSupport;
-import net.fabricmc.mappingio.format.FeatureSet.SupportLevel;
 import net.fabricmc.mappingio.format.FeatureSetImpl.DescSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.LocalSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.MemberSupportImpl;
@@ -86,13 +86,13 @@ public class FeatureSetBuilder {
 		return this;
 	}
 
-	public FeatureSetBuilder withFileMetadata(MetadataSupport supportLevel) {
-		this.fileMetadata = supportLevel;
+	public FeatureSetBuilder withFileMetadata(MetadataSupport featurePresence) {
+		this.fileMetadata = featurePresence;
 		return this;
 	}
 
-	public FeatureSetBuilder withElementMetadata(MetadataSupport supportLevel) {
-		this.elementMetadata = supportLevel;
+	public FeatureSetBuilder withElementMetadata(MetadataSupport featurePresence) {
+		this.elementMetadata = featurePresence;
 		return this;
 	}
 
@@ -126,8 +126,8 @@ public class FeatureSetBuilder {
 		return this;
 	}
 
-	public FeatureSetBuilder withElementComments(ElementCommentSupport supportLevel) {
-		this.elementComments = supportLevel;
+	public FeatureSetBuilder withElementComments(ElementCommentSupport featurePresence) {
+		this.elementComments = featurePresence;
 		return this;
 	}
 
@@ -181,23 +181,23 @@ public class FeatureSetBuilder {
 			this.descriptors = descriptors;
 		}
 
-		public MemberSupportBuilder withSrcNames(SupportLevel supportLevel) {
-			names.withSrcNames(supportLevel);
+		public MemberSupportBuilder withSrcNames(FeaturePresence featurePresence) {
+			names.withSrcNames(featurePresence);
 			return this;
 		}
 
-		public MemberSupportBuilder withDstNames(SupportLevel supportLevel) {
-			names.withDstNames(supportLevel);
+		public MemberSupportBuilder withDstNames(FeaturePresence featurePresence) {
+			names.withDstNames(featurePresence);
 			return this;
 		}
 
-		public MemberSupportBuilder withSrcDescs(SupportLevel supportLevel) {
-			descriptors.withSrcDescs(supportLevel);
+		public MemberSupportBuilder withSrcDescs(FeaturePresence featurePresence) {
+			descriptors.withSrcDescs(featurePresence);
 			return this;
 		}
 
-		public MemberSupportBuilder withDstDescs(SupportLevel supportLevel) {
-			descriptors.withDstDescs(supportLevel);
+		public MemberSupportBuilder withDstDescs(FeaturePresence featurePresence) {
+			descriptors.withDstDescs(featurePresence);
 			return this;
 		}
 
@@ -215,11 +215,11 @@ public class FeatureSetBuilder {
 		}
 
 		LocalSupportBuilder(boolean initWithFullSupport) {
-			this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
+			this(initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
 					new NameFeatureBuilder(),
 					new DescFeatureBuilder());
 		}
@@ -234,7 +234,7 @@ public class FeatureSetBuilder {
 					new DescFeatureBuilder(localSupport));
 		}
 
-		private LocalSupportBuilder(SupportLevel positions, SupportLevel lvIndices, SupportLevel lvtRowIndices, SupportLevel startOpIndices, SupportLevel endOpIndices, NameFeatureBuilder names, DescFeatureBuilder descriptors) {
+		private LocalSupportBuilder(FeaturePresence positions, FeaturePresence lvIndices, FeaturePresence lvtRowIndices, FeaturePresence startOpIndices, FeaturePresence endOpIndices, NameFeatureBuilder names, DescFeatureBuilder descriptors) {
 			this.positions = positions;
 			this.lvIndices = lvIndices;
 			this.lvtRowIndices = lvtRowIndices;
@@ -244,48 +244,48 @@ public class FeatureSetBuilder {
 			this.descriptors = descriptors;
 		}
 
-		public LocalSupportBuilder withPositions(SupportLevel supportLevel) {
-			this.positions = supportLevel;
+		public LocalSupportBuilder withPositions(FeaturePresence featurePresence) {
+			this.positions = featurePresence;
 			return this;
 		}
 
-		public LocalSupportBuilder withLvIndices(SupportLevel supportLevel) {
-			this.lvIndices = supportLevel;
+		public LocalSupportBuilder withLvIndices(FeaturePresence featurePresence) {
+			this.lvIndices = featurePresence;
 			return this;
 		}
 
-		public LocalSupportBuilder withLvtRowIndices(SupportLevel supportLevel) {
-			this.lvtRowIndices = supportLevel;
+		public LocalSupportBuilder withLvtRowIndices(FeaturePresence featurePresence) {
+			this.lvtRowIndices = featurePresence;
 			return this;
 		}
 
-		public LocalSupportBuilder withStartOpIndices(SupportLevel supportLevel) {
-			this.startOpIndices = supportLevel;
+		public LocalSupportBuilder withStartOpIndices(FeaturePresence featurePresence) {
+			this.startOpIndices = featurePresence;
 			return this;
 		}
 
-		public LocalSupportBuilder withEndOpIndices(SupportLevel supportLevel) {
-			this.endOpIndices = supportLevel;
+		public LocalSupportBuilder withEndOpIndices(FeaturePresence featurePresence) {
+			this.endOpIndices = featurePresence;
 			return this;
 		}
 
-		public LocalSupportBuilder withSrcNames(SupportLevel supportLevel) {
-			names.withSrcNames(supportLevel);
+		public LocalSupportBuilder withSrcNames(FeaturePresence featurePresence) {
+			names.withSrcNames(featurePresence);
 			return this;
 		}
 
-		public LocalSupportBuilder withDstNames(SupportLevel supportLevel) {
-			names.withDstNames(supportLevel);
+		public LocalSupportBuilder withDstNames(FeaturePresence featurePresence) {
+			names.withDstNames(featurePresence);
 			return this;
 		}
 
-		public LocalSupportBuilder withSrcDescs(SupportLevel supportLevel) {
-			descriptors.withSrcDescs(supportLevel);
+		public LocalSupportBuilder withSrcDescs(FeaturePresence featurePresence) {
+			descriptors.withSrcDescs(featurePresence);
 			return this;
 		}
 
-		public LocalSupportBuilder withDstDescs(SupportLevel supportLevel) {
-			descriptors.withDstDescs(supportLevel);
+		public LocalSupportBuilder withDstDescs(FeaturePresence featurePresence) {
+			descriptors.withDstDescs(featurePresence);
 			return this;
 		}
 
@@ -300,11 +300,11 @@ public class FeatureSetBuilder {
 					descriptors.build());
 		}
 
-		private SupportLevel positions;
-		private SupportLevel lvIndices;
-		private SupportLevel lvtRowIndices;
-		private SupportLevel startOpIndices;
-		private SupportLevel endOpIndices;
+		private FeaturePresence positions;
+		private FeaturePresence lvIndices;
+		private FeaturePresence lvtRowIndices;
+		private FeaturePresence startOpIndices;
+		private FeaturePresence endOpIndices;
 		private NameFeatureBuilder names;
 		private DescFeatureBuilder descriptors;
 	}
@@ -315,26 +315,26 @@ public class FeatureSetBuilder {
 		}
 
 		NameFeatureBuilder(boolean initWithFullSupport) {
-			this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED);
+			this(initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT);
 		}
 
 		private NameFeatureBuilder(NameSupport nameFeature) {
 			this(nameFeature.srcNames(), nameFeature.dstNames());
 		}
 
-		private NameFeatureBuilder(SupportLevel srcNames, SupportLevel dstNames) {
+		private NameFeatureBuilder(FeaturePresence srcNames, FeaturePresence dstNames) {
 			this.srcNames = srcNames;
 			this.dstNames = dstNames;
 		}
 
-		public NameFeatureBuilder withSrcNames(SupportLevel supportLevel) {
-			this.srcNames = supportLevel;
+		public NameFeatureBuilder withSrcNames(FeaturePresence featurePresence) {
+			this.srcNames = featurePresence;
 			return this;
 		}
 
-		public NameFeatureBuilder withDstNames(SupportLevel supportLevel) {
-			this.dstNames = supportLevel;
+		public NameFeatureBuilder withDstNames(FeaturePresence featurePresence) {
+			this.dstNames = featurePresence;
 			return this;
 		}
 
@@ -342,8 +342,8 @@ public class FeatureSetBuilder {
 			return new NameSupportImpl(srcNames, dstNames);
 		}
 
-		private SupportLevel srcNames;
-		private SupportLevel dstNames;
+		private FeaturePresence srcNames;
+		private FeaturePresence dstNames;
 	}
 
 	static class DescFeatureBuilder {
@@ -352,26 +352,26 @@ public class FeatureSetBuilder {
 		}
 
 		DescFeatureBuilder(boolean initWithFullSupport) {
-			this(initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED,
-					initWithFullSupport ? SupportLevel.OPTIONAL : SupportLevel.UNSUPPORTED);
+			this(initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT,
+					initWithFullSupport ? FeaturePresence.OPTIONAL : FeaturePresence.ABSENT);
 		}
 
 		private DescFeatureBuilder(DescSupport descFeature) {
 			this(descFeature.srcDescs(), descFeature.dstDescs());
 		}
 
-		private DescFeatureBuilder(SupportLevel srcDescriptors, SupportLevel dstDescriptors) {
+		private DescFeatureBuilder(FeaturePresence srcDescriptors, FeaturePresence dstDescriptors) {
 			this.srcDescriptors = srcDescriptors;
 			this.dstDescriptors = dstDescriptors;
 		}
 
-		public DescFeatureBuilder withSrcDescs(SupportLevel supportLevel) {
-			this.srcDescriptors = supportLevel;
+		public DescFeatureBuilder withSrcDescs(FeaturePresence featurePresence) {
+			this.srcDescriptors = featurePresence;
 			return this;
 		}
 
-		public DescFeatureBuilder withDstDescs(SupportLevel supportLevel) {
-			this.dstDescriptors = supportLevel;
+		public DescFeatureBuilder withDstDescs(FeaturePresence featurePresence) {
+			this.dstDescriptors = featurePresence;
 			return this;
 		}
 
@@ -379,7 +379,7 @@ public class FeatureSetBuilder {
 			return new DescSupportImpl(srcDescriptors, dstDescriptors);
 		}
 
-		private SupportLevel srcDescriptors;
-		private SupportLevel dstDescriptors;
+		private FeaturePresence srcDescriptors;
+		private FeaturePresence dstDescriptors;
 	}
 }

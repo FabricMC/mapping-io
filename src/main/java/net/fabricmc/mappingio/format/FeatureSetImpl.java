@@ -105,22 +105,22 @@ class FeatureSetImpl implements FeatureSet {
 		}
 
 		@Override
-		public SupportLevel srcNames() {
+		public FeaturePresence srcNames() {
 			return names.srcNames();
 		}
 
 		@Override
-		public SupportLevel dstNames() {
+		public FeaturePresence dstNames() {
 			return names.dstNames();
 		}
 
 		@Override
-		public SupportLevel srcDescs() {
+		public FeaturePresence srcDescs() {
 			return descriptors.srcDescs();
 		}
 
 		@Override
-		public SupportLevel dstDescs() {
+		public FeaturePresence dstDescs() {
 			return descriptors.dstDescs();
 		}
 
@@ -129,7 +129,7 @@ class FeatureSetImpl implements FeatureSet {
 	}
 
 	static class LocalSupportImpl implements LocalSupport {
-		LocalSupportImpl(SupportLevel positions, SupportLevel lvIndices, SupportLevel lvtRowIndices, SupportLevel startOpIndices, SupportLevel endOpIndices, NameSupport names, DescSupport descriptors) {
+		LocalSupportImpl(FeaturePresence positions, FeaturePresence lvIndices, FeaturePresence lvtRowIndices, FeaturePresence startOpIndices, FeaturePresence endOpIndices, NameSupport names, DescSupport descriptors) {
 			this.positions = positions;
 			this.lvIndices = lvIndices;
 			this.lvtRowIndices = lvtRowIndices;
@@ -140,96 +140,96 @@ class FeatureSetImpl implements FeatureSet {
 		}
 
 		@Override
-		public SupportLevel positions() {
+		public FeaturePresence positions() {
 			return positions;
 		}
 
 		@Override
-		public SupportLevel lvIndices() {
+		public FeaturePresence lvIndices() {
 			return lvIndices;
 		}
 
 		@Override
-		public SupportLevel lvtRowIndices() {
+		public FeaturePresence lvtRowIndices() {
 			return lvtRowIndices;
 		}
 
 		@Override
-		public SupportLevel startOpIndices() {
+		public FeaturePresence startOpIndices() {
 			return startOpIndices;
 		}
 
 		@Override
-		public SupportLevel endOpIndices() {
+		public FeaturePresence endOpIndices() {
 			return endOpIndices;
 		}
 
 		@Override
-		public SupportLevel srcNames() {
+		public FeaturePresence srcNames() {
 			return names.srcNames();
 		}
 
 		@Override
-		public SupportLevel dstNames() {
+		public FeaturePresence dstNames() {
 			return names.dstNames();
 		}
 
 		@Override
-		public SupportLevel srcDescs() {
+		public FeaturePresence srcDescs() {
 			return descriptors.srcDescs();
 		}
 
 		@Override
-		public SupportLevel dstDescs() {
+		public FeaturePresence dstDescs() {
 			return descriptors.dstDescs();
 		}
 
-		private final SupportLevel positions;
-		private final SupportLevel lvIndices;
-		private final SupportLevel lvtRowIndices;
-		private final SupportLevel startOpIndices;
-		private final SupportLevel endOpIndices;
+		private final FeaturePresence positions;
+		private final FeaturePresence lvIndices;
+		private final FeaturePresence lvtRowIndices;
+		private final FeaturePresence startOpIndices;
+		private final FeaturePresence endOpIndices;
 		private final NameSupport names;
 		private final DescSupport descriptors;
 	}
 
 	static class NameSupportImpl implements NameSupport {
-		NameSupportImpl(SupportLevel srcNames, SupportLevel dstNames) {
+		NameSupportImpl(FeaturePresence srcNames, FeaturePresence dstNames) {
 			this.srcNames = srcNames;
 			this.dstNames = dstNames;
 		}
 
 		@Override
-		public SupportLevel srcNames() {
+		public FeaturePresence srcNames() {
 			return srcNames;
 		}
 
 		@Override
-		public SupportLevel dstNames() {
+		public FeaturePresence dstNames() {
 			return dstNames;
 		}
 
-		private final SupportLevel srcNames;
-		private final SupportLevel dstNames;
+		private final FeaturePresence srcNames;
+		private final FeaturePresence dstNames;
 	}
 
 	static class DescSupportImpl implements DescSupport {
-		DescSupportImpl(SupportLevel srcDescriptors, SupportLevel dstDescriptors) {
+		DescSupportImpl(FeaturePresence srcDescriptors, FeaturePresence dstDescriptors) {
 			this.srcDescriptors = srcDescriptors;
 			this.dstDescriptors = dstDescriptors;
 		}
 
 		@Override
-		public SupportLevel srcDescs() {
+		public FeaturePresence srcDescs() {
 			return srcDescriptors;
 		}
 
 		@Override
-		public SupportLevel dstDescs() {
+		public FeaturePresence dstDescs() {
 			return dstDescriptors;
 		}
 
-		private final SupportLevel srcDescriptors;
-		private final SupportLevel dstDescriptors;
+		private final FeaturePresence srcDescriptors;
+		private final FeaturePresence dstDescriptors;
 	}
 }

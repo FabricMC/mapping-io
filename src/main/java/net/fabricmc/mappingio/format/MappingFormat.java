@@ -19,8 +19,8 @@ package net.fabricmc.mappingio.format;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.FeatureSet.ElementCommentSupport;
+import net.fabricmc.mappingio.format.FeatureSet.FeaturePresence;
 import net.fabricmc.mappingio.format.FeatureSet.MetadataSupport;
-import net.fabricmc.mappingio.format.FeatureSet.SupportLevel;
 
 /**
  * Represents a supported mapping format. Every format can be assumed to have an associated reader available.
@@ -39,16 +39,16 @@ public enum MappingFormat {
 			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.FIXED) // TODO: change this to ARBITRARY once https://github.com/FabricMC/mapping-io/pull/29 is merged
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true)),
 
 	/**
@@ -58,26 +58,26 @@ public enum MappingFormat {
 			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withArgs(a -> a
-					.withLvIndices(SupportLevel.REQUIRED)
-					.withSrcNames(SupportLevel.OPTIONAL)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withLvIndices(FeaturePresence.REQUIRED)
+					.withSrcNames(FeaturePresence.OPTIONAL)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withVars(v -> v
-					.withLvIndices(SupportLevel.REQUIRED)
-					.withLvtRowIndices(SupportLevel.OPTIONAL)
-					.withStartOpIndices(SupportLevel.REQUIRED)
-					.withSrcNames(SupportLevel.OPTIONAL)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withLvIndices(FeaturePresence.REQUIRED)
+					.withLvtRowIndices(FeaturePresence.OPTIONAL)
+					.withStartOpIndices(FeaturePresence.REQUIRED)
+					.withSrcNames(FeaturePresence.OPTIONAL)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments(true)), // only in reserved places
 
@@ -90,19 +90,19 @@ public enum MappingFormat {
 	ENIGMA_FILE("Enigma file", "mapping", true, FeatureSetBuilder.create()
 			.withElementMetadata(MetadataSupport.FIXED) // access modifiers
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withArgs(a -> a
-					.withLvIndices(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.OPTIONAL))
+					.withLvIndices(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.OPTIONAL))
 			.withElementComments(ElementCommentSupport.SHARED)
 			.withFileComments(true)),
 
@@ -122,19 +122,19 @@ public enum MappingFormat {
 	 */
 	SRG_FILE("SRG file", "srg", true, FeatureSetBuilder.create()
 			.withPackages(p -> p
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED)
-					.withDstDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED)
+					.withDstDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true)),
 
 	/**
@@ -147,24 +147,24 @@ public enum MappingFormat {
 	 */
 	XSRG_FILE("XSRG file", "xsrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withFields(f -> f
-					.withSrcDescs(SupportLevel.REQUIRED)
-					.withDstDescs(SupportLevel.REQUIRED))),
+					.withSrcDescs(FeaturePresence.REQUIRED)
+					.withDstDescs(FeaturePresence.REQUIRED))),
 
 	/**
 	 * The {@code JAM} ("Java Associated Mapping"; formerly {@code SRGX}) mapping format, as specified <a href="https://github.com/caseif/JAM">here</a>.
 	 */
 	JAM_FILE("JAM file", "jam", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withPackages(p -> p
-					.withSrcNames(SupportLevel.UNSUPPORTED)
-					.withDstNames(SupportLevel.UNSUPPORTED))
+					.withSrcNames(FeaturePresence.ABSENT)
+					.withDstNames(FeaturePresence.ABSENT))
 			.withFields(f -> f
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withDstDescs(SupportLevel.UNSUPPORTED))
+					.withDstDescs(FeaturePresence.ABSENT))
 			.withArgs(a -> a
-					.withPositions(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.OPTIONAL)
-					.withDstNames(SupportLevel.REQUIRED))),
+					.withPositions(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.OPTIONAL)
+					.withDstNames(FeaturePresence.REQUIRED))),
 
 	/**
 	 * The {@code CSRG} ("Compact SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L207">here</a>.
@@ -174,7 +174,7 @@ public enum MappingFormat {
 	 */
 	CSRG_FILE("CSRG file", "csrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withMethods(m -> m
-					.withDstDescs(SupportLevel.UNSUPPORTED))),
+					.withDstDescs(FeaturePresence.ABSENT))),
 
 	/**
 	 * The {@code TSRG} ("Tiny SRG", since it saves disk space over SRG) mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L196-L213">here</a>.
@@ -196,11 +196,11 @@ public enum MappingFormat {
 			.withNamespaces(true)
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f
-					.withSrcDescs(SupportLevel.OPTIONAL))
+					.withSrcDescs(FeaturePresence.OPTIONAL))
 			.withArgs(a -> a
-					.withLvIndices(SupportLevel.REQUIRED)
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))),
+					.withLvIndices(FeaturePresence.REQUIRED)
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
@@ -211,16 +211,16 @@ public enum MappingFormat {
 	PROGUARD_FILE("ProGuard file", "txt", true, FeatureSetBuilder.create()
 			.withElementMetadata(MetadataSupport.FIXED) // line numbers
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true)),
 
 	/**
@@ -228,16 +228,16 @@ public enum MappingFormat {
 	 */
 	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", true, FeatureSetBuilder.create()
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.OPTIONAL)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.OPTIONAL)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true)),
 
 	/**
@@ -248,19 +248,19 @@ public enum MappingFormat {
 	 */
 	JOBF_FILE("JOBF file", "jobf", true, FeatureSetBuilder.create()
 			.withPackages(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withClasses(c -> c
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
 			.withFields(f -> f
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withMethods(m -> m
-					.withSrcNames(SupportLevel.REQUIRED)
-					.withDstNames(SupportLevel.REQUIRED)
-					.withSrcDescs(SupportLevel.REQUIRED))
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED)
+					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true));
 
 	MappingFormat(String name, @Nullable String fileExt, boolean hasWriter, FeatureSetBuilder featureBuilder) {
@@ -269,7 +269,7 @@ public enum MappingFormat {
 		this.hasWriter = hasWriter;
 		this.features = featureBuilder.build();
 		this.hasNamespaces = features.hasNamespaces();
-		this.hasFieldDescriptors = features.fields().srcDescs() != SupportLevel.UNSUPPORTED || features.fields().dstDescs() != SupportLevel.UNSUPPORTED;
+		this.hasFieldDescriptors = features.fields().srcDescs() != FeaturePresence.ABSENT || features.fields().dstDescs() != FeaturePresence.ABSENT;
 		this.supportsComments = features.elementComments() != ElementCommentSupport.NONE;
 		this.supportsArgs = features.supportsArgs();
 		this.supportsLocals = features.supportsVars();
