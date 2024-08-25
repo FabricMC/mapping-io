@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.read;
 
+import java.nio.file.Path;
+
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,8 +27,10 @@ import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
+import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
@@ -131,27 +135,38 @@ public class ValidContentReadTest {
 		checkHoles(format);
 	}
 
-	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
+	private void checkDefault(MappingFormat format) throws Exception {
+		Path path = TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format));
+
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree));
+		assertEqual(format, tree, testTree);
 
-		assertSubset(tree, format, testTree, null);
-		assertSubset(testTree, null, tree, format);
-
-		return tree;
+		tree = new MemoryMappingTree();
+		MappingReader.read(path, format,
+				new MappingSourceNsSwitch(
+						new VisitOrderVerifyingVisitor(
+								new MappingSourceNsSwitch(
+										new VisitOrderVerifyingVisitor(tree),
+										testTree.getSrcNamespace())),
+						testTree.getDstNamespaces().get(0)));
+		assertEqual(format, tree, testTree);
 	}
 
-	private VisitableMappingTree checkHoles(MappingFormat format) throws Exception {
+	private void checkHoles(MappingFormat format) throws Exception {
+		Path path = TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format));
+
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
-
-		assertSubset(tree, format, testTreeWithHoles, null);
-		assertSubset(testTreeWithHoles, null, tree, format);
-
-		return tree;
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree));
+		assertEqual(format, tree, testTreeWithHoles);
 	}
 
-	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat) throws Exception {
+	private void assertEqual(MappingFormat format, MappingTreeView tree, MappingTreeView referenceTree) throws Exception {
+		assertSubset(tree, format, referenceTree, null);
+		assertSubset(referenceTree, null, tree, format);
+	}
+
+	private void assertSubset(MappingTreeView subTree, @Nullable MappingFormat subFormat, MappingTreeView supTree, @Nullable MappingFormat supFormat) throws Exception {
 		subTree.accept(
 				new VisitOrderVerifyingVisitor(
 						new FlatAsRegularMappingVisitor(

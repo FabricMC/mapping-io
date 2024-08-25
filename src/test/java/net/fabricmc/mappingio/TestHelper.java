@@ -91,6 +91,7 @@ public final class TestHelper {
 		visitMethodArg(tree, dstNs);
 		visitMethodVar(tree, dstNs);
 		visitInnerClass(tree, 1, dstNs);
+		visitComment(tree);
 		visitField(tree, dstNs);
 		visitClass(tree, dstNs);
 
