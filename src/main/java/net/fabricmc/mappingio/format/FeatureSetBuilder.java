@@ -163,7 +163,7 @@ public class FeatureSetBuilder {
 	private ElementCommentSupport elementComments;
 	private boolean hasFileComments;
 
-	static class MemberSupportBuilder {
+	public static class MemberSupportBuilder {
 		MemberSupportBuilder() {
 			this(false);
 		}
@@ -209,7 +209,7 @@ public class FeatureSetBuilder {
 		private DescFeatureBuilder descriptors;
 	}
 
-	static class LocalSupportBuilder {
+	public static class LocalSupportBuilder {
 		LocalSupportBuilder() {
 			this(false);
 		}
@@ -309,7 +309,7 @@ public class FeatureSetBuilder {
 		private DescFeatureBuilder descriptors;
 	}
 
-	static class NameFeatureBuilder {
+	public static class NameFeatureBuilder {
 		NameFeatureBuilder() {
 			this(false);
 		}
@@ -346,7 +346,7 @@ public class FeatureSetBuilder {
 		private FeaturePresence dstNames;
 	}
 
-	static class DescFeatureBuilder {
+	public static class DescFeatureBuilder {
 		DescFeatureBuilder() {
 			this(false);
 		}
