@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migrationMap>
+	<entry oldName="class_1" newName="class_1" type="class" />
+	<entry oldName="class_2" newName="class2Ns0Rename" type="class" />
+	<entry oldName="class_3" newName="class_3" type="class" />
+	<entry oldName="class_4" newName="class_4" type="class" />
+	<entry oldName="class_5" newName="class5Ns0Rename" type="class" />
+	<entry oldName="class_6" newName="class_6" type="class" />
+	<entry oldName="class_7" newName="class_7" type="class" />
+	<entry oldName="class_7$class_8" newName="class_7$class8Ns0Rename" type="class" />
+	<entry oldName="class_9$class_10" newName="class_9$class_10" type="class" />
+	<entry oldName="class_11$class_12" newName="class_11$class_12" type="class" />
+	<entry oldName="class_13$class_14" newName="class_13$class14Ns0Rename" type="class" />
+	<entry oldName="class_15$class_16" newName="class_15$class_16" type="class" />
+	<entry oldName="class_17" newName="class_17" type="class" />
+	<entry oldName="class_17$class_18$class_19" newName="class_17$class_18$class19Ns0Rename" type="class" />
+	<entry oldName="class_20$class_21$class_22" newName="class_20$class_21$class_22" type="class" />
+	<entry oldName="class_23$class_24$class_25" newName="class_23$class_24$class_25" type="class" />
+	<entry oldName="class_26$class_27$class_28" newName="class_26$class_27$class28Ns0Rename" type="class" />
+	<entry oldName="class_29$class_30$class_31" newName="class_29$class_30$class_31" type="class" />
+	<entry oldName="class_32" newName="class_32" type="class" />
+</migrationMap>
+

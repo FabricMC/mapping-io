@@ -224,6 +224,19 @@ public enum MappingFormat {
 			.withFileComments(true)),
 
 	/**
+	 * The IntelliJ IDEA migration map format, as implemented <a href="https://github.com/JetBrains/intellij-community/tree/5b6191dd34e05de8897f5da68757146395a260cc/java/java-impl-refactorings/src/com/intellij/refactoring/migration">here</a>.
+	 */
+	INTELLIJ_MIGRATION_MAP_FILE("IntelliJ migration map file", "xml", true, FeatureSetBuilder.create()
+			.withFileMetadata(MetadataSupport.FIXED) // migration map name and description
+			.withPackages(p -> p
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
+			.withClasses(c -> c
+					.withSrcNames(FeaturePresence.REQUIRED)
+					.withDstNames(FeaturePresence.REQUIRED))
+			.withFileComments(true)),
+
+	/**
 	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
 	 */
 	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", true, FeatureSetBuilder.create()

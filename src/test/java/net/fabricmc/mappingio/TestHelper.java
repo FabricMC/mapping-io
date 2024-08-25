@@ -63,6 +63,8 @@ public final class TestHelper {
 			return "tsrgV2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case INTELLIJ_MIGRATION_MAP_FILE:
+			return "migration-map.xml";
 		case RECAF_SIMPLE_FILE:
 			return "recaf-simple.txt";
 		case JOBF_FILE:

@@ -70,14 +70,18 @@ public final class Tiny2FileReader {
 		}
 
 		String srcNamespace = reader.nextCol();
+		if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in Tiny v2 header");
+
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
 
 		while ((dstNamespace = reader.nextCol()) != null) {
+			if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in Tiny v2 header");
 			dstNamespaces.add(dstNamespace);
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		if (dstNsCount == 0) throw new IOException("no destination namespaces in Tiny v2 header");
 		boolean readerMarked = false;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {

@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.intellij.MigrationMapFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
@@ -105,7 +106,9 @@ public final class MappingReader {
 
 		String headerStr = String.valueOf(buffer, 0, pos);
 
-		if ((headerStr.startsWith("p ")
+		if (headerStr.contains("<migrationMap>")) {
+			return MappingFormat.INTELLIJ_MIGRATION_MAP_FILE;
+		} else if ((headerStr.startsWith("p ")
 				|| headerStr.startsWith("c ")
 				|| headerStr.startsWith("f ")
 				|| headerStr.startsWith("m "))
@@ -295,6 +298,9 @@ public final class MappingReader {
 			break;
 		case PROGUARD_FILE:
 			ProGuardFileReader.read(reader, visitor);
+			break;
+		case INTELLIJ_MIGRATION_MAP_FILE:
+			MigrationMapFileReader.read(reader, visitor);
 			break;
 		case RECAF_SIMPLE_FILE:
 			RecafSimpleFileReader.read(reader, visitor);
