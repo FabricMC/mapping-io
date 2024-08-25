@@ -14,7 +14,7 @@ MappingReader.read(inputPath, /* optional */ inputFormat,
 ```
 
 The above example reads mappings from the input path directly into a `MappingWriter`, writing all contents to disk in the specified format.
-Keep in mind that the conversion process might be lossy if the two formats' feature sets differ; see the comparison table [here](./src/main/java/net/fabricmc/mappingio/format/MappingFormat.java) for more details.
+Keep in mind that the conversion process might be lossy if the two formats' feature sets differ; see the comparison table [here](https://fabricmc.net/wiki/documentation:mapping_formats) for more details.
 
 You can also read into a tree first:
 ```java

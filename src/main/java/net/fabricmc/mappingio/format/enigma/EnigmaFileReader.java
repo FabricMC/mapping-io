@@ -207,7 +207,7 @@ public final class EnigmaFileReader {
 
 				if (reader.nextCol("ARG")) { // method parameter: ARG <lv-index> <name-b>
 					int lvIndex = reader.nextIntCol();
-					if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+					if (lvIndex < 0) throw new IOException("missing/invalid parameter-lv-index in line "+reader.getLineNumber());
 
 					if (visitor.visitMethodArg(-1, lvIndex, null)) {
 						String dstName = reader.nextCol();

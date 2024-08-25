@@ -32,6 +32,9 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 /**
  * {@linkplain MappingFormat#RECAF_SIMPLE_FILE Recaf Simple file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
  */
 public final class RecafSimpleFileReader {
 	private RecafSimpleFileReader() {
@@ -75,6 +78,12 @@ public final class RecafSimpleFileReader {
 					if (line == null || line.trim().isEmpty() || line.trim().startsWith("#")) continue;
 
 					String[] parts = line.split(" ");
+
+					if (parts.length < 2) {
+						insufficientColumnCount(reader);
+						continue;
+					}
+
 					int dotPos = parts[0].lastIndexOf('.');
 					String clsSrcName;
 					String clsDstName = null;
@@ -106,7 +115,7 @@ public final class RecafSimpleFileReader {
 								memberSrcDesc = memberIdentifier.substring(mthDescPos);
 							}
 						} else {
-							throw new IOException("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
+							insufficientColumnCount(reader);
 						}
 					}
 
@@ -123,8 +132,10 @@ public final class RecafSimpleFileReader {
 					if (visitClass && memberSrcName != null) {
 						if (!isMethod && visitor.visitField(memberSrcName, memberSrcDesc)) {
 							visitor.visitDstName(MappedElementKind.FIELD, 0, memberDstName);
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						} else if (isMethod && visitor.visitMethod(memberSrcName, memberSrcDesc)) {
 							visitor.visitDstName(MappedElementKind.METHOD, 0, memberDstName);
+							visitor.visitElementContent(MappedElementKind.METHOD);
 						}
 					}
 				} while (reader.nextLine(0));
@@ -143,5 +154,9 @@ public final class RecafSimpleFileReader {
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
 		}
+	}
+
+	private static void insufficientColumnCount(ColumnFileReader reader) throws IOException {
+		throw new IOException("Invalid Recaf Simple line "+reader.getLineNumber()+": Insufficient column count!");
 	}
 }

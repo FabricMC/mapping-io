@@ -155,7 +155,7 @@ public final class VisitOrder {
 		};
 	}
 
-	public static Comparator<ElementMappingView> compareBySrcNameShortFirst() {
+	public static <T extends ElementMappingView> Comparator<T> compareBySrcNameShortFirst() {
 		return (a, b) -> compareShortFirst(a.getSrcName(), b.getSrcName());
 	}
 
@@ -190,7 +190,7 @@ public final class VisitOrder {
 		return 0;
 	}
 
-	public static int byNameShortFirstNestaware(@Nullable String a, @Nullable String b) {
+	public static int compareShortFirstNestaware(@Nullable String a, @Nullable String b) {
 		if (a == null || b == null) {
 			return compareNullLast(a, b);
 		}

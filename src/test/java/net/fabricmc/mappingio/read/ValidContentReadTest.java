@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
@@ -103,7 +104,7 @@ public class ValidContentReadTest {
 	}
 
 	@Test
-	public void tsrg2File() throws Exception {
+	public void tsrgV2File() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
 		checkDefault(format);
 		checkHoles(format);
@@ -132,7 +133,7 @@ public class ValidContentReadTest {
 
 	private VisitableMappingTree checkDefault(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
 
 		assertSubset(tree, format, testTree, null);
 		assertSubset(testTree, null, tree, format);
@@ -142,7 +143,7 @@ public class ValidContentReadTest {
 
 	private VisitableMappingTree checkHoles(MappingFormat format) throws Exception {
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, tree);
+		MappingReader.read(TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format)), format, new VisitOrderVerifyingVisitor(tree));
 
 		assertSubset(tree, format, testTreeWithHoles, null);
 		assertSubset(testTreeWithHoles, null, tree, format);
@@ -151,6 +152,9 @@ public class ValidContentReadTest {
 	}
 
 	private void assertSubset(MappingTree subTree, @Nullable MappingFormat subFormat, MappingTree supTree, @Nullable MappingFormat supFormat) throws Exception {
-		subTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(supTree, supFormat, subFormat)));
+		subTree.accept(
+				new VisitOrderVerifyingVisitor(
+						new FlatAsRegularMappingVisitor(
+								new SubsetAssertingVisitor(supTree, supFormat, subFormat))));
 	}
 }
