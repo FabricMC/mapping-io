@@ -48,8 +48,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 	public SubsetAssertingVisitor(MappingTreeView supTree, @Nullable MappingFormat supFormat, @Nullable MappingFormat subFormat) {
 		this.supTree = supTree;
 		this.supDstNsCount = supTree.getMaxNamespaceId();
-		this.supFeatures = supFormat == null ? FeatureSetInstantiator.withFullSupport() : supFormat.getFeatures();
-		this.subFeatures = subFormat == null ? FeatureSetInstantiator.withFullSupport() : subFormat.getFeatures();
+		this.supFeatures = supFormat == null ? FeatureSetInstantiator.withFullSupport() : supFormat.features();
+		this.subFeatures = subFormat == null ? FeatureSetInstantiator.withFullSupport() : subFormat.features();
 	}
 
 	@Override

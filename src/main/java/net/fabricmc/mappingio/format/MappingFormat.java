@@ -275,7 +275,7 @@ public enum MappingFormat {
 		this.supportsLocals = features.supportsVars();
 	}
 
-	public FeatureSet getFeatures() {
+	public FeatureSet features() {
 		return features;
 	}
 
@@ -296,31 +296,31 @@ public enum MappingFormat {
 	public final String fileExt;
 
 	/**
-	 * @deprecated Use {@link #getFeatures()} instead.
+	 * @deprecated Use {@link #features()} instead.
 	 */
 	@Deprecated
 	public final boolean hasNamespaces;
 
 	/**
-	 * @deprecated Use {@link #getFeatures()} instead.
+	 * @deprecated Use {@link #features()} instead.
 	 */
 	@Deprecated
 	public final boolean hasFieldDescriptors;
 
 	/**
-	 * @deprecated Use {@link #getFeatures()} instead.
+	 * @deprecated Use {@link #features()} instead.
 	 */
 	@Deprecated
 	public final boolean supportsComments;
 
 	/**
-	 * @deprecated Use {@link #getFeatures()} instead.
+	 * @deprecated Use {@link #features()} instead.
 	 */
 	@Deprecated
 	public final boolean supportsArgs;
 
 	/**
-	 * @deprecated Use {@link #getFeatures()} instead.
+	 * @deprecated Use {@link #features()} instead.
 	 */
 	@Deprecated
 	public final boolean supportsLocals;
