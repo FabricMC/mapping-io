@@ -77,16 +77,23 @@ public final class TsrgFileReader {
 
 		if (format == MappingFormat.TSRG_2_FILE) {
 			srcNamespace = reader.nextCol();
+			if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in TSRG v2 header");
+
 			dstNamespaces = new ArrayList<>();
 			String dstNamespace;
 
 			while ((dstNamespace = reader.nextCol()) != null) {
+				if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in TSRG v2 header");
 				dstNamespaces.add(dstNamespace);
 			}
 
+			if (dstNamespaces.isEmpty()) throw new IOException("no destination namespaces in TSRG v2 header");
 			reader.nextLine(0);
 		} else {
+			if (sourceNs == null || sourceNs.isEmpty()) throw new IllegalArgumentException("provided source namespace must not be null or empty");
 			srcNamespace = sourceNs;
+
+			if (targetNs == null || targetNs.isEmpty()) throw new IllegalArgumentException("provided target namespace must not be null or empty");
 			dstNamespaces = Collections.singletonList(targetNs);
 		}
 

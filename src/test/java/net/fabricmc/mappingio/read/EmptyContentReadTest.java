@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.intellij.MigrationMapFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
@@ -52,14 +53,36 @@ public class EmptyContentReadTest {
 
 	@Test
 	public void emptyTinyFile() throws Exception {
-		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(""), target));
-		Tiny1FileReader.read(new StringReader("v1\t"), target);
+		String header0 = "";
+		String header1 = "v1";
+		String header2 = header1 + "\t";
+		String header3 = header2 + "srcNs";
+		String header4 = header3 + "\t";
+		String header5 = header4 + "dstNs";
+
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(header0), target));
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(header1), target));
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(header2), target));
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(header3), target));
+		assertThrows(IOException.class, () -> Tiny1FileReader.read(new StringReader(header4), target));
+		Tiny1FileReader.read(new StringReader(header5), target);
 	}
 
 	@Test
 	public void emptyTinyV2File() throws Exception {
-		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(""), target));
-		Tiny2FileReader.read(new StringReader("tiny\t2\t0"), target);
+		String header0 = "";
+		String header1 = "tiny\t2\t0";
+		String header2 = header1 + "\t";
+		String header3 = header2 + "srcNs";
+		String header4 = header3 + "\t";
+		String header5 = header4 + "dstNs";
+
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(header0), target));
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(header1), target));
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(header2), target));
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(header3), target));
+		assertThrows(IOException.class, () -> Tiny2FileReader.read(new StringReader(header4), target));
+		Tiny2FileReader.read(new StringReader(header5), target);
 	}
 
 	@Test
@@ -79,7 +102,35 @@ public class EmptyContentReadTest {
 
 	@Test
 	public void emptyTsrgFile() throws Exception {
-		TsrgFileReader.read(new StringReader(""), target);
+		String header0 = "";
+		String header1 = "tsrg2";
+		String header2 = header1 + " ";
+		String header3 = header2 + "srcNs";
+		String header4 = header3 + " ";
+		String header5 = header4 + "dstNs";
+
+		TsrgFileReader.read(new StringReader(header0), target); // interpreted as TSRG v1
+		assertThrows(IOException.class, () -> TsrgFileReader.read(new StringReader(header1), target));
+		assertThrows(IOException.class, () -> TsrgFileReader.read(new StringReader(header2), target));
+		assertThrows(IOException.class, () -> TsrgFileReader.read(new StringReader(header3), target));
+		assertThrows(IOException.class, () -> TsrgFileReader.read(new StringReader(header4), target));
+		instantiateTree();
+		TsrgFileReader.read(new StringReader(header5), target);
+	}
+
+	@Test
+	public void emptyMigrationMapFile() throws Exception {
+		assertThrows(IOException.class, () -> MigrationMapFileReader.read(new StringReader(""), target));
+
+		instantiateTree();
+		assertThrows(IOException.class, () -> MigrationMapFileReader.read(new StringReader("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"), target));
+
+		instantiateTree();
+		MigrationMapFileReader.read(
+				new StringReader("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+						+ "<migrationMap>\n"
+						+ "</migrationMap>"),
+				target);
 	}
 
 	@Test

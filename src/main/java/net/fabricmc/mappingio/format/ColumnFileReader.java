@@ -32,6 +32,11 @@ import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 @ApiStatus.Internal
 public final class ColumnFileReader implements Closeable {
 	public ColumnFileReader(Reader reader, char indentationChar, char columnSeparator) {
+		assert indentationChar != '\r';
+		assert indentationChar != '\n';
+		assert columnSeparator != '\r';
+		assert columnSeparator != '\n';
+
 		this.reader = reader;
 		this.indentationChar = indentationChar;
 		this.columnSeparator = columnSeparator;
@@ -51,7 +56,7 @@ public final class ColumnFileReader implements Closeable {
 	 * @return {@code true} if the column was read and had the expected content, {@code false} otherwise.
 	 */
 	public boolean nextCol(String expected) throws IOException {
-		return read(false, false, true, expected) != noMatch;
+		return read(false, false, true, expected) != NO_MATCH;
 	}
 
 	/**
@@ -89,20 +94,20 @@ public final class ColumnFileReader implements Closeable {
 	 * @param unescape Whether to unescape the read string.
 	 * @param consume Whether to advance the bufferPos.
 	 * @param stopAtNextCol Whether to only read one column.
-	 * @param expected If not {@code null}, the read string must match this exactly, otherwise we early-exit with {@link #noMatch}. Always consumes if matched.
+	 * @param expected If not {@code null}, the read string must match this exactly, otherwise we early-exit with {@link #NO_MATCH}. Always consumes if matched.
 	 *
 	 * @return {@code null} if nothing has been read (first char was EOL), otherwise the read string (may be empty).
-	 * If {@code expected} is not {@code null}, it will be returned if matched, otherwise {@link #noMatch}.
+	 * If {@code expected} is not {@code null}, it will be returned if matched, otherwise {@link #NO_MATCH}.
 	 */
 	@Nullable
 	private String read(boolean unescape, boolean consume, boolean stopAtNextCol, @Nullable String expected) throws IOException {
-		if (eol) return expected == null ? null : noMatch;
+		if (eol) return expected == null ? null : NO_MATCH;
 
 		int expectedLength = expected != null ? expected.length() : -1;
 
 		// Check if the buffer needs to be filled and if we hit EOF while doing so
 		if (expectedLength > 0 && bufferPos + expectedLength >= bufferLimit) {
-			if (!fillBuffer(expectedLength, !consume, false)) return noMatch;
+			if (!fillBuffer(expectedLength, !consume, false)) return NO_MATCH;
 		}
 
 		int start;
@@ -110,31 +115,24 @@ public final class ColumnFileReader implements Closeable {
 		int firstEscaped = -1;
 		int contentCharsRead = 0;
 		int modifiedBufferPos = -1;
-		int startOffset = 0;
 		boolean readAnything = false;
 		boolean filled = true;
+		boolean isColumnSeparator = false;
 
 		readLoop: for (;;) {
 			while (end < bufferLimit) {
 				char c = buffer[end];
-				boolean isColumnSeparator = (c == columnSeparator);
-
-				// skip leading column separator
-				if (isColumnSeparator && !readAnything) {
-					startOffset = 1;
-					contentCharsRead = -1;
-				}
-
+				isColumnSeparator = (c == columnSeparator);
 				readAnything = true;
 
-				if (expected != null && contentCharsRead > -1) {
+				if (expected != null) {
 					if ((contentCharsRead < expectedLength && c != expected.charAt(contentCharsRead))
 							|| contentCharsRead > expectedLength) {
-						return noMatch;
+						return NO_MATCH;
 					}
 				}
 
-				if (c == '\n' || c == '\r' || (isColumnSeparator && stopAtNextCol && contentCharsRead > -1)) { // stop reading
+				if (c == '\n' || c == '\r' || (isColumnSeparator && stopAtNextCol)) { // stop reading
 					start = bufferPos;
 					modifiedBufferPos = end;
 
@@ -166,28 +164,36 @@ public final class ColumnFileReader implements Closeable {
 			}
 		}
 
-		start += startOffset;
 		String ret;
 
 		if (expected != null) {
 			consume = true;
 			ret = expected;
 		} else {
-			int len = end - start;
+			int contentLength = end - start;
 
-			if (len == 0) {
+			if (contentLength == 0) {
 				ret = readAnything ? "" : null;
 			} else if (firstEscaped >= 0) {
-				ret = Tiny2Util.unescape(String.valueOf(buffer, start, len));
+				ret = Tiny2Util.unescape(String.valueOf(buffer, start, contentLength));
 			} else {
-				ret = String.valueOf(buffer, start, len);
+				ret = String.valueOf(buffer, start, contentLength);
 			}
 		}
 
 		if (consume) {
 			if (readAnything) bof = false;
+
+			if (modifiedBufferPos != -1) {
+				bufferPos = modifiedBufferPos;
+
+				// consume trailing column separator if present
+				if (isColumnSeparator && filled && fillBuffer(1, false, false)) {
+					bufferPos++;
+				}
+			}
+
 			if (!filled) eof = eol = true;
-			if (modifiedBufferPos != -1) bufferPos = modifiedBufferPos;
 
 			if (eol && !eof) { // manually check for EOF
 				int charsToRead = buffer[bufferPos] == '\r' ? 2 : 1; // 2 for \r\n, 1 for just \n
@@ -237,6 +243,15 @@ public final class ColumnFileReader implements Closeable {
 		}
 	}
 
+	/**
+	 * Read and consume until the the start of the next line is reached, and return whether the
+	 * following {@code indent} characters match {@link #indentationChar}.
+	 *
+	 * <p>Empty lines are skipped if {@code indent} is 0.
+	 *
+	 * @param indent The number of characters to check for indentation.
+	 * @return {@code true} if the next line has the specified indentation or higher, {@code false} otherwise.
+	 */
 	public boolean nextLine(int indent) throws IOException {
 		fillLoop: do {
 			while (bufferPos < bufferLimit) {
@@ -246,9 +261,9 @@ public final class ColumnFileReader implements Closeable {
 					if (indent == 0) { // skip empty lines if indent is 0
 						if (!fillBuffer(2, false, true)) break fillLoop;
 
-						c = buffer[bufferPos + 1];
+						char next = buffer[bufferPos + 1];
 
-						if (c == '\n' || c == '\r') { // 2+ consecutive new lines, consume first nl and retry
+						if (next == '\n' || next == '\r') { // 2+ consecutive new lines, consume first nl and retry
 							bufferPos++;
 							lineNumber++;
 							bof = false;
@@ -428,7 +443,7 @@ public final class ColumnFileReader implements Closeable {
 		return true;
 	}
 
-	private static final String noMatch = new String();
+	private static final String NO_MATCH = new String();
 	private final Reader reader;
 	private final char indentationChar;
 	private final char columnSeparator;

@@ -99,6 +99,11 @@ public class WriteTest {
 	}
 
 	@Test
+	public void migrationMapFile() throws Exception {
+		check(MappingFormat.INTELLIJ_MIGRATION_MAP_FILE);
+	}
+
+	@Test
 	public void recafSimpleFile() throws Exception {
 		check(MappingFormat.RECAF_SIMPLE_FILE);
 	}
