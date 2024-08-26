@@ -93,10 +93,10 @@ public final class SrgFileReader {
 						}
 					} else if ((isMethod = reader.nextCol("MD:")) || reader.nextCol("FD:")) { // method: MD: <cls-a><name-a> <desc-a> <cls-b><name-b> <desc-b> or field: FD: <cls-a><name-a> <cls-b><name-b>
 						String src = reader.nextCol();
-						if (src == null) throw new IOException("missing class/name a in line "+reader.getLineNumber());
+						if (src == null) throw new IOException("missing class-/name-a in line "+reader.getLineNumber());
 
 						int srcSepPos = src.lastIndexOf('/');
-						if (srcSepPos <= 0 || srcSepPos == src.length() - 1) throw new IOException("invalid class/name a in line "+reader.getLineNumber());
+						if (srcSepPos <= 0 || srcSepPos == src.length() - 1) throw new IOException("invalid class-/name-a in line "+reader.getLineNumber());
 
 						String[] cols = new String[3];
 
@@ -111,20 +111,20 @@ public final class SrgFileReader {
 
 						if (isMethod || format == MappingFormat.XSRG_FILE) {
 							srcDesc = cols[0];
-							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc a in line "+reader.getLineNumber());
+							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
 							dstName = cols[1];
 							dstDesc = cols[2];
-							if (dstDesc == null || dstDesc.isEmpty()) throw new IOException("missing desc b in line "+reader.getLineNumber());
+							if (dstDesc == null || dstDesc.isEmpty()) throw new IOException("missing desc-b in line "+reader.getLineNumber());
 						} else {
 							srcDesc = null;
 							dstName = cols[0];
 							dstDesc = null;
 						}
 
-						if (dstName == null) throw new IOException("missing class/name b in line "+reader.getLineNumber());
+						if (dstName == null) throw new IOException("missing class-/name-b in line "+reader.getLineNumber());
 
 						int dstSepPos = dstName.lastIndexOf('/');
-						if (dstSepPos <= 0 || dstSepPos == dstName.length() - 1) throw new IOException("invalid class/name b in line "+reader.getLineNumber());
+						if (dstSepPos <= 0 || dstSepPos == dstName.length() - 1) throw new IOException("invalid class-/name-b in line "+reader.getLineNumber());
 
 						String srcOwner = src.substring(0, srcSepPos);
 

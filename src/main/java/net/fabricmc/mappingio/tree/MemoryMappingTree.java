@@ -1015,7 +1015,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				flags |= flagHasAny;
 
 				if ((flags & flagMissesAny) != 0) {
-					ret = map.remove(new MemberKey(srcName, null));
+					ret = map.remove(new MemberKey(entry.srcName, null));
 
 					if (ret != null) { // compatible entry exists, copy desc + extra content
 						ret.key = entry.key;
@@ -1030,7 +1030,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			} else { // entry.srcDesc == null, may have replaced desc-containing
 				if ((flags & flagHasAny) != 0) {
 					for (T prevEntry : map.values()) {
-						if (prevEntry != entry && prevEntry.srcName.equals(srcName) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
+						if (prevEntry != entry && prevEntry.srcName.equals(entry.srcName) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
 							map.remove(entry.key);
 							prevEntry.copyFrom(entry, false);
 

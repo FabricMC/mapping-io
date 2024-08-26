@@ -69,6 +69,9 @@ public final class JamFileReader {
 			if (visitor.visitContent()) {
 				String lastClass = null;
 				boolean visitLastClass = false;
+				String lastMethod = null;
+				boolean visitLastMethod = false;
+				boolean visitLastMethodContent = false;
 
 				do {
 					boolean isMethod;
@@ -136,24 +139,34 @@ public final class JamFileReader {
 						}
 
 						if (!visitLastClass) continue;
-						boolean visitMethod = false;
+						boolean isNewMethod = false;
+						boolean isField = !isMethod && !isArg;
 
-						if (isMethod || isArg) {
-							visitMethod = visitor.visitMethod(memberSrcName, memberSrcDesc);
+						if (!isField && !memberSrcName.equals(lastMethod)) {
+							isNewMethod = true;
+							lastMethod = memberSrcName;
+							visitLastMethod = visitor.visitMethod(memberSrcName, memberSrcDesc);
+							visitLastMethodContent = false;
 						}
 
-						if (visitMethod) {
+						if (isField) {
+							if (visitor.visitField(memberSrcName, memberSrcDesc)) {
+								visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.FIELD);
+							}
+						} else if (visitLastMethod) {
 							if (isMethod) {
 								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-								visitor.visitElementContent(MappedElementKind.METHOD);
-							} else {
-								visitor.visitMethodArg(argSrcPos, -1, null);
+							}
+
+							if (isMethod || isNewMethod) {
+								visitLastMethodContent = visitor.visitElementContent(MappedElementKind.METHOD);
+							}
+
+							if (isArg && visitLastMethodContent && visitor.visitMethodArg(argSrcPos, -1, null)) {
 								visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 								visitor.visitElementContent(MappedElementKind.METHOD_ARG);
 							}
-						} else if (!isMethod && !isArg && visitor.visitField(memberSrcName, memberSrcDesc)) {
-							visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
 					}
 				} while (reader.nextLine(0));

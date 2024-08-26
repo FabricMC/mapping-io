@@ -29,11 +29,14 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.NopMappingVisitor;
+import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class OuterClassNameInheritingVisitorTest {
 	private static void accept(MappingVisitor visitor) throws IOException {
+		visitor = new VisitOrderVerifyingVisitor(visitor);
+
 		do {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces("source", Arrays.asList("dstNs0", "dstNs1", "dstNs2", "dstNs3", "dstNs4", "dstNs5", "dstNs6"));
@@ -50,8 +53,9 @@ public class OuterClassNameInheritingVisitorTest {
 						if (visitor.visitField("field_1", "Lclass_1;")) {
 							for (int i = 0; i <= 6; i++) {
 								visitor.visitDstDesc(MappedElementKind.FIELD, i, "Lclass_1;");
-								visitor.visitElementContent(MappedElementKind.FIELD);
 							}
+
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
 					}
 				}
@@ -66,8 +70,9 @@ public class OuterClassNameInheritingVisitorTest {
 						if (visitor.visitField("field_2", "Lclass_1$class_2;")) {
 							for (int i = 0; i <= 6; i++) {
 								visitor.visitDstDesc(MappedElementKind.FIELD, i, "Lclass_1$class_2;");
-								visitor.visitElementContent(MappedElementKind.FIELD);
 							}
+
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
 					}
 				}
@@ -80,8 +85,9 @@ public class OuterClassNameInheritingVisitorTest {
 						if (visitor.visitField("field_2", "Lclass_1$class_2$class_3;")) {
 							for (int i = 0; i <= 6; i++) {
 								visitor.visitDstDesc(MappedElementKind.FIELD, i, "Lclass_1$class_2$class_3;");
-								visitor.visitElementContent(MappedElementKind.FIELD);
 							}
+
+							visitor.visitElementContent(MappedElementKind.FIELD);
 						}
 					}
 				}

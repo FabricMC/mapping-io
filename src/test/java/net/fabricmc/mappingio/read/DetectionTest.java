@@ -91,7 +91,7 @@ public class DetectionTest {
 	}
 
 	@Test
-	public void tsrg2File() throws Exception {
+	public void tsrgV2File() throws Exception {
 		MappingFormat format = MappingFormat.TSRG_2_FILE;
 		check(format);
 	}
@@ -99,6 +99,12 @@ public class DetectionTest {
 	@Test
 	public void proguardFile() throws Exception {
 		MappingFormat format = MappingFormat.PROGUARD_FILE;
+		check(format);
+	}
+
+	@Test
+	public void migrationMapFile() throws Exception {
+		MappingFormat format = MappingFormat.INTELLIJ_MIGRATION_MAP_FILE;
 		check(format);
 	}
 

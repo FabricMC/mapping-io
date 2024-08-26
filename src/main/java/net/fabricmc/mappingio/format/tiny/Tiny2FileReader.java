@@ -70,14 +70,18 @@ public final class Tiny2FileReader {
 		}
 
 		String srcNamespace = reader.nextCol();
+		if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in Tiny v2 header");
+
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
 
 		while ((dstNamespace = reader.nextCol()) != null) {
+			if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in Tiny v2 header");
 			dstNamespaces.add(dstNamespace);
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		if (dstNsCount == 0) throw new IOException("no destination namespaces in Tiny v2 header");
 		boolean readerMarked = false;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -176,9 +180,9 @@ public final class Tiny2FileReader {
 		while (reader.nextLine(2)) {
 			if (reader.nextCol("p")) { // method parameter: p <lv-index> <names>...
 				int lvIndex = reader.nextIntCol();
-				if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+				if (lvIndex < 0) throw new IOException("missing/invalid parameter-lv-index in line "+reader.getLineNumber());
 				String srcName = reader.nextCol(escapeNames);
-				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
+				if (srcName == null) throw new IOException("missing parameter-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
@@ -186,12 +190,12 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("v")) { // method variable: v <lv-index> <lv-start-offset> <optional-lvt-index> <names>...
 				int lvIndex = reader.nextIntCol();
-				if (lvIndex < 0) throw new IOException("missing/invalid variable lv-index in line "+reader.getLineNumber());
+				if (lvIndex < 0) throw new IOException("missing/invalid variable-lv-index in line "+reader.getLineNumber());
 				int startOpIdx = reader.nextIntCol();
-				if (startOpIdx < 0) throw new IOException("missing/invalid variable lv-start-offset in line "+reader.getLineNumber());
+				if (startOpIdx < 0) throw new IOException("missing/invalid variable-lv-start-offset in line "+reader.getLineNumber());
 				int lvtRowIndex = reader.nextIntCol();
 				String srcName = reader.nextCol(escapeNames);
-				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
+				if (srcName == null) throw new IOException("missing variable-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
 
 				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, -1, srcName)) {

@@ -104,13 +104,18 @@ public class WriteTest {
 	}
 
 	@Test
-	public void tsrg2File() throws Exception {
+	public void tsrgV2File() throws Exception {
 		check(MappingFormat.TSRG_2_FILE);
 	}
 
 	@Test
 	public void proguardFile() throws Exception {
 		check(MappingFormat.PROGUARD_FILE);
+	}
+
+	@Test
+	public void migrationMapFile() throws Exception {
+		check(MappingFormat.INTELLIJ_MIGRATION_MAP_FILE);
 	}
 
 	@Test

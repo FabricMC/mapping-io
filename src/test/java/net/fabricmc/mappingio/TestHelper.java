@@ -62,9 +62,11 @@ public final class TestHelper {
 		case TSRG_FILE:
 			return "tsrg.tsrg";
 		case TSRG_2_FILE:
-			return "tsrg2.tsrg";
+			return "tsrgV2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case INTELLIJ_MIGRATION_MAP_FILE:
+			return "migration-map.xml";
 		case RECAF_SIMPLE_FILE:
 			return "recaf-simple.txt";
 		case JOBF_FILE:
@@ -94,6 +96,7 @@ public final class TestHelper {
 		case ENIGMA_DIR:
 		case TSRG_2_FILE:
 		case PROGUARD_FILE:
+		case INTELLIJ_MIGRATION_MAP_FILE:
 		case RECAF_SIMPLE_FILE:
 		case JOBF_FILE:
 			return null;
@@ -124,6 +127,7 @@ public final class TestHelper {
 		case ENIGMA_FILE:
 		case ENIGMA_DIR:
 		case JAM_FILE:
+		case INTELLIJ_MIGRATION_MAP_FILE:
 		case RECAF_SIMPLE_FILE:
 		case JOBF_FILE:
 			return null;
