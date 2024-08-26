@@ -44,7 +44,7 @@ public class MergeTest {
 	@BeforeEach
 	public void setup() {
 		tree = new MemoryMappingTree();
-		delegate = new VisitOrderVerifyingVisitor(false, tree);
+		delegate = new VisitOrderVerifyingVisitor(tree);
 	}
 
 	@Test

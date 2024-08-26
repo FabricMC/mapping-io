@@ -31,7 +31,11 @@ import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
  * with the expected order of visitation, as defined in {@link MappingVisitor}'s Javadocs.
  */
 public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
-	public VisitOrderVerifyingVisitor(boolean allowConsecutiveDuplicateElementVisits, MappingVisitor next) {
+	public VisitOrderVerifyingVisitor(MappingVisitor next) {
+		this(next, false);
+	}
+
+	public VisitOrderVerifyingVisitor(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
 		super(next);
 		this.allowConsecutiveDuplicateElementVisits = allowConsecutiveDuplicateElementVisits;
 		init();

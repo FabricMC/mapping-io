@@ -155,7 +155,7 @@ public class VisitEndTest {
 
 	private VisitEndTestVisitor checkCompliance(MappingFormat format, Path path, int visitPassCountToFinish, boolean setFlag, MappingTreeView supTree) throws Exception {
 		VisitEndTestVisitor visitor = new VisitEndTestVisitor(visitPassCountToFinish, setFlag, supTree, format);
-		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(false, visitor));
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(visitor));
 		assertTrue(visitor.finishedVisitPassCount == visitPassCountToFinish);
 		return visitor;
 	}

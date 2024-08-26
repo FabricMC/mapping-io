@@ -163,19 +163,17 @@ public class ValidContentReadTest {
 		VisitableMappingTree tree = new MemoryMappingTree();
 		boolean allowConsecutiveDuplicateElementVisits = false;
 
-		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
 		assertEqual(tree, format, testTree, allowConsecutiveDuplicateElementVisits);
 
 		tree = new MemoryMappingTree();
 		MappingReader.read(path, format,
 				new MappingSourceNsSwitch(
 						new VisitOrderVerifyingVisitor(
-								allowConsecutiveDuplicateElementVisits,
 								new MappingSourceNsSwitch(
-										new VisitOrderVerifyingVisitor(
-												allowConsecutiveDuplicateElementVisits,
-												tree),
-										testTree.getSrcNamespace())),
+										new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
+										testTree.getSrcNamespace()),
+								allowConsecutiveDuplicateElementVisits),
 						testTree.getDstNamespaces().get(0)));
 		assertEqual(tree, format, testTree, allowConsecutiveDuplicateElementVisits);
 	}
@@ -186,7 +184,7 @@ public class ValidContentReadTest {
 		VisitableMappingTree tree = new MemoryMappingTree();
 		boolean allowConsecutiveDuplicateElementVisits = false;
 
-		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
 		assertEqual(tree, format, testTreeWithHoles, allowConsecutiveDuplicateElementVisits);
 	}
 
@@ -194,19 +192,17 @@ public class ValidContentReadTest {
 		Path path = TestHelper.MappingDirs.REPEATED_ELEMENTS.resolve(TestHelper.getFileName(format));
 
 		VisitableMappingTree tree = new MemoryMappingTree();
-		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(allowConsecutiveDuplicateElementVisits, tree));
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
 		assertEqual(tree, format, testTreeWithRepeatedElements, allowConsecutiveDuplicateElementVisits);
 
 		tree = new MemoryMappingTree();
 		MappingReader.read(path, format,
 				new MappingSourceNsSwitch(
 						new VisitOrderVerifyingVisitor(
-								allowConsecutiveDuplicateElementVisits,
 								new MappingSourceNsSwitch(
-										new VisitOrderVerifyingVisitor(
-												allowConsecutiveDuplicateElementVisits,
-												tree),
-										testTreeWithRepeatedElements.getSrcNamespace())),
+										new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
+										testTreeWithRepeatedElements.getSrcNamespace()),
+								allowConsecutiveDuplicateElementVisits),
 						testTreeWithRepeatedElements.getDstNamespaces().get(0)));
 		assertEqual(tree, format, testTreeWithRepeatedElements, allowConsecutiveDuplicateElementVisits);
 	}
@@ -219,8 +215,8 @@ public class ValidContentReadTest {
 	private void assertSubset(MappingTreeView subTree, @Nullable MappingFormat subFormat, MappingTreeView supTree, @Nullable MappingFormat supFormat, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
 		subTree.accept(
 				new VisitOrderVerifyingVisitor(
-						allowConsecutiveDuplicateElementVisits,
 						new FlatAsRegularMappingVisitor(
-								new SubsetAssertingVisitor(supTree, supFormat, subFormat))));
+								new SubsetAssertingVisitor(supTree, supFormat, subFormat)),
+						allowConsecutiveDuplicateElementVisits));
 	}
 }
