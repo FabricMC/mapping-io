@@ -11,7 +11,7 @@ CLASS class_1 class1Ns0Rename
 		COMMENT This is a comment.
 	CLASS class_2 class2Ns0Rename
 		COMMENT This is a comment
-		FIELD field_2 field2Ns0Rename0 I
-		FIELD field_2 field2Ns0Rename I
+		FIELD field_2 field2Ns0Rename0 Lcls;
+		FIELD field_2 field2Ns0Rename Lcls;
 CLASS class_3 class3Ns0Rename0
 CLASS class_3 class3Ns0Rename

@@ -6,7 +6,7 @@ MD: class_1/method_1 ()I class1Ns0Rename/method1Ns0Rename0 ()I
 MD: class_1/method_1 ()I class1Ns0Rename/method1Ns0Rename ()I
 CL: class_1$class_2 class1Ns0Rename$class2Ns0Rename0
 CL: class_1$class_2 class1Ns0Rename$class2Ns0Rename
-FD: class_1$class_2/field_2 I class1Ns0Rename$class2Ns0Rename/field2Ns0Rename0 I
-FD: class_1$class_2/field_2 I class1Ns0Rename$class2Ns0Rename/field2Ns0Rename I
+FD: class_1$class_2/field_2 Lcls; class1Ns0Rename$class2Ns0Rename/field2Ns0Rename0 Lcls;
+FD: class_1$class_2/field_2 Lcls; class1Ns0Rename$class2Ns0Rename/field2Ns0Rename Lcls;
 CL: class_3 class3Ns0Rename0
 CL: class_3 class3Ns0Rename

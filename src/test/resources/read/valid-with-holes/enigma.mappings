@@ -40,24 +40,24 @@ CLASS class_29
 			COMMENT This is a comment
 CLASS class_32
 	FIELD field_1 I
-	FIELD field_2 field2Ns0Rename I
-	FIELD field_3 I
-	FIELD field_4 I
+	FIELD field_2 field2Ns0Rename Lcls;
+	FIELD field_3 Lpkg/cls;
+	FIELD field_4 [I
 		COMMENT This is a comment
 	FIELD field_5 field5Ns0Rename I
 		COMMENT This is a comment
-	FIELD field_6 I
+	FIELD field_6 Lcls;
 		COMMENT This is a comment
 	METHOD method_1 ()I
-	METHOD method_2 method2Ns0Rename ()I
-	METHOD method_3 ()I
-	METHOD method_4 ()I
+	METHOD method_2 method2Ns0Rename (I)V
+	METHOD method_3 (Lcls;)Lcls;
+	METHOD method_4 (ILcls;)Lpkg/cls;
 		COMMENT This is a comment
-	METHOD method_5 method5Ns0Rename ()I
+	METHOD method_5 method5Ns0Rename (Lcls;[I)[[B
 		COMMENT This is a comment
 	METHOD method_6 ()I
 		COMMENT This is a comment
-	METHOD method_7 ()I
+	METHOD method_7 (I)V
 		ARG 1
 		ARG 3
 		ARG 5 param3Ns0Rename
@@ -67,4 +67,4 @@ CLASS class_32
 			COMMENT This is a comment
 		ARG 11
 			COMMENT This is a comment
-	METHOD method_8 ()I
+	METHOD method_8 (Lcls;)Lcls;

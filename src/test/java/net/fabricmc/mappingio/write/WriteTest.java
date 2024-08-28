@@ -158,15 +158,22 @@ public class WriteTest {
 		IMappingFile.Format srgUtilsFormat = TestHelper.toSrgUtilsFormat(format);
 		if (srgUtilsFormat == null) return;
 
+		// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/7 is fixed
+		if (format == MappingFormat.PROGUARD_FILE) return;
+
 		// SrgUtils can't handle empty dst names
 		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
-		tree.accept(new MappingNsCompleter(new ForwardingMappingVisitor(dstNsCompTree) {
-			@Override
-			public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-				// SrgUtil's Tiny v2 reader crashes on var sub-elements
-				return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
-			}
-		}, nsAltMap));
+		tree.accept(
+				// TODO: Remoe once https://github.com/neoforged/SRGUtils/issues/9
+				new MappingNsCompleter(
+						// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/8 is fixed
+						new ForwardingMappingVisitor(dstNsCompTree) {
+							@Override
+							public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+								return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
+							}
+						},
+				nsAltMap));
 
 		Path path = TestHelper.writeToDir(dstNsCompTree, dir, format);
 		INamedMappingFile.load(path.toFile());

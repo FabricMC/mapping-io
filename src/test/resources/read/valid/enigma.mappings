@@ -4,5 +4,5 @@ CLASS class_1 class1Ns0Rename
 		ARG 1 param1Ns0Rename
 	CLASS class_2 class2Ns0Rename
 		COMMENT This is a comment
-		FIELD field_2 field2Ns0Rename I
+		FIELD field_2 field2Ns0Rename Lcls;
 CLASS class_3 class3Ns0Rename

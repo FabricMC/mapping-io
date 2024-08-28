@@ -18,11 +18,11 @@ package net.fabricmc.mappingio.format.proguard;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
@@ -38,6 +38,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 	private String srcName;
 	private String srcDesc;
 	private String dstName;
+	private List<String> argTypes = new ArrayList<>();
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -157,20 +158,19 @@ public final class ProGuardFileWriter implements MappingWriter {
 			writer.write(srcName);
 			break;
 		case METHOD:
-			Type type = Type.getMethodType(srcDesc);
 			writeIndent();
-			writer.write(toJavaType(type.getReturnType().getDescriptor()));
+			writer.write(toJavaType(srcDesc.substring(srcDesc.indexOf(')', 1) + 1)));
 			writer.write(' ');
 			writer.write(srcName);
 			writer.write('(');
-			Type[] args = type.getArgumentTypes();
+			extractArgumentTypes(srcDesc);
 
-			for (int i = 0; i < args.length; i++) {
+			for (int i = 0; i < argTypes.size(); i++) {
 				if (i > 0) {
 					writer.write(',');
 				}
 
-				writer.write(toJavaType(args[i].getDescriptor()));
+				writer.write(argTypes.get(i));
 			}
 
 			writer.write(')');
@@ -250,5 +250,26 @@ public final class ProGuardFileWriter implements MappingWriter {
 		}
 
 		return result.toString();
+	}
+
+	private void extractArgumentTypes(String desc) {
+		argTypes.clear();
+		int index = 1; // First char is always '('
+
+		while (desc.charAt(index) != ')') {
+			int start = index;
+
+			while (desc.charAt(index) == '[') {
+				index++;
+			}
+
+			if (desc.charAt(index) == 'L') {
+				index = desc.indexOf(';', index) + 1;
+			} else {
+				index++;
+			}
+
+			argTypes.add(toJavaType(desc.substring(start, index)));
+		}
 	}
 }

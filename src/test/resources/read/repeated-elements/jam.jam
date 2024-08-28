@@ -10,5 +10,5 @@ MD class_1 method_1 ()I method1Ns0Rename0
 MD class_1 method_1 ()I method1Ns0Rename
 MP class_1 method_1 ()I 0 param1Ns0Rename0
 MP class_1 method_1 ()I 0 param1Ns0Rename
-FD class_1$class_2 field_2 I field2Ns0Rename0
-FD class_1$class_2 field_2 I field2Ns0Rename
+FD class_1$class_2 field_2 Lcls; field2Ns0Rename0
+FD class_1$class_2 field_2 Lcls; field2Ns0Rename

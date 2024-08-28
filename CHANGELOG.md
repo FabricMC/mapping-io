@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing `visitElementContent` calls to CSRG and Recaf Simple readers
 - Fixed member mapping merging via tree-API in `MemoryMappingTree`
 - Fixed duplicate mapping definitions not being handled correctly in multiple readers
+- Removed ASM dependency from core project
 
 ## [0.6.1] - 2024-04-15
 - Fixed CSRG and JAM writers sometimes skipping elements whose parents have incomplete destination names
