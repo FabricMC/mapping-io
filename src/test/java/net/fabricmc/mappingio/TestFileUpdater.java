@@ -28,6 +28,10 @@ public class TestFileUpdater {
 		MappingTreeView holesTree = TestHelper.createTestTreeWithHoles();
 
 		for (MappingFormat format : MappingFormat.values()) {
+			if (!format.hasWriter) {
+				continue;
+			}
+
 			Path defaultPath = TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format));
 			Path holesPath = TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format));
 
