@@ -64,6 +64,23 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitHeader() throws IOException {
+		assert xmlWriter == null;
+
+		try {
+			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
+
+			xmlWriter.writeStartDocument("UTF-8", "1.0");
+			xmlWriter.writeCharacters("\n");
+			xmlWriter.writeStartElement("migrationMap");
+		} catch (FactoryConfigurationError | XMLStreamException e) {
+			throw new IOException(e);
+		}
+
+		return false;
+	}
+
+	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 	}
 
@@ -112,25 +129,17 @@ public final class MigrationMapFileWriter implements MappingWriter {
 		if (dstName == null) return false;
 
 		try {
-			if (xmlWriter == null) {
-				xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
-
-				xmlWriter.writeStartDocument("UTF-8", "1.0");
-				xmlWriter.writeCharacters("\n");
-				xmlWriter.writeStartElement("migrationMap");
-			}
-
 			xmlWriter.writeCharacters("\n\t");
 			xmlWriter.writeStartElement("entry");
 			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
 			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
 			xmlWriter.writeAttribute("type", "class");
 			xmlWriter.writeEndElement();
-
-			return false;
-		} catch (XMLStreamException | FactoryConfigurationError e) {
+		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
+
+		return false;
 	}
 
 	@Override
