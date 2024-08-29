@@ -74,36 +74,41 @@ public final class TsrgFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		this.srcName = srcName;
+		clsSrcName = srcName;
+		hasAnyDstNames = false;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
+		hasAnyDstNames = false;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
+		hasAnyDstNames = false;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		if (tsrg2) {
-			this.srcName = srcName;
-			this.lvIndex = lvIndex;
-			return true;
+		if (!tsrg2) {
+			return false;
 		}
 
-		return false;
+		this.lvIndex = lvIndex;
+		argSrcName = srcName;
+		hasAnyDstNames = false;
+
+		return true;
 	}
 
 	@Override
@@ -116,19 +121,56 @@ public final class TsrgFileWriter implements MappingWriter {
 		if (!tsrg2 && namespace != 0) return;
 
 		dstNames[namespace] = name;
+		hasAnyDstNames |= name != null;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		if (classContentVisitPending && targetKind != MappedElementKind.CLASS && hasAnyDstNames) {
+			String[] memberOrArgDstNames = dstNames.clone();
+			Arrays.fill(dstNames, clsSrcName);
+			visitElementContent(MappedElementKind.CLASS);
+			classContentVisitPending = false;
+			dstNames = memberOrArgDstNames;
+		}
+
+		if (methodContentVisitPending && targetKind == MappedElementKind.METHOD_ARG && hasAnyDstNames) {
+			String[] argDstNames = dstNames.clone();
+			Arrays.fill(dstNames, memberSrcName);
+			visitElementContent(MappedElementKind.METHOD);
+			methodContentVisitPending = false;
+			dstNames = argDstNames;
+		}
+
+		String srcName = null;
+
 		switch (targetKind) {
 		case CLASS:
+			if (!hasAnyDstNames) {
+				classContentVisitPending = true;
+				return true;
+			}
+
+			srcName = clsSrcName;
 			break;
 		case FIELD:
 		case METHOD:
+			if (!hasAnyDstNames) {
+				if (targetKind == MappedElementKind.METHOD) {
+					methodContentVisitPending = true;
+					return tsrg2;
+				}
+
+				return false;
+			}
+
+			srcName = memberSrcName;
 			writeTab();
 			break;
 		case METHOD_ARG:
 			assert tsrg2;
+			if (!hasAnyDstNames) return false;
+			srcName = argSrcName;
 			writeTab();
 			writeTab();
 			write(Integer.toString(lvIndex));
@@ -143,7 +185,7 @@ public final class TsrgFileWriter implements MappingWriter {
 		if (targetKind == MappedElementKind.METHOD
 				|| (targetKind == MappedElementKind.FIELD && tsrg2)) {
 			writeSpace();
-			write(srcDesc);
+			write(memberSrcDesc);
 		}
 
 		int dstNsCount = tsrg2 ? dstNames.length : 1;
@@ -156,9 +198,7 @@ public final class TsrgFileWriter implements MappingWriter {
 
 		writeLn();
 
-		srcName = srcDesc = null;
 		Arrays.fill(dstNames, null);
-		lvIndex = -1;
 
 		return targetKind == MappedElementKind.CLASS
 				|| (tsrg2 && targetKind == MappedElementKind.METHOD);
@@ -195,8 +235,13 @@ public final class TsrgFileWriter implements MappingWriter {
 
 	private final Writer writer;
 	private final boolean tsrg2;
-	private String srcName;
-	private String srcDesc;
+	private String clsSrcName;
+	private String memberSrcName;
+	private String memberSrcDesc;
+	private String argSrcName;
 	private String[] dstNames;
+	private boolean hasAnyDstNames;
 	private int lvIndex = -1;
+	private boolean classContentVisitPending;
+	private boolean methodContentVisitPending;
 }

@@ -183,6 +183,16 @@ jar {
 	}
 }
 
+task generateTestMappings(type: JavaExec, dependsOn: testClasses) {
+	classpath sourceSets.test.runtimeClasspath
+	main = 'net.fabricmc.mappingio.TestFileUpdater'
+}
+
+task updateTestMappings(type: Copy, dependsOn: generateTestMappings) {
+	from 'build/resources/test/'
+	into 'src/test/resources/'
+}
+
 // A task to ensure that the version being released has not already been released.
 task checkVersion {
 	doFirst {

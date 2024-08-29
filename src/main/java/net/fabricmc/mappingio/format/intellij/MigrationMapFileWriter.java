@@ -46,7 +46,9 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	public void close() throws IOException {
 		try {
 			if (xmlWriter != null) {
+				xmlWriter.writeCharacters("\n");
 				xmlWriter.writeEndDocument();
+				xmlWriter.writeCharacters("\n");
 				xmlWriter.close();
 			}
 		} catch (XMLStreamException e) {
@@ -114,9 +116,11 @@ public final class MigrationMapFileWriter implements MappingWriter {
 				xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
 
 				xmlWriter.writeStartDocument("UTF-8", "1.0");
+				xmlWriter.writeCharacters("\n\t");
 				xmlWriter.writeStartElement("migrationMap");
 			}
 
+			xmlWriter.writeCharacters("\n\t");
 			xmlWriter.writeStartElement("entry");
 			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
 			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
