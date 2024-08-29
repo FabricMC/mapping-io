@@ -38,7 +38,6 @@ public final class ProGuardFileWriter implements MappingWriter {
 	private String srcName;
 	private String srcDesc;
 	private String dstName;
-	private List<String> argTypes = new ArrayList<>();
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -163,7 +162,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 			writer.write(' ');
 			writer.write(srcName);
 			writer.write('(');
-			extractArgumentTypes(srcDesc);
+			List<String> argTypes = extractArgumentTypes(srcDesc);
 
 			for (int i = 0; i < argTypes.size(); i++) {
 				if (i > 0) {
@@ -252,8 +251,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 		return result.toString();
 	}
 
-	private void extractArgumentTypes(String desc) {
-		argTypes.clear();
+	private List<String> extractArgumentTypes(String desc) {
+		List<String> argTypes = new ArrayList<>();
 		int index = 1; // First char is always '('
 
 		while (desc.charAt(index) != ')') {
@@ -271,5 +270,7 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 			argTypes.add(toJavaType(desc.substring(start, index)));
 		}
+
+		return argTypes;
 	}
 }
