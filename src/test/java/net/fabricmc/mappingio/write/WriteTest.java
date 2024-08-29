@@ -164,7 +164,7 @@ public class WriteTest {
 		// SrgUtils can't handle empty dst names
 		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
 		tree.accept(
-				// TODO: Remoe once https://github.com/neoforged/SRGUtils/issues/9
+				// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/9 is fixed
 				new MappingNsCompleter(
 						// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/8 is fixed
 						new ForwardingMappingVisitor(dstNsCompTree) {
