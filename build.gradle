@@ -185,7 +185,7 @@ jar {
 
 task generateTestMappings(type: JavaExec, dependsOn: testClasses) {
 	classpath sourceSets.test.runtimeClasspath
-	main = 'net.fabricmc.mappingio.TestFileUpdater'
+	mainClass = 'net.fabricmc.mappingio.TestFileUpdater'
 }
 
 task updateTestMappings(type: Copy, dependsOn: generateTestMappings) {
