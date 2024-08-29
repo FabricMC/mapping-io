@@ -116,7 +116,7 @@ public final class MigrationMapFileWriter implements MappingWriter {
 				xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
 
 				xmlWriter.writeStartDocument("UTF-8", "1.0");
-				xmlWriter.writeCharacters("\n\t");
+				xmlWriter.writeCharacters("\n");
 				xmlWriter.writeStartElement("migrationMap");
 			}
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-	<migrationMap>
+<migrationMap>
 	<entry oldName="class_2" newName="class2Ns0Rename" type="class"></entry>
 	<entry oldName="class_5" newName="class5Ns0Rename" type="class"></entry>
 	<entry oldName="class_7$class_8" newName="class_7$class8Ns0Rename" type="class"></entry>
