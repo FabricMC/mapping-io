@@ -6,4 +6,6 @@
 	<entry oldName="class_13$class_14" newName="class_13$class14Ns0Rename" type="class"/>
 	<entry oldName="class_17$class_18$class_19" newName="class_17$class_18$class19Ns0Rename" type="class"/>
 	<entry oldName="class_26$class_27$class_28" newName="class_26$class_27$class28Ns0Rename" type="class"/>
+	<name value="Unnamed migration map"/>
+	<order value="0"/>
 </migrationMap>

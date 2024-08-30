@@ -19,6 +19,7 @@ package net.fabricmc.mappingio.tree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.NopMappingVisitor;
 import net.fabricmc.mappingio.TestHelper;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 
 public class MetadataTest {
 	private static final Random random = new Random();
@@ -42,7 +44,13 @@ public class MetadataTest {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestHelper.acceptTestMappings(new MemoryMappingTree());
+		tree = new MemoryMappingTree();
+
+		TestHelper.acceptTestMappings(new ForwardingMappingVisitor(tree) {
+			@Override
+			public void visitMetadata(String key, @Nullable String value) throws IOException {
+			}
+		});
 
 		for (int i = 0; i < 40; i++) {
 			String key = "key" + random.nextInt(3);
@@ -59,8 +67,8 @@ public class MetadataTest {
 		tree.accept(new NopMappingVisitor(true) {
 			@Override
 			public void visitMetadata(String key, @Nullable String value) {
-				assertEquals(key, keys.get(visitCount));
-				assertEquals(value, values.get(visitCount));
+				assertEquals(keys.get(visitCount), key);
+				assertEquals(values.get(visitCount), value);
 				visitCount++;
 			}
 

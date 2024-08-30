@@ -46,6 +46,18 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	public void close() throws IOException {
 		try {
 			if (xmlWriter != null) {
+				if (!wroteName) {
+					xmlWriter.writeCharacters("\n\t");
+					xmlWriter.writeEmptyElement("name");
+					xmlWriter.writeAttribute("value", MigrationMapConstants.MISSING_NAME);
+				}
+
+				if (!wroteOrder) {
+					xmlWriter.writeCharacters("\n\t");
+					xmlWriter.writeEmptyElement("order");
+					xmlWriter.writeAttribute("value", "0");
+				}
+
 				xmlWriter.writeCharacters("\n");
 				xmlWriter.writeEndDocument();
 				xmlWriter.writeCharacters("\n");
@@ -77,7 +89,7 @@ public final class MigrationMapFileWriter implements MappingWriter {
 			throw new IOException(e);
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
@@ -86,7 +98,23 @@ public final class MigrationMapFileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		// TODO: Support once https://github.com/FabricMC/mapping-io/pull/29 is merged
+		try {
+			switch (key) {
+			case "name":
+				wroteName = true;
+				break;
+			case MigrationMapConstants.ORDER_KEY:
+				wroteOrder = true;
+				key = "order";
+				break;
+			}
+
+			xmlWriter.writeCharacters("\n\t");
+			xmlWriter.writeEmptyElement(key);
+			xmlWriter.writeAttribute("value", value);
+		} catch (XMLStreamException e) {
+			throw new IOException(e);
+		}
 	}
 
 	@Override
@@ -150,6 +178,8 @@ public final class MigrationMapFileWriter implements MappingWriter {
 
 	private final Writer writer;
 	private XMLStreamWriter xmlWriter;
+	private boolean wroteName;
+	private boolean wroteOrder;
 	private String srcName;
 	private String dstName;
 }

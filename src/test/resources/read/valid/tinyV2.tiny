@@ -1,4 +1,5 @@
 tiny	2	0	source	target	target2
+	name	valid
 c	class_1	class1Ns0Rename	class1Ns1Rename
 	f	I	field_1	field1Ns0Rename	field1Ns1Rename
 	m	()I	method_1	method1Ns0Rename	method1Ns1Rename

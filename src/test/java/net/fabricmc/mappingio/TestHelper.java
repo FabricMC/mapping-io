@@ -32,6 +32,7 @@ import org.jooq.lambda.Unchecked;
 
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -152,6 +153,8 @@ public final class TestHelper {
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
+			delegate.visitMetadata("name", "valid");
+			delegate.visitMetadata(MigrationMapConstants.ORDER_KEY, "0");
 		}
 
 		if (delegate.visitContent()) {
@@ -187,6 +190,11 @@ public final class TestHelper {
 	public static <T extends MappingVisitor> T acceptTestMappingsWithRepeats(T target, boolean repeatComments, boolean repeatClasses) throws IOException {
 		acceptTestMappings(new ForwardingMappingVisitor(new VisitOrderVerifyingVisitor(target, true)) {
 			private List<Runnable> replayQueue = new ArrayList<>();
+
+			@Override
+			public void visitMetadata(String key, @Nullable String value) throws IOException {
+				super.visitMetadata(key, key.equals("name") ? "repeated-elements" : value);
+			}
 
 			@Override
 			public boolean visitClass(String srcName) throws IOException {
