@@ -46,21 +46,7 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	public void close() throws IOException {
 		try {
 			if (xmlWriter != null) {
-				if (!wroteName) {
-					xmlWriter.writeCharacters("\n\t");
-					xmlWriter.writeEmptyElement("name");
-					xmlWriter.writeAttribute("value", MigrationMapConstants.MISSING_NAME);
-				}
-
-				if (!wroteOrder) {
-					xmlWriter.writeCharacters("\n\t");
-					xmlWriter.writeEmptyElement("order");
-					xmlWriter.writeAttribute("value", "0");
-				}
-
-				xmlWriter.writeCharacters("\n");
 				xmlWriter.writeEndDocument();
-				xmlWriter.writeCharacters("\n");
 				xmlWriter.close();
 			}
 		} catch (XMLStreamException e) {
@@ -76,45 +62,12 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitHeader() throws IOException {
-		assert xmlWriter == null;
-
-		try {
-			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
-
-			xmlWriter.writeStartDocument("UTF-8", "1.0");
-			xmlWriter.writeCharacters("\n");
-			xmlWriter.writeStartElement("migrationMap");
-		} catch (FactoryConfigurationError | XMLStreamException e) {
-			throw new IOException(e);
-		}
-
-		return true;
-	}
-
-	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 	}
 
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		try {
-			switch (key) {
-			case "name":
-				wroteName = true;
-				break;
-			case MigrationMapConstants.ORDER_KEY:
-				wroteOrder = true;
-				key = "order";
-				break;
-			}
-
-			xmlWriter.writeCharacters("\n\t");
-			xmlWriter.writeEmptyElement(key);
-			xmlWriter.writeAttribute("value", value);
-		} catch (XMLStreamException e) {
-			throw new IOException(e);
-		}
+		// TODO: Support once https://github.com/FabricMC/mapping-io/pull/29 is merged
 	}
 
 	@Override
@@ -157,16 +110,23 @@ public final class MigrationMapFileWriter implements MappingWriter {
 		if (dstName == null) return false;
 
 		try {
-			xmlWriter.writeCharacters("\n\t");
-			xmlWriter.writeEmptyElement("entry");
+			if (xmlWriter == null) {
+				xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
+
+				xmlWriter.writeStartDocument("UTF-8", "1.0");
+				xmlWriter.writeStartElement("migrationMap");
+			}
+
+			xmlWriter.writeStartElement("entry");
 			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
 			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
 			xmlWriter.writeAttribute("type", "class");
-		} catch (XMLStreamException e) {
+			xmlWriter.writeEndElement();
+
+			return false;
+		} catch (XMLStreamException | FactoryConfigurationError e) {
 			throw new IOException(e);
 		}
-
-		return false;
 	}
 
 	@Override
@@ -178,8 +138,6 @@ public final class MigrationMapFileWriter implements MappingWriter {
 
 	private final Writer writer;
 	private XMLStreamWriter xmlWriter;
-	private boolean wroteName;
-	private boolean wroteOrder;
 	private String srcName;
 	private String dstName;
 }

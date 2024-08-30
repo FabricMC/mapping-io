@@ -19,6 +19,7 @@ package net.fabricmc.mappingio.read;
 import java.nio.file.Path;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.mappingio.MappingReader;
@@ -28,11 +29,23 @@ import net.fabricmc.mappingio.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
+	private static MappingTree testTree;
+	private static MappingTree testTreeWithHoles;
+	private static MappingTree testTreeWithRepeatedElements;
+
+	@BeforeAll
+	public static void setup() throws Exception {
+		testTree = TestHelper.createTestTree();
+		testTreeWithHoles = TestHelper.createTestTreeWithHoles();
+		testTreeWithRepeatedElements = testTree;
+	}
+
 	@Test
 	public void enigmaFile() throws Exception {
 		MappingFormat format = MappingFormat.ENIGMA_FILE;
@@ -147,12 +160,11 @@ public class ValidContentReadTest {
 	private void checkDefault(MappingFormat format) throws Exception {
 		Path path = TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format));
 
-		VisitableMappingTree referenceTree = TestHelper.acceptTestMappings(new MemoryMappingTree());
 		VisitableMappingTree tree = new MemoryMappingTree();
 		boolean allowConsecutiveDuplicateElementVisits = false;
 
 		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
-		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
+		assertEqual(tree, format, testTree, allowConsecutiveDuplicateElementVisits);
 
 		tree = new MemoryMappingTree();
 		MappingReader.read(path, format,
@@ -160,42 +172,39 @@ public class ValidContentReadTest {
 						new VisitOrderVerifyingVisitor(
 								new MappingSourceNsSwitch(
 										new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
-										referenceTree.getSrcNamespace()),
+										testTree.getSrcNamespace()),
 								allowConsecutiveDuplicateElementVisits),
-						referenceTree.getDstNamespaces().get(0)));
-		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
-	}
-
-	private void checkRepeated(MappingFormat format, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
-		Path path = TestHelper.MappingDirs.REPEATED_ELEMENTS.resolve(TestHelper.getFileName(format));
-
-		VisitableMappingTree referenceTree = TestHelper.acceptTestMappingsWithRepeats(new MemoryMappingTree(), true, true);
-		VisitableMappingTree tree = new MemoryMappingTree();
-
-		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
-		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
-
-		tree = new MemoryMappingTree();
-		MappingReader.read(path, format,
-				new MappingSourceNsSwitch(
-						new VisitOrderVerifyingVisitor(
-								new MappingSourceNsSwitch(
-										new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
-										referenceTree.getSrcNamespace()),
-								allowConsecutiveDuplicateElementVisits),
-						referenceTree.getDstNamespaces().get(0)));
-		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
+						testTree.getDstNamespaces().get(0)));
+		assertEqual(tree, format, testTree, allowConsecutiveDuplicateElementVisits);
 	}
 
 	private void checkHoles(MappingFormat format) throws Exception {
 		Path path = TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format));
 
-		VisitableMappingTree referenceTree = TestHelper.acceptTestMappingsWithHoles(new MemoryMappingTree());
 		VisitableMappingTree tree = new MemoryMappingTree();
 		boolean allowConsecutiveDuplicateElementVisits = false;
 
 		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
-		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
+		assertEqual(tree, format, testTreeWithHoles, allowConsecutiveDuplicateElementVisits);
+	}
+
+	private void checkRepeated(MappingFormat format, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
+		Path path = TestHelper.MappingDirs.REPEATED_ELEMENTS.resolve(TestHelper.getFileName(format));
+
+		VisitableMappingTree tree = new MemoryMappingTree();
+		MappingReader.read(path, format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
+		assertEqual(tree, format, testTreeWithRepeatedElements, allowConsecutiveDuplicateElementVisits);
+
+		tree = new MemoryMappingTree();
+		MappingReader.read(path, format,
+				new MappingSourceNsSwitch(
+						new VisitOrderVerifyingVisitor(
+								new MappingSourceNsSwitch(
+										new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
+										testTreeWithRepeatedElements.getSrcNamespace()),
+								allowConsecutiveDuplicateElementVisits),
+						testTreeWithRepeatedElements.getDstNamespaces().get(0)));
+		assertEqual(tree, format, testTreeWithRepeatedElements, allowConsecutiveDuplicateElementVisits);
 	}
 
 	private void assertEqual(MappingTreeView tree, MappingFormat format, MappingTreeView referenceTree, boolean allowConsecutiveDuplicateElementVisits) throws Exception {

@@ -105,7 +105,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 	@Override
 	public boolean visitContent() throws IOException {
-		assertHeaderVisited();
+		assertNamespacesVisited();
 		assertContentNotVisited();
 
 		visitedContent = true;
