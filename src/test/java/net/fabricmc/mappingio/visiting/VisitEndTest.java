@@ -19,6 +19,7 @@ package net.fabricmc.mappingio.visiting;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
@@ -134,6 +135,8 @@ public class VisitEndTest {
 
 	private void checkDir(Path dir, MappingFormat format) throws Exception {
 		Path path = dir.resolve(TestHelper.getFileName(format));
+		if (!Files.exists(path)) return;
+
 		MappingTreeView supTree = TestHelper.MappingDirs.getCorrespondingTree(dir);
 
 		checkCompliance(format, path, 1, true, supTree);

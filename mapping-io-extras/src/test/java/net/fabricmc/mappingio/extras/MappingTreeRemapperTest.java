@@ -19,20 +19,23 @@ package net.fabricmc.mappingio.extras;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Type;
 
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class MappingTreeRemapperTest {
 	private static MappingTree mappingTree;
 	private static MappingTreeRemapper remapper;
 
 	@BeforeAll
-	public static void setup() {
-		mappingTree = TestHelper.createTestTree();
+	public static void setup() throws IOException {
+		mappingTree = TestHelper.acceptTestMappings(new MemoryMappingTree());
 		remapper = new MappingTreeRemapper(mappingTree, "source", "target");
 	}
 
