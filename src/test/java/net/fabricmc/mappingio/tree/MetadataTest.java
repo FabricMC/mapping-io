@@ -42,7 +42,7 @@ public class MetadataTest {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestHelper.createTestTree();
+		tree = TestHelper.acceptTestMappings(new MemoryMappingTree());
 
 		for (int i = 0; i < 40; i++) {
 			String key = "key" + random.nextInt(3);

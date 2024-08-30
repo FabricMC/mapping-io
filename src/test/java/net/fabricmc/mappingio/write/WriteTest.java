@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.TestHelper;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
@@ -44,16 +45,22 @@ public class WriteTest {
 	private static Path dir;
 	private static MappingTreeView validTree;
 	private static Map<String, String> treeNsAltMap = new HashMap<>();
+	private static MappingTreeView validWithRepeatsTree;
+	private static Map<String, String> treeWithRepeatsNsAltMap = new HashMap<>();
 	private static MappingTreeView validWithHolesTree;
 	private static Map<String, String> treeWithHolesNsAltMap = new HashMap<>();
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		validTree = TestHelper.createTestTree();
+		validTree = TestHelper.acceptTestMappings(new MemoryMappingTree());
 		treeNsAltMap.put(validTree.getDstNamespaces().get(0), validTree.getSrcNamespace());
 		treeNsAltMap.put(validTree.getDstNamespaces().get(1), validTree.getSrcNamespace());
 
-		validWithHolesTree = TestHelper.createTestTreeWithHoles();
+		validWithRepeatsTree = TestHelper.acceptTestMappingsWithRepeats(new MemoryMappingTree(), true, true);
+		treeWithRepeatsNsAltMap.put(validWithRepeatsTree.getDstNamespaces().get(0), validWithRepeatsTree.getSrcNamespace());
+		treeWithRepeatsNsAltMap.put(validWithRepeatsTree.getDstNamespaces().get(1), validWithRepeatsTree.getSrcNamespace());
+
+		validWithHolesTree = TestHelper.acceptTestMappingsWithHoles(new MemoryMappingTree());
 		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(0), validWithHolesTree.getSrcNamespace());
 		treeWithHolesNsAltMap.put(validWithHolesTree.getDstNamespaces().get(1), validWithHolesTree.getSrcNamespace());
 	}
@@ -129,12 +136,19 @@ public class WriteTest {
 	}
 
 	private void check(MappingFormat format) throws Exception {
-		Path path = TestHelper.writeToDir(validTree, dir, format);
+		Path path = dir.resolve(TestHelper.getFileName(format));
+		TestHelper.acceptTestMappings(MappingWriter.create(path, format));
 		readWithMio(validTree, path, format);
 		readWithLorenz(path, format);
 		readWithSrgUtils(validTree, format, treeNsAltMap);
 
-		path = TestHelper.writeToDir(validWithHolesTree, dir, format);
+		boolean isEnigma = format == MappingFormat.ENIGMA_FILE || format == MappingFormat.ENIGMA_DIR;
+		TestHelper.acceptTestMappingsWithRepeats(MappingWriter.create(path, format), !isEnigma, !isEnigma);
+		readWithMio(validWithRepeatsTree, path, format);
+		readWithLorenz(path, format);
+		readWithSrgUtils(validWithRepeatsTree, format, treeWithRepeatsNsAltMap);
+
+		TestHelper.acceptTestMappingsWithHoles(MappingWriter.create(path, format));
 		readWithMio(validWithHolesTree, path, format);
 		readWithLorenz(path, format);
 		readWithSrgUtils(validWithHolesTree, format, treeWithHolesNsAltMap);

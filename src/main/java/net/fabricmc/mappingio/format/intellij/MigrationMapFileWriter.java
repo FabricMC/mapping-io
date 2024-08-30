@@ -130,11 +130,10 @@ public final class MigrationMapFileWriter implements MappingWriter {
 
 		try {
 			xmlWriter.writeCharacters("\n\t");
-			xmlWriter.writeStartElement("entry");
+			xmlWriter.writeEmptyElement("entry");
 			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
 			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
 			xmlWriter.writeAttribute("type", "class");
-			xmlWriter.writeEndElement();
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}

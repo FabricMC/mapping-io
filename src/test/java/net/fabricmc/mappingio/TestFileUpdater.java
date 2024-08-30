@@ -20,13 +20,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.tree.MappingTreeView;
 
 public class TestFileUpdater {
 	public static void main(String[] args) throws IOException {
-		MappingTreeView defaultTree = TestHelper.createTestTree();
-		MappingTreeView holesTree = TestHelper.createTestTreeWithHoles();
-
 		for (MappingFormat format : MappingFormat.values()) {
 			if (!format.hasWriter) {
 				continue;
@@ -34,9 +30,17 @@ public class TestFileUpdater {
 
 			Path defaultPath = TestHelper.MappingDirs.VALID.resolve(TestHelper.getFileName(format));
 			Path holesPath = TestHelper.MappingDirs.VALID_WITH_HOLES.resolve(TestHelper.getFileName(format));
+			Path repeatPath = TestHelper.MappingDirs.REPEATED_ELEMENTS.resolve(TestHelper.getFileName(format));
 
-			defaultTree.accept(MappingWriter.create(defaultPath, format));
-			holesTree.accept(MappingWriter.create(holesPath, format));
+			TestHelper.acceptTestMappings(MappingWriter.create(defaultPath, format));
+			TestHelper.acceptTestMappingsWithHoles(MappingWriter.create(holesPath, format));
+
+			if (format != MappingFormat.ENIGMA_DIR) {
+				TestHelper.acceptTestMappingsWithRepeats(
+						MappingWriter.create(repeatPath, format),
+						format != MappingFormat.ENIGMA_FILE,
+						format != MappingFormat.ENIGMA_FILE);
+			}
 		}
 	}
 }

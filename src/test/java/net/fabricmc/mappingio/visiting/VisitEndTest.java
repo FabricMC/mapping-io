@@ -128,6 +128,7 @@ public class VisitEndTest {
 	private void check(MappingFormat format) throws Exception {
 		checkDir(TestHelper.MappingDirs.DETECTION, format);
 		checkDir(TestHelper.MappingDirs.VALID, format);
+		checkDir(TestHelper.MappingDirs.REPEATED_ELEMENTS, format);
 		checkDir(TestHelper.MappingDirs.VALID_WITH_HOLES, format);
 	}
 
