@@ -36,7 +36,6 @@ allprojects {
 		testImplementation "org.cadixdev:lorenz:${lorenz_version}"
 		testImplementation "org.cadixdev:lorenz-io-enigma:${lorenz_version}"
 		testImplementation "org.cadixdev:lorenz-io-jam:${lorenz_version}"
-		testImplementation "org.jooq:jool-java-8:${project.jool_version}"
 		testImplementation "org.junit.jupiter:junit-jupiter:${junit_jupiter_version}"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 		testCompileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
@@ -45,6 +44,7 @@ allprojects {
 	spotless {
 		java {
 			licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+			targetExclude 'src/test/java/net/fabricmc/mappingio/lib/**/*.java'
 		}
 	}
 

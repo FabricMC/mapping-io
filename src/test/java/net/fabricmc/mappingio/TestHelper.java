@@ -28,11 +28,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.neoforged.srgutils.IMappingFile;
 import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
-import org.jooq.lambda.Unchecked;
 
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
+import net.fabricmc.mappingio.lib.jool.Unchecked;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
