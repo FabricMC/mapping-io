@@ -43,6 +43,7 @@ public class MetadataTest {
 	@BeforeAll
 	public static void setup() throws Exception {
 		tree = TestHelper.createTestTree();
+		tree.getMetadata().clear();
 
 		for (int i = 0; i < 40; i++) {
 			String key = "key" + random.nextInt(3);

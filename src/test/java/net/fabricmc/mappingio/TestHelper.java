@@ -29,6 +29,7 @@ import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -147,6 +148,8 @@ public final class TestHelper {
 	public static MemoryMappingTree createTestTree() {
 		MemoryMappingTree tree = new MemoryMappingTree();
 		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
+		tree.visitMetadata("name", "valid");
+		tree.visitMetadata(MigrationMapConstants.ORDER_KEY, "0");
 		int[] dstNs = new int[] { 0, 1 };
 		nameGen.reset();
 
