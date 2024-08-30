@@ -42,7 +42,7 @@ public class MetadataTest {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestHelper.createTestTree();
+		tree = TestHelper.acceptTestMappings(new MemoryMappingTree());
 		tree.getMetadata().clear();
 
 		for (int i = 0; i < 40; i++) {
@@ -60,8 +60,8 @@ public class MetadataTest {
 		tree.accept(new NopMappingVisitor(true) {
 			@Override
 			public void visitMetadata(String key, @Nullable String value) {
-				assertEquals(key, keys.get(visitCount));
-				assertEquals(value, values.get(visitCount));
+				assertEquals(keys.get(visitCount), key);
+				assertEquals(values.get(visitCount), value);
 				visitCount++;
 			}
 

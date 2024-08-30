@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,8 +29,10 @@ import net.neoforged.srgutils.IMappingFile;
 import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
+import net.fabricmc.mappingio.lib.jool.Unchecked;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -144,159 +147,325 @@ public final class TestHelper {
 		return path;
 	}
 
-	// Has to be kept in sync with /resources/read/valid/* test mappings!
-	public static MemoryMappingTree createTestTree() {
-		MemoryMappingTree tree = new MemoryMappingTree();
-		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
-		tree.visitMetadata("name", "valid");
-		tree.visitMetadata(MigrationMapConstants.ORDER_KEY, "0");
-		int[] dstNs = new int[] { 0, 1 };
-		nameGen.reset();
+	// After any changes, run "./gradlew updateTestMappings" to update the mapping files in the resources folder accordingly
+	public static <T extends MappingVisitor> T acceptTestMappings(T target) throws IOException {
+		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
 
-		visitClass(tree, dstNs);
-		visitField(tree, dstNs);
-		visitMethod(tree, dstNs);
-		visitMethodArg(tree, dstNs);
-		visitMethodVar(tree, dstNs);
-		visitInnerClass(tree, 1, dstNs);
-		visitComment(tree);
-		visitField(tree, dstNs);
-		visitClass(tree, dstNs);
-
-		return tree;
-	}
-
-	// Has to be kept in sync with /resources/read/valid-with-holes/* test mappings!
-	public static MemoryMappingTree createTestTreeWithHoles() {
-		MemoryMappingTree tree = new MemoryMappingTree();
-		tree.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
-		nameGen.reset();
-
-		// (Inner) Classes
-		for (int nestLevel = 0; nestLevel <= 2; nestLevel++) {
-			visitClass(tree);
-			visitInnerClass(tree, nestLevel, 0);
-			visitInnerClass(tree, nestLevel, 1);
-
-			visitInnerClass(tree, nestLevel);
-			visitComment(tree);
-
-			visitInnerClass(tree, nestLevel, 0);
-			visitComment(tree);
-
-			visitInnerClass(tree, nestLevel, 1);
-			visitComment(tree);
+		if (delegate.visitHeader()) {
+			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
+			delegate.visitMetadata("name", "valid");
+			delegate.visitMetadata(MigrationMapConstants.ORDER_KEY, "0");
 		}
 
-		// Fields
-		visitClass(tree);
-		visitField(tree);
-		visitField(tree, 0);
-		visitField(tree, 1);
+		if (delegate.visitContent()) {
+			int[] dstNs = new int[] { 0, 1 };
+			nameGen.reset();
 
-		visitField(tree);
-		visitComment(tree);
+			if (visitClass(delegate, dstNs)) {
+				visitField(delegate, dstNs);
 
-		visitField(tree, 0);
-		visitComment(tree);
+				if (visitMethod(delegate, dstNs)) {
+					visitMethodArg(delegate, dstNs);
+					visitMethodVar(delegate, dstNs);
+				}
+			}
 
-		visitField(tree, 1);
-		visitComment(tree);
+			if (visitInnerClass(delegate, 1, dstNs)) {
+				visitComment(delegate);
+				visitField(delegate, dstNs);
+			}
 
-		// Methods
-		visitMethod(tree);
-		visitMethod(tree, 0);
-		visitMethod(tree, 1);
+			visitClass(delegate, dstNs);
+		}
 
-		visitMethod(tree);
-		visitComment(tree);
+		if (!delegate.visitEnd()) {
+			acceptTestMappings(delegate);
+		}
 
-		visitMethod(tree, 0);
-		visitComment(tree);
-
-		visitMethod(tree, 1);
-		visitComment(tree);
-
-		// Method args
-		visitMethod(tree);
-		visitMethodArg(tree);
-		visitMethodArg(tree, 1);
-		visitMethodArg(tree, 0);
-
-		visitMethodArg(tree);
-		visitComment(tree);
-
-		visitMethodArg(tree, 0);
-		visitComment(tree);
-
-		visitMethodArg(tree, 1);
-		visitComment(tree);
-
-		// Method vars
-		visitMethod(tree);
-		visitMethodVar(tree);
-		visitMethodVar(tree, 1);
-		visitMethodVar(tree, 0);
-
-		visitMethodVar(tree);
-		visitComment(tree);
-
-		visitMethodVar(tree, 0);
-		visitComment(tree);
-
-		visitMethodVar(tree, 1);
-		visitComment(tree);
-
-		return tree;
+		return target;
 	}
 
-	private static void visitClass(MemoryMappingTree tree, int... dstNs) {
-		visitInnerClass(tree, 0, dstNs);
+	// After any changes, run "./gradlew updateTestMappings" to update the mapping files in the resources folder accordingly.
+	// Make sure to keep the few manual changes in the files.
+	public static <T extends MappingVisitor> T acceptTestMappingsWithRepeats(T target, boolean repeatComments, boolean repeatClasses) throws IOException {
+		acceptTestMappings(new ForwardingMappingVisitor(new VisitOrderVerifyingVisitor(target, true)) {
+			private List<Runnable> replayQueue = new ArrayList<>();
+
+			@Override
+			public void visitMetadata(String key, @Nullable String value) throws IOException {
+				super.visitMetadata(key, key.equals("name") ? "repeated-elements" : value);
+			}
+
+			@Override
+			public boolean visitClass(String srcName) throws IOException {
+				replayQueue.clear();
+
+				if (repeatClasses) {
+					replayQueue.add(Unchecked.runnable(() -> super.visitClass(srcName)));
+				}
+
+				return super.visitClass(srcName);
+			}
+
+			@Override
+			public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
+				replayQueue.clear();
+				replayQueue.add(Unchecked.runnable(() -> super.visitField(srcName, srcDesc)));
+				return super.visitField(srcName, srcDesc);
+			}
+
+			@Override
+			public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
+				replayQueue.clear();
+				replayQueue.add(Unchecked.runnable(() -> super.visitMethod(srcName, srcDesc)));
+				return super.visitMethod(srcName, srcDesc);
+			}
+
+			@Override
+			public boolean visitMethodArg(int lvIndex, int argIndex, String srcName) throws IOException {
+				replayQueue.clear();
+				replayQueue.add(Unchecked.runnable(() -> super.visitMethodArg(lvIndex, argIndex, srcName)));
+				return super.visitMethodArg(lvIndex, argIndex, srcName);
+			}
+
+			@Override
+			public boolean visitMethodVar(int lvIndex, int varIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+				replayQueue.clear();
+				replayQueue.add(Unchecked.runnable(() -> super.visitMethodVar(lvIndex, varIndex, startOpIdx, endOpIdx, srcName)));
+				return super.visitMethodVar(lvIndex, varIndex, startOpIdx, endOpIdx, srcName);
+			}
+
+			@Override
+			public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
+				if (targetKind == MappedElementKind.CLASS && !repeatClasses) {
+					super.visitDstName(targetKind, namespace, name);
+				} else {
+					replayQueue.add(Unchecked.runnable(() -> super.visitDstName(targetKind, namespace, name)));
+					super.visitDstName(targetKind, namespace, name + "0");
+				}
+			}
+
+			@Override
+			public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
+				replayQueue.add(Unchecked.runnable(() -> super.visitDstDesc(targetKind, namespace, desc)));
+				super.visitDstDesc(targetKind, namespace, desc);
+			}
+
+			@Override
+			public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+				boolean ret = super.visitElementContent(targetKind);
+
+				if (!replayQueue.isEmpty()) {
+					replayQueue.forEach(Runnable::run);
+
+					ret = super.visitElementContent(targetKind);
+				}
+
+				return ret;
+			}
+
+			@Override
+			public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+				if (repeatComments) {
+					super.visitComment(targetKind, comment + ".");
+				}
+
+				super.visitComment(targetKind, comment);
+			}
+		});
+
+		return target;
 	}
 
-	private static void visitInnerClass(MemoryMappingTree tree, int nestLevel, int... dstNs) {
-		tree.visitClass(nestLevel <= 0 ? nameGen.src(clsKind) : nameGen.srcInnerCls(nestLevel));
+	// After any changes, run "./gradlew updateTestMappings" to update the mapping files in the resources folder accordingly
+	public static <T extends MappingVisitor> T acceptTestMappingsWithHoles(T target) throws IOException {
+		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+
+		if (delegate.visitHeader()) {
+			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
+		}
+
+		if (delegate.visitContent()) {
+			nameGen.reset();
+
+			// (Inner) Classes
+			for (int nestLevel = 0; nestLevel <= 2; nestLevel++) {
+				visitClass(delegate);
+				visitInnerClass(delegate, nestLevel, 0);
+				visitInnerClass(delegate, nestLevel, 1);
+
+				if (visitInnerClass(delegate, nestLevel)) {
+					visitComment(delegate);
+				}
+
+				if (visitInnerClass(delegate, nestLevel, 0)) {
+					visitComment(delegate);
+				}
+
+				if (visitInnerClass(delegate, nestLevel, 1)) {
+					visitComment(delegate);
+				}
+			}
+
+			if (visitClass(delegate)) {
+				// Fields
+				visitField(delegate);
+				visitField(delegate, 0);
+				visitField(delegate, 1);
+
+				if (visitField(delegate)) {
+					visitComment(delegate);
+				}
+
+				if (visitField(delegate, 0)) {
+					visitComment(delegate);
+				}
+
+				if (visitField(delegate, 1)) {
+					visitComment(delegate);
+				}
+
+				// Methods
+				visitMethod(delegate);
+				visitMethod(delegate, 0);
+				visitMethod(delegate, 1);
+
+				if (visitMethod(delegate)) {
+					visitComment(delegate);
+				}
+
+				if (visitMethod(delegate, 0)) {
+					visitComment(delegate);
+				}
+
+				if (visitMethod(delegate, 1)) {
+					visitComment(delegate);
+				}
+
+				// Method args
+				if (visitMethod(delegate)) {
+					visitMethodArg(delegate);
+					visitMethodArg(delegate, 1);
+					visitMethodArg(delegate, 0);
+
+					if (visitMethodArg(delegate)) {
+						visitComment(delegate);
+					}
+
+					if (visitMethodArg(delegate, 0)) {
+						visitComment(delegate);
+					}
+
+					if (visitMethodArg(delegate, 1)) {
+						visitComment(delegate);
+					}
+				}
+
+				// Method vars
+				if (visitMethod(delegate)) {
+					visitMethodVar(delegate);
+					visitMethodVar(delegate, 1);
+					visitMethodVar(delegate, 0);
+
+					if (visitMethodVar(delegate)) {
+						visitComment(delegate);
+					}
+
+					if (visitMethodVar(delegate, 0)) {
+						visitComment(delegate);
+					}
+
+					if (visitMethodVar(delegate, 1)) {
+						visitComment(delegate);
+					}
+				}
+			}
+		}
+
+		if (!delegate.visitEnd()) {
+			acceptTestMappingsWithHoles(delegate);
+		}
+
+		return target;
+	}
+
+	private static boolean visitClass(MappingVisitor target, int... dstNs) throws IOException {
+		return visitInnerClass(target, 0, dstNs);
+	}
+
+	private static boolean visitInnerClass(MappingVisitor target, int nestLevel, int... dstNs) throws IOException {
+		if (!target.visitClass(nestLevel <= 0 ? nameGen.src(clsKind) : nameGen.srcInnerCls(nestLevel))) {
+			return false;
+		}
 
 		for (int ns : dstNs) {
-			tree.visitDstName(clsKind, ns, nameGen.dst(clsKind, ns));
+			target.visitDstName(clsKind, ns, nameGen.dst(clsKind, ns));
 		}
+
+		return target.visitElementContent(clsKind);
 	}
 
-	private static void visitField(MemoryMappingTree tree, int... dstNs) {
-		tree.visitField(nameGen.src(fldKind), nameGen.desc(fldKind));
+	private static boolean visitField(MappingVisitor target, int... dstNs) throws IOException {
+		String desc;
+
+		if (!target.visitField(nameGen.src(fldKind), desc = nameGen.desc(fldKind))) {
+			return false;
+		}
 
 		for (int ns : dstNs) {
-			tree.visitDstName(fldKind, ns, nameGen.dst(fldKind, ns));
+			target.visitDstName(fldKind, ns, nameGen.dst(fldKind, ns));
+			target.visitDstDesc(fldKind, ns, desc);
 		}
+
+		return target.visitElementContent(fldKind);
 	}
 
-	private static void visitMethod(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethod(nameGen.src(mthKind), nameGen.desc(mthKind));
+	private static boolean visitMethod(MappingVisitor target, int... dstNs) throws IOException {
+		String desc;
+
+		if (!target.visitMethod(nameGen.src(mthKind), desc = nameGen.desc(mthKind))) {
+			return false;
+		}
 
 		for (int ns : dstNs) {
-			tree.visitDstName(mthKind, ns, nameGen.dst(mthKind, ns));
+			target.visitDstName(mthKind, ns, nameGen.dst(mthKind, ns));
+			target.visitDstDesc(mthKind, ns, desc);
 		}
+
+		return target.visitElementContent(mthKind);
 	}
 
-	private static void visitMethodArg(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodArg(nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(argKind));
+	private static boolean visitMethodArg(MappingVisitor target, int... dstNs) throws IOException {
+		if (!target.visitMethodArg(nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(argKind))) {
+			return false;
+		}
 
 		for (int ns : dstNs) {
-			tree.visitDstName(argKind, ns, nameGen.dst(argKind, ns));
+			target.visitDstName(argKind, ns, nameGen.dst(argKind, ns));
 		}
+
+		return target.visitElementContent(argKind);
 	}
 
-	private static void visitMethodVar(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethodVar(nameGen.getCounter().get(), nameGen.getCounter().get(),
-				nameGen.getCounter().getAndIncrement(), nameGen.getCounter().getAndIncrement(), nameGen.src(varKind));
+	private static boolean visitMethodVar(MappingVisitor target, int... dstNs) throws IOException {
+		if (!target.visitMethodVar(
+				nameGen.getCounter().get(),
+				nameGen.getCounter().get(),
+				nameGen.getCounter().getAndIncrement(),
+				nameGen.getCounter().getAndIncrement(),
+				nameGen.src(varKind))) {
+			return false;
+		}
 
 		for (int ns : dstNs) {
-			tree.visitDstName(varKind, ns, nameGen.dst(varKind, ns));
+			target.visitDstName(varKind, ns, nameGen.dst(varKind, ns));
 		}
+
+		return target.visitElementContent(varKind);
 	}
 
-	private static void visitComment(MemoryMappingTree tree) {
-		tree.visitComment(nameGen.lastKind.get(), comment);
+	private static void visitComment(MappingVisitor target) throws IOException {
+		target.visitComment(nameGen.lastKind.get(), comment);
 	}
 
 	private static class NameGen {
@@ -445,16 +614,17 @@ public final class TestHelper {
 
 	public static class MappingDirs {
 		@Nullable
-		public static MemoryMappingTree getCorrespondingTree(Path dir) {
-			if (dir.equals(VALID)) return createTestTree();
-			if (dir.equals(VALID_WITH_HOLES)) return createTestTreeWithHoles();
+		public static MemoryMappingTree getCorrespondingTree(Path dir) throws IOException {
+			if (dir.equals(VALID)) return acceptTestMappings(new MemoryMappingTree());
+			if (dir.equals(REPEATED_ELEMENTS)) return acceptTestMappingsWithRepeats(new MemoryMappingTree(), true, true);
+			if (dir.equals(VALID_WITH_HOLES)) return acceptTestMappingsWithHoles(new MemoryMappingTree());
 			return null;
 		}
 
 		public static final Path DETECTION = getResource("/detection/");
 		public static final Path VALID = getResource("/read/valid/");
-		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
 		public static final Path REPEATED_ELEMENTS = getResource("/read/repeated-elements/");
+		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
 	}
 
 	private static final List<String> fldDescs = Arrays.asList("I", "Lcls;", "Lpkg/cls;", "[I");

@@ -9,6 +9,7 @@ CLASS class_1 class1Ns0Rename
 	CLASS class_2 class2Ns0Rename0
 	CLASS class_2 class2Ns0Rename1
 		COMMENT This is a comment.
+	CLASS class_2 class2Ns0Rename2
 	CLASS class_2 class2Ns0Rename
 		COMMENT This is a comment
 		FIELD field_2 field2Ns0Rename0 Lcls;
