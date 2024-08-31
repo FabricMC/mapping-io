@@ -41,7 +41,7 @@ public interface MappingTree extends MappingTreeView {
 	List<String> setDstNamespaces(List<String> namespaces);
 
 	/**
-	 * @return An unmodifiable list of all metadata entries currently present in the tree.
+	 * @return A modifiable list of all metadata entries currently present in the tree.
 	 * The list's order is equal to the order in which the entries have been originally added.
 	 */
 	@Override

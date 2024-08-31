@@ -226,7 +226,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public List<? extends MetadataEntry> getMetadata() {
-		return metadataView;
+		return metadata;
 	}
 
 	@Override
@@ -2061,7 +2061,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<MetadataEntry> metadata = new ArrayList<>();
-	private final List<MetadataEntry> metadataView = Collections.unmodifiableList(metadata);
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private final Collection<ClassEntry> classesView = Collections.unmodifiableCollection(classesBySrcName.values());
 	private Map<String, ClassEntry>[] classesByDstNames;
