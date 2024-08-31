@@ -11,11 +11,11 @@ CLASS	class_17$class_18$class_19	class_17$class_18$class19Ns0Rename
 CLASS	class_20$class_21$class_22		class_20$class_21$class22Ns1Rename
 CLASS	class_26$class_27$class_28	class_26$class_27$class28Ns0Rename	
 CLASS	class_29$class_30$class_31		class_29$class_30$class31Ns1Rename
-FIELD	class_32	I	field_2	field2Ns0Rename	
-FIELD	class_32	I	field_3		field3Ns1Rename
+FIELD	class_32	Lcls;	field_2	field2Ns0Rename	
+FIELD	class_32	Lpkg/cls;	field_3		field3Ns1Rename
 FIELD	class_32	I	field_5	field5Ns0Rename	
-FIELD	class_32	I	field_6		field6Ns1Rename
-METHOD	class_32	()I	method_2	method2Ns0Rename	
-METHOD	class_32	()I	method_3		method3Ns1Rename
-METHOD	class_32	()I	method_5	method5Ns0Rename	
+FIELD	class_32	Lcls;	field_6		field6Ns1Rename
+METHOD	class_32	(I)V	method_2	method2Ns0Rename	
+METHOD	class_32	(Lcls;)Lcls;	method_3		method3Ns1Rename
+METHOD	class_32	(Lcls;[I)[[B	method_5	method5Ns0Rename	
 METHOD	class_32	()I	method_6		method6Ns1Rename

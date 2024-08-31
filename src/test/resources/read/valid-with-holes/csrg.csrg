@@ -24,10 +24,10 @@ class_32 field_4 field_4
 class_32 field_5 field5Ns0Rename
 class_32 field_6 field_6
 class_32 method_1 ()I method_1
-class_32 method_2 ()I method2Ns0Rename
-class_32 method_3 ()I method_3
-class_32 method_4 ()I method_4
-class_32 method_5 ()I method5Ns0Rename
+class_32 method_2 (I)V method2Ns0Rename
+class_32 method_3 (Lcls;)Lcls; method_3
+class_32 method_4 (ILcls;)Lpkg/cls; method_4
+class_32 method_5 (Lcls;[I)[[B method5Ns0Rename
 class_32 method_6 ()I method_6
-class_32 method_7 ()I method_7
-class_32 method_8 ()I method_8
+class_32 method_7 (I)V method_7
+class_32 method_8 (Lcls;)Lcls; method_8

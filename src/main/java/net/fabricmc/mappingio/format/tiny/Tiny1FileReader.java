@@ -69,14 +69,19 @@ public final class Tiny1FileReader {
 		}
 
 		String srcNamespace = reader.nextCol();
+		if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in Tiny v1 header");
+
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
 
 		while ((dstNamespace = reader.nextCol()) != null) {
+			if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in Tiny v1 header");
 			dstNamespaces.add(dstNamespace);
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		if (dstNsCount == 0) throw new IOException("no destination namespaces in Tiny v1 header");
+
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 		boolean readerMarked = false;
@@ -96,7 +101,6 @@ public final class Tiny1FileReader {
 
 			if (visitor.visitContent()) {
 				String lastClass = null;
-				boolean lastClassDstNamed = false;;
 				boolean visitLastClass = false;
 
 				while (reader.nextLine(0)) {
@@ -106,15 +110,12 @@ public final class Tiny1FileReader {
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-						if (!lastClassDstNamed || !srcName.equals(lastClass)) {
-							lastClass = srcName;
-							lastClassDstNamed = true;
-							visitLastClass = visitor.visitClass(srcName);
+						lastClass = srcName;
+						visitLastClass = visitor.visitClass(srcName);
 
-							if (visitLastClass) {
-								readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+						if (visitLastClass) {
+							readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
+							visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 					} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
 						String srcOwner = reader.nextCol();
@@ -122,7 +123,6 @@ public final class Tiny1FileReader {
 
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;
-							lastClassDstNamed = false;
 							visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 

@@ -21,8 +21,11 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.neoforged.srgutils.IMappingFile;
+import org.cadixdev.lorenz.io.MappingFormats;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.MappingFormat;
@@ -63,12 +66,74 @@ public final class TestHelper {
 			return "tsrgV2.tsrg";
 		case PROGUARD_FILE:
 			return "proguard.txt";
+		case INTELLIJ_MIGRATION_MAP_FILE:
+			return "migration-map.xml";
 		case RECAF_SIMPLE_FILE:
 			return "recaf-simple.txt";
 		case JOBF_FILE:
 			return "jobf.jobf";
 		default:
 			return null;
+		}
+	}
+
+	@Nullable
+	public static org.cadixdev.lorenz.io.MappingFormat toLorenzFormat(MappingFormat format) {
+		switch (format) {
+		case SRG_FILE:
+			return MappingFormats.SRG;
+		case XSRG_FILE:
+			return MappingFormats.XSRG;
+		case CSRG_FILE:
+			return MappingFormats.CSRG;
+		case TSRG_FILE:
+			return MappingFormats.TSRG;
+		case ENIGMA_FILE:
+			return MappingFormats.byId("enigma");
+		case JAM_FILE:
+			return MappingFormats.byId("jam");
+		case TINY_FILE:
+		case TINY_2_FILE:
+		case ENIGMA_DIR:
+		case TSRG_2_FILE:
+		case PROGUARD_FILE:
+		case INTELLIJ_MIGRATION_MAP_FILE:
+		case RECAF_SIMPLE_FILE:
+		case JOBF_FILE:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
+		}
+	}
+
+	@Nullable
+	public static IMappingFile.Format toSrgUtilsFormat(MappingFormat format) {
+		switch (format) {
+		case TINY_FILE:
+			return IMappingFile.Format.TINY1;
+		case TINY_2_FILE:
+			return IMappingFile.Format.TINY;
+		case SRG_FILE:
+			return IMappingFile.Format.SRG;
+		case XSRG_FILE:
+			return IMappingFile.Format.XSRG;
+		case CSRG_FILE:
+			return IMappingFile.Format.CSRG;
+		case TSRG_FILE:
+			return IMappingFile.Format.TSRG;
+		case TSRG_2_FILE:
+			return IMappingFile.Format.TSRG2;
+		case PROGUARD_FILE:
+			return IMappingFile.Format.PG;
+		case ENIGMA_FILE:
+		case ENIGMA_DIR:
+		case JAM_FILE:
+		case INTELLIJ_MIGRATION_MAP_FILE:
+		case RECAF_SIMPLE_FILE:
+		case JOBF_FILE:
+			return null;
+		default:
+			throw new IllegalArgumentException("Unknown format: " + format);
 		}
 	}
 
@@ -91,6 +156,7 @@ public final class TestHelper {
 		visitMethodArg(tree, dstNs);
 		visitMethodVar(tree, dstNs);
 		visitInnerClass(tree, 1, dstNs);
+		visitComment(tree);
 		visitField(tree, dstNs);
 		visitClass(tree, dstNs);
 
@@ -194,7 +260,7 @@ public final class TestHelper {
 	}
 
 	private static void visitField(MemoryMappingTree tree, int... dstNs) {
-		tree.visitField(nameGen.src(fldKind), fldDesc);
+		tree.visitField(nameGen.src(fldKind), nameGen.desc(fldKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(fldKind, ns, nameGen.dst(fldKind, ns));
@@ -202,7 +268,7 @@ public final class TestHelper {
 	}
 
 	private static void visitMethod(MemoryMappingTree tree, int... dstNs) {
-		tree.visitMethod(nameGen.src(mthKind), mthDesc);
+		tree.visitMethod(nameGen.src(mthKind), nameGen.desc(mthKind));
 
 		for (int ns : dstNs) {
 			tree.visitDstName(mthKind, ns, nameGen.dst(mthKind, ns));
@@ -308,6 +374,17 @@ public final class TestHelper {
 			return sb.toString();
 		}
 
+		public String desc(MappedElementKind kind) {
+			switch (kind) {
+			case FIELD:
+				return fldDescs.get((fldNum.get().get() - 1) % fldDescs.size());
+			case METHOD:
+				return mthDescs.get((mthNum.get().get() - 1) % mthDescs.size());
+			default:
+				throw new IllegalArgumentException("Invalid kind: " + kind);
+			}
+		}
+
 		public AtomicInteger getCounter() {
 			return counter.get();
 		}
@@ -374,11 +451,12 @@ public final class TestHelper {
 		public static final Path DETECTION = getResource("/detection/");
 		public static final Path VALID = getResource("/read/valid/");
 		public static final Path VALID_WITH_HOLES = getResource("/read/valid-with-holes/");
+		public static final Path REPEATED_ELEMENTS = getResource("/read/repeated-elements/");
 		public static final Path MERGING = getResource("/merging/");
 	}
 
-	private static final String fldDesc = "I";
-	private static final String mthDesc = "()I";
+	private static final List<String> fldDescs = Arrays.asList("I", "Lcls;", "Lpkg/cls;", "[I");
+	private static final List<String> mthDescs = Arrays.asList("()I", "(I)V", "(Lcls;)Lcls;", "(ILcls;)Lpkg/cls;", "(Lcls;[I)[[B");
 	private static final String comment = "This is a comment";
 	private static final NameGen nameGen = new NameGen();
 	private static final MappedElementKind clsKind = MappedElementKind.CLASS;

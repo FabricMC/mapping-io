@@ -67,11 +67,12 @@ public final class JamFileReader {
 			}
 
 			if (visitor.visitContent()) {
-				String lastClass = null;
-				boolean visitLastClass = false;
-				String lastMethod = null;
-				boolean visitLastMethod = false;
-				boolean visitLastMethodContent = false;
+				String lastClassName = null;
+				boolean visitClass = false;
+				String lastMethodName = null;
+				String lastMethodDesc = null;
+				boolean visitMember = false;
+				boolean visitMethodContent = false;
 
 				do {
 					boolean isMethod;
@@ -81,22 +82,20 @@ public final class JamFileReader {
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-						if (!srcName.equals(lastClass)) {
-							lastClass = srcName;
-							visitLastClass = visitor.visitClass(srcName);
+						lastClassName = srcName;
+						visitClass = visitor.visitClass(srcName);
 
-							if (visitLastClass) {
-								String dstName = reader.nextCol();
-								if (dstName == null || dstName.isEmpty()) throw new IOException("missing class-name-b in line "+reader.getLineNumber());
+						if (visitClass) {
+							String dstName = reader.nextCol();
+							if (dstName == null || dstName.isEmpty()) throw new IOException("missing class-name-b in line "+reader.getLineNumber());
 
-								visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+							visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
+							visitClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 					} else if ((isMethod = reader.nextCol("MD")) || reader.nextCol("FD") // method/field: MD/FD <cls-a> <name-a> <desc-a> <name-b>
 							|| (isArg = reader.nextCol("MP"))) { // parameter: MP <cls-a> <mth-name-a> <mth-desc-a> <arg-pos> [<arg-desc-a>] <name-b>
-						String clsSrcClsName = reader.nextCol();
-						if (clsSrcClsName == null) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
+						String clsSrcName = reader.nextCol();
+						if (clsSrcName == null) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
 						String memberSrcName = reader.nextCol();
 						if (memberSrcName == null || memberSrcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
@@ -129,44 +128,43 @@ public final class JamFileReader {
 
 						if (dstName == null || dstName.isEmpty()) throw new IOException("missing name-b in line "+reader.getLineNumber());
 
-						if (!clsSrcClsName.equals(lastClass)) {
-							lastClass = clsSrcClsName;
-							visitLastClass = visitor.visitClass(clsSrcClsName);
-
-							if (visitLastClass) {
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+						if (!clsSrcName.equals(lastClassName)) {
+							lastClassName = clsSrcName;
+							lastMethodName = null;
+							lastMethodDesc = null;
+							visitClass = visitor.visitClass(clsSrcName) && visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 
-						if (!visitLastClass) continue;
-						boolean isNewMethod = false;
+						if (!visitClass) continue;
+						boolean newMethod = false;
 						boolean isField = !isMethod && !isArg;
 
-						if (!isField && !memberSrcName.equals(lastMethod)) {
-							isNewMethod = true;
-							lastMethod = memberSrcName;
-							visitLastMethod = visitor.visitMethod(memberSrcName, memberSrcDesc);
-							visitLastMethodContent = false;
+						if (isField) {
+							visitMember = visitor.visitField(memberSrcName, memberSrcDesc);
+						} else if (!isArg || (newMethod = !memberSrcName.equals(lastMethodName) || !memberSrcDesc.equals(lastMethodDesc))) {
+							lastMethodName = memberSrcName;
+							lastMethodDesc = memberSrcDesc;
+							visitMember = visitor.visitMethod(memberSrcName, memberSrcDesc);
+							visitMethodContent = false;
 						}
 
+						if (!visitMember) continue;
+
 						if (isField) {
-							if (visitor.visitField(memberSrcName, memberSrcDesc)) {
-								visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
-								visitor.visitElementContent(MappedElementKind.FIELD);
-							}
-						} else if (visitLastMethod) {
-							if (isMethod) {
-								visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
-							}
+							visitor.visitDstName(MappedElementKind.FIELD, 0, dstName);
+							visitor.visitElementContent(MappedElementKind.FIELD);
+							continue;
+						} else if (isMethod) {
+							visitor.visitDstName(MappedElementKind.METHOD, 0, dstName);
+						}
 
-							if (isMethod || isNewMethod) {
-								visitLastMethodContent = visitor.visitElementContent(MappedElementKind.METHOD);
-							}
+						if (isMethod || newMethod) {
+							visitMethodContent = visitor.visitElementContent(MappedElementKind.METHOD);
+						}
 
-							if (isArg && visitLastMethodContent && visitor.visitMethodArg(argSrcPos, -1, null)) {
-								visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
-								visitor.visitElementContent(MappedElementKind.METHOD_ARG);
-							}
+						if (isArg && visitMethodContent && visitor.visitMethodArg(argSrcPos, -1, null)) {
+							visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
+							visitor.visitElementContent(MappedElementKind.METHOD_ARG);
 						}
 					}
 				} while (reader.nextLine(0));

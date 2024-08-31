@@ -5,7 +5,7 @@ class_13$class_14 -> class_13$class14Ns0Rename:
 class_17$class_18$class_19 -> class_17$class_18$class19Ns0Rename:
 class_26$class_27$class_28 -> class_26$class_27$class28Ns0Rename:
 class_32 -> class_32:
-    int field_2 -> field2Ns0Rename
+    cls field_2 -> field2Ns0Rename
     int field_5 -> field5Ns0Rename
-    int method_2() -> method2Ns0Rename
-    int method_5() -> method5Ns0Rename
+    void method_2(int) -> method2Ns0Rename
+    byte[][] method_5(cls,int[]) -> method5Ns0Rename

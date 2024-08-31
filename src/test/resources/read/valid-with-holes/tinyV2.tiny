@@ -28,24 +28,24 @@ c	class_29$class_30$class_31		class_29$class_30$class31Ns1Rename
 	c	This is a comment
 c	class_32		
 	f	I	field_1		
-	f	I	field_2	field2Ns0Rename	
-	f	I	field_3		field3Ns1Rename
-	f	I	field_4		
+	f	Lcls;	field_2	field2Ns0Rename	
+	f	Lpkg/cls;	field_3		field3Ns1Rename
+	f	[I	field_4		
 		c	This is a comment
 	f	I	field_5	field5Ns0Rename	
 		c	This is a comment
-	f	I	field_6		field6Ns1Rename
+	f	Lcls;	field_6		field6Ns1Rename
 		c	This is a comment
 	m	()I	method_1		
-	m	()I	method_2	method2Ns0Rename	
-	m	()I	method_3		method3Ns1Rename
-	m	()I	method_4		
+	m	(I)V	method_2	method2Ns0Rename	
+	m	(Lcls;)Lcls;	method_3		method3Ns1Rename
+	m	(ILcls;)Lpkg/cls;	method_4		
 		c	This is a comment
-	m	()I	method_5	method5Ns0Rename	
+	m	(Lcls;[I)[[B	method_5	method5Ns0Rename	
 		c	This is a comment
 	m	()I	method_6		method6Ns1Rename
 		c	This is a comment
-	m	()I	method_7		
+	m	(I)V	method_7		
 		p	1	param_1		
 		p	3	param_2		param2Ns1Rename
 		p	5	param_3	param3Ns0Rename	
@@ -55,7 +55,7 @@ c	class_32
 			c	This is a comment
 		p	11	param_6		param6Ns1Rename
 			c	This is a comment
-	m	()I	method_8		
+	m	(Lcls;)Lcls;	method_8		
 		v	12	12	12	var_1		
 		v	14	14	14	var_2		var2Ns1Rename
 		v	16	16	16	var_3	var3Ns0Rename	

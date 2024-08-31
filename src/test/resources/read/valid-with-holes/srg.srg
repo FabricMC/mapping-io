@@ -6,5 +6,5 @@ CL: class_17$class_18$class_19 class_17$class_18$class19Ns0Rename
 CL: class_26$class_27$class_28 class_26$class_27$class28Ns0Rename
 FD: class_32/field_2 class_32/field2Ns0Rename
 FD: class_32/field_5 class_32/field5Ns0Rename
-MD: class_32/method_2 ()I class_32/method2Ns0Rename ()I
-MD: class_32/method_5 ()I class_32/method5Ns0Rename ()I
+MD: class_32/method_2 (I)V class_32/method2Ns0Rename (I)V
+MD: class_32/method_5 (Lcls;[I)[[B class_32/method5Ns0Rename (Lcls;[I)[[B

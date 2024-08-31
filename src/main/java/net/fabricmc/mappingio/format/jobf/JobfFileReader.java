@@ -78,19 +78,17 @@ public class JobfFileReader {
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 						srcName = srcName.replace('.', '/');
 
-						if (!srcName.equals(lastClass)) {
-							lastClass = srcName;
-							visitLastClass = visitor.visitClass(srcName);
+						lastClass = srcName;
+						visitLastClass = visitor.visitClass(srcName);
 
-							if (visitLastClass) {
-								readSeparator(reader);
+						if (visitLastClass) {
+							readSeparator(reader);
 
-								String dstName = reader.nextCol();
-								if (dstName == null || dstName.isEmpty()) throw new IOException("missing class-name-b in line "+reader.getLineNumber());
+							String dstName = reader.nextCol();
+							if (dstName == null || dstName.isEmpty()) throw new IOException("missing class-name-b in line "+reader.getLineNumber());
 
-								visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+							visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
+							visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 					} else if ((isField = reader.nextCol("f")) || reader.nextCol("m")) {
 						// field: f <cls-a>.<name-a>:<desc-a> = <name-b>
@@ -113,11 +111,7 @@ public class JobfFileReader {
 
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;
-							visitLastClass = visitor.visitClass(srcOwner);
-
-							if (visitLastClass) {
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+							visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 
 						if (visitLastClass) {

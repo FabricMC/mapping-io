@@ -19,22 +19,22 @@ class_26$class_27$class_28 class_26$class_27$class28Ns0Rename class_26$class_27$
 class_29$class_30$class_31 class_29$class_30$class_31 class_29$class_30$class31Ns1Rename
 class_32 class_32 class_32
 	field_1 I field_1 field_1
-	field_2 I field2Ns0Rename field_2
-	field_3 I field_3 field3Ns1Rename
-	field_4 I field_4 field_4
+	field_2 Lcls; field2Ns0Rename field_2
+	field_3 Lpkg/cls; field_3 field3Ns1Rename
+	field_4 [I field_4 field_4
 	field_5 I field5Ns0Rename field_5
-	field_6 I field_6 field6Ns1Rename
+	field_6 Lcls; field_6 field6Ns1Rename
 	method_1 ()I method_1 method_1
-	method_2 ()I method2Ns0Rename method_2
-	method_3 ()I method_3 method3Ns1Rename
-	method_4 ()I method_4 method_4
-	method_5 ()I method5Ns0Rename method_5
+	method_2 (I)V method2Ns0Rename method_2
+	method_3 (Lcls;)Lcls; method_3 method3Ns1Rename
+	method_4 (ILcls;)Lpkg/cls; method_4 method_4
+	method_5 (Lcls;[I)[[B method5Ns0Rename method_5
 	method_6 ()I method_6 method6Ns1Rename
-	method_7 ()I method_7 method_7
+	method_7 (I)V method_7 method_7
 		1 param_1 param_1 param_1
 		3 param_2 param_2 param2Ns1Rename
 		5 param_3 param3Ns0Rename param_3
 		7 param_4 param_4 param_4
 		9 param_5 param5Ns0Rename param_5
 		11 param_6 param_6 param6Ns1Rename
-	method_8 ()I method_8 method_8
+	method_8 (Lcls;)Lcls; method_8 method_8
