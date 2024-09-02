@@ -67,7 +67,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 					+ String.join(", ", dstNamespaces)
 					+ ") despite their supposed originating format ("
 					+ subFormat
-					+ ") not supporting them");
+					+ ") declaring not to support them");
 			assertEquals(MappingUtil.NS_TARGET_FALLBACK, dstNamespaces.get(0), "Incoming mappings don't have default destination namespace name of non-namespaced formats");
 			return;
 		}
