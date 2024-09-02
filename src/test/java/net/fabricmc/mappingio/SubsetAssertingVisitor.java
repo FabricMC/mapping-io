@@ -212,7 +212,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 		String subFldId = srcClsName + "#" + srcName + ":" + srcDesc;
 		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming field comment's parent class not contained in supTree: " + subFldId);
-		FieldMappingView supFld =  Objects.requireNonNull(supCls.getField(srcName, srcDesc), "Incoming field comment's parent field not contained in supTree: " + subFldId);
+		FieldMappingView supFld = Objects.requireNonNull(supCls.getField(srcName, srcDesc), "Incoming field comment's parent field not contained in supTree: " + subFldId);
 
 		assertEquals(supFld.getComment(), comment);
 	}
