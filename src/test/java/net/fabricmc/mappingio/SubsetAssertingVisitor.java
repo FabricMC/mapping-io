@@ -98,10 +98,10 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstNames = supFeatures.classes().dstNames() != FeaturePresence.ABSENT;
 		boolean subHasDstNames = subFeatures.classes().dstNames() != FeaturePresence.ABSENT;
 
-		if (supCls == null) { // SupTree doesn't have this class, ensure the incoming mappings don't have any data for it
+		if (supCls == null) { // supTree doesn't have this class, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
-				assertTrue(isEmpty(subDstNames), "Incoming class not contained in SupTree: " + srcName);
+				assertTrue(isEmpty(subDstNames), "Incoming class not contained in supTree: " + srcName);
 			}
 
 			return true;
@@ -153,14 +153,14 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstDescs = supFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
 
-		if (supFld == null) { // SupTree doesn't have this field, ensure the incoming mappings don't have any data for it
+		if (supFld == null) { // supTree doesn't have this field, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
 			String[] subDstDescs = null;
 
 			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? dstDescs : new String[]{dstDescs[subNsIfSupNotNamespaced]};
 
-			assertTrue(isEmpty(subDstNames) && isEmpty(subDstDescs), "Incoming field not contained in SupTree: " + subFldId);
+			assertTrue(isEmpty(subDstNames) && isEmpty(subDstDescs), "Incoming field not contained in supTree: " + subFldId);
 			return true;
 		}
 
@@ -233,14 +233,14 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstDescs = supFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
 
-		if (supMth == null) { // SupTree doesn't have this method, ensure the incoming mappings don't have any data for it
+		if (supMth == null) { // supTree doesn't have this method, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
 			String[] subDstDescs = null;
 
 			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? dstDescs : new String[]{dstDescs[subNsIfSupNotNamespaced]};
 
-			assertTrue(isEmpty(subDstNames) && isEmpty(subDstDescs), "Incoming method not contained in SupTree: " + subMthId);
+			assertTrue(isEmpty(subDstNames) && isEmpty(subDstDescs), "Incoming method not contained in supTree: " + subMthId);
 			return true;
 		}
 
@@ -317,11 +317,11 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstNames = supFeatures.args().dstNames() != FeaturePresence.ABSENT;
 		boolean subHasDstNames = subFeatures.args().dstNames() != FeaturePresence.ABSENT;
 
-		if (supArg == null) { // SupTree doesn't have this arg, ensure the incoming mappings don't have any data for it
+		if (supArg == null) { // supTree doesn't have this arg, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 
-				assertTrue(isEmpty(subDstNames), "Incoming arg not contained in SupTree: " + subArgId);
+				assertTrue(isEmpty(subDstNames), "Incoming arg not contained in supTree: " + subArgId);
 			}
 
 			return true;
@@ -397,11 +397,11 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstNames = supFeatures.vars().dstNames() != FeaturePresence.ABSENT;
 		boolean subHasDstNames = subFeatures.vars().dstNames() != FeaturePresence.ABSENT;
 
-		if (supVar == null) { // SupTree doesn't have this var, ensure the incoming mappings don't have any data for it
+		if (supVar == null) { // supTree doesn't have this var, ensure the incoming mappings don't have any data for it
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 
-				assertTrue(isEmpty(subDstNames), "Incoming var not contained in SupTree: " + subVarId);
+				assertTrue(isEmpty(subDstNames), "Incoming var not contained in supTree: " + subVarId);
 			}
 
 			return true;
