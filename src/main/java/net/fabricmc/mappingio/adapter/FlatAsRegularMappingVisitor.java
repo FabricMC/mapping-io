@@ -21,11 +21,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.FlatMappingVisitor;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that forwards all relevant data to a {@link FlatMappingVisitor}.
+ *
+ * <p>Element data is relayed upon {@link #visitElementContent(MappedElementKind)}
+ * or {@link #visitComment(MappedElementKind, String)} invocation.
+ * If no data was collected for the current element, the corresponding {@link FlatMappingVisitor}'s visit method is not called.
+ */
 public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	public FlatAsRegularMappingVisitor(FlatMappingVisitor out) {
 		this.next = out;
@@ -54,7 +63,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		dstNames = new String[count];
 		Set<MappingFlag> flags = next.getFlags();
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			dstClassNames = new String[count];
 			dstMemberNames = new String[count];
 		} else {
@@ -65,7 +74,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		next.visitMetadata(key, value);
 	}
 
@@ -85,7 +94,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, @Nullable String srcDesc) {
 		this.srcMemberName = srcName;
 		this.srcMemberDesc = srcDesc;
 
@@ -97,7 +106,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) {
 		this.srcMemberName = srcName;
 		this.srcMemberDesc = srcDesc;
 
@@ -109,7 +118,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) {
 		this.srcMemberSubName = srcName;
 		this.argIdx = argPosition;
 		this.lvIndex = lvIndex;
@@ -120,7 +129,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 		this.srcMemberSubName = srcName;
 		this.argIdx = lvtRowIndex;
 		this.lvIndex = lvIndex;

@@ -22,28 +22,89 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.Set;
 
+import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#ENIGMA_DIR Enigma directory} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class EnigmaDirReader {
+	private EnigmaDirReader() {
+	}
+
 	public static void read(Path dir, MappingVisitor visitor) throws IOException {
 		read(dir, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
 	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		if (!Files.exists(dir)) throw new IOException("Directory does not exist: " + dir);
+		if (!Files.isDirectory(dir)) throw new IOException("Not a directory: " + dir);
+
+		Set<MappingFlag> flags = visitor.getFlags();
+		MappingVisitor parentVisitor = null;
+
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+			parentVisitor = visitor;
+			visitor = new MemoryMappingTree();
+		}
+
+		if (visitor.visitHeader()) {
+			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+		}
+
+		MappingVisitor delegatingVisitor = new ForwardingMappingVisitor(visitor) {
+			@Override
+			public boolean visitHeader() throws IOException {
+				return false; // Namespaces have already been visited above, and Enigma files don't have any metadata
+			}
+
+			@Override
+			public boolean visitContent() throws IOException {
+				if (!visitedContent) { // Don't call next's visitContent() more than once
+					visitedContent = true;
+					visitContent = super.visitContent();
+				}
+
+				return visitContent;
+			}
+
+			@Override
+			public boolean visitEnd() throws IOException {
+				return true; // Don't forward since we're not done yet, there are more files to come
+			}
+
+			private boolean visitedContent;
+			private boolean visitContent;
+		};
+
 		Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				if (file.getFileName().toString().endsWith("." + DIR_FILE_EXT)) {
-					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, visitor);
+				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
+					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, delegatingVisitor);
 				}
 
 				return FileVisitResult.CONTINUE;
 			}
 		});
-		visitor.visitEnd();
-	}
 
-	static final String DIR_FILE_EXT = "mapping"; // non-plural form unlike ENIGMA_FILE
+		if (visitor.visitEnd() && parentVisitor == null) return;
+
+		if (parentVisitor == null) {
+			throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+		}
+
+		((MappingTree) visitor).accept(parentVisitor);
+	}
 }

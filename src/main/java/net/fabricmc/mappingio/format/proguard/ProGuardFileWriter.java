@@ -18,32 +18,34 @@ package net.fabricmc.mappingio.format.proguard;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.objectweb.asm.Type;
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 /**
- * A mapping writer for the ProGuard mapping format.
- * Note that this format is very basic: it only supports
- * one namespace pair and only classes, methods and fields
- * without comments.
- *
- * @see <a href="https://www.guardsquare.com/manual/tools/retrace">Official format documentation</a>
+ * {@linkplain MappingFormat#PROGUARD_FILE ProGuard file} writer.
  */
 public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
-	private int dstNamespace = -1;
 	private final String dstNamespaceString;
+	private int dstNamespace = -1;
+	private String clsSrcName;
+	private String memberSrcName;
+	private String memberSrcDesc;
+	private String dstName;
+	private boolean classContentVisitPending;
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
 	 * the first destination namespace (index 0).
 	 *
-	 * @param writer the writer where the mappings will be written
+	 * @param writer The writer where the mappings will be written.
 	 */
 	public ProGuardFileWriter(Writer writer) {
 		this(writer, 0);
@@ -52,8 +54,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer       the writer where the mappings will be written
-	 * @param dstNamespace the namespace index to write as the destination namespace, must be at least 0
+	 * @param writer The writer where the mappings will be written.
+	 * @param dstNamespace The namespace index to write as the destination namespace, must be at least 0.
 	 */
 	public ProGuardFileWriter(Writer writer, int dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
@@ -68,8 +70,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 	/**
 	 * Constructs a ProGuard mapping writer.
 	 *
-	 * @param writer       the writer where the mappings will be written
-	 * @param dstNamespace the namespace name to write as the destination namespace
+	 * @param writer The writer where the mappings will be written.
+	 * @param dstNamespace The namespace name to write as the destination namespace.
 	 */
 	public ProGuardFileWriter(Writer writer, String dstNamespace) {
 		this.writer = Objects.requireNonNull(writer, "writer cannot be null");
@@ -78,8 +80,6 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	/**
 	 * Closes the internal {@link Writer}.
-	 *
-	 * @throws IOException if an IO error occurs
 	 */
 	@Override
 	public void close() throws IOException {
@@ -103,54 +103,35 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		writer.write(toJavaClassName(srcName));
-		writeArrow();
+		clsSrcName = srcName;
+
 		return true;
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
-		writeIndent();
-		writer.write(toJavaType(srcDesc));
-		writer.write(' ');
-		writer.write(srcName);
-		writeArrow();
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
+
 		return true;
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
-		Type type = Type.getMethodType(srcDesc);
-		writeIndent();
-		writer.write(toJavaType(type.getReturnType().getDescriptor()));
-		writer.write(' ');
-		writer.write(srcName);
-		writer.write('(');
-		Type[] args = type.getArgumentTypes();
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
 
-		for (int i = 0; i < args.length; i++) {
-			if (i > 0) {
-				writer.write(',');
-			}
-
-			writer.write(toJavaType(args[i].getDescriptor()));
-		}
-
-		writer.write(')');
-		writeArrow();
 		return true;
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
-		// ignored
-		return false;
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
+		return false; // not supported, skip
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
-		// ignored
-		return false;
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
+		return false; // not supported, skip
 	}
 
 	@Override
@@ -159,19 +140,72 @@ public final class ProGuardFileWriter implements MappingWriter {
 			return;
 		}
 
+		dstName = name;
+	}
+
+	@Override
+	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		if (targetKind == MappedElementKind.CLASS) {
-			writer.write(toJavaClassName(name));
-			writer.write(':');
+			if (dstName == null) {
+				classContentVisitPending = true;
+				return true;
+			}
 		} else {
-			writer.write(name);
+			if (dstName == null) {
+				return false;
+			} else if (classContentVisitPending) {
+				String memberDstName = dstName;
+				dstName = clsSrcName;
+				visitElementContent(MappedElementKind.CLASS);
+				classContentVisitPending = false;
+				dstName = memberDstName;
+			}
 		}
 
+		switch (targetKind) {
+		case CLASS:
+			writer.write(toJavaClassName(clsSrcName));
+			dstName = toJavaClassName(dstName) + ":";
+			break;
+		case FIELD:
+			writeIndent();
+			writer.write(toJavaType(memberSrcDesc));
+			writer.write(' ');
+			writer.write(memberSrcName);
+			break;
+		case METHOD:
+			writeIndent();
+			writer.write(toJavaType(memberSrcDesc.substring(memberSrcDesc.indexOf(')', 1) + 1)));
+			writer.write(' ');
+			writer.write(memberSrcName);
+			writer.write('(');
+			List<String> argTypes = extractArgumentTypes(memberSrcDesc);
+
+			for (int i = 0; i < argTypes.size(); i++) {
+				if (i > 0) {
+					writer.write(',');
+				}
+
+				writer.write(argTypes.get(i));
+			}
+
+			writer.write(')');
+			break;
+		default:
+			throw new IllegalStateException("unexpected invocation for "+targetKind);
+		}
+
+		writeArrow();
+		writer.write(dstName);
 		writer.write('\n');
+
+		dstName = null;
+		return targetKind == MappedElementKind.CLASS;
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		// ignored
+		// not supported, skip
 	}
 
 	private void writeArrow() throws IOException {
@@ -232,5 +266,28 @@ public final class ProGuardFileWriter implements MappingWriter {
 		}
 
 		return result.toString();
+	}
+
+	private List<String> extractArgumentTypes(String desc) {
+		List<String> argTypes = new ArrayList<>();
+		int index = 1; // First char is always '('
+
+		while (desc.charAt(index) != ')') {
+			int start = index;
+
+			while (desc.charAt(index) == '[') {
+				index++;
+			}
+
+			if (desc.charAt(index) == 'L') {
+				index = desc.indexOf(';', index) + 1;
+			} else {
+				index++;
+			}
+
+			argTypes.add(toJavaType(desc.substring(start, index)));
+		}
+
+		return argTypes;
 	}
 }

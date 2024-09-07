@@ -23,6 +23,9 @@ import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.Internal
 public final class Tiny2Util {
+	private Tiny2Util() {
+	}
+
 	public static boolean needEscape(String s) {
 		for (int pos = 0, len = s.length(); pos < len; pos++) {
 			char c = s.charAt(pos);

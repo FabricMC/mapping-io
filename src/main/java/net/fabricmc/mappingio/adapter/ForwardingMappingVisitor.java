@@ -21,10 +21,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that forwards all visit calls to another {@link MappingVisitor}.
+ *
+ * <p>Subclasses should override the visit methods they want to intercept.
+ */
 public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	protected ForwardingMappingVisitor(MappingVisitor next) {
 		Objects.requireNonNull(next, "null next");
@@ -53,7 +60,7 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		next.visitMetadata(key, value);
 	}
 
@@ -68,22 +75,22 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		return next.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		return next.visitMethod(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		return next.visitMethodArg(argPosition, lvIndex, srcName);
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 	}
 

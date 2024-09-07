@@ -25,10 +25,20 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#TINY_2_FILE Tiny v2 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class Tiny2FileReader {
+	private Tiny2FileReader() {
+	}
+
 	public static List<String> getNamespaces(Reader reader) throws IOException {
-		return getNamespaces(new ColumnFileReader(reader, '\t'));
+		return getNamespaces(new ColumnFileReader(reader, '\t', '\t'));
 	}
 
 	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
@@ -49,7 +59,7 @@ public final class Tiny2FileReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
 	}
 
 	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
@@ -60,17 +70,23 @@ public final class Tiny2FileReader {
 		}
 
 		String srcNamespace = reader.nextCol();
+		if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in Tiny v2 header");
+
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
 
 		while ((dstNamespace = reader.nextCol()) != null) {
+			if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in Tiny v2 header");
 			dstNamespaces.add(dstNamespace);
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		if (dstNsCount == 0) throw new IOException("no destination namespaces in Tiny v2 header");
+		boolean readerMarked = false;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		boolean firstIteration = true;
@@ -92,7 +108,7 @@ public final class Tiny2FileReader {
 					} else {
 						String key = reader.nextCol();
 						if (key == null) throw new IOException("missing property key in line "+reader.getLineNumber());
-						String value = reader.nextEscapedCol(); // may be missing -> null
+						String value = reader.nextCol(true); // may be missing -> null
 
 						if (key.equals(Tiny2Util.escapedNamesProperty)) {
 							escapeNames = true;
@@ -118,8 +134,13 @@ public final class Tiny2FileReader {
 
 			if (visitor.visitEnd()) break;
 
-			reader.reset();
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
 			firstIteration = false;
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 	}
 
@@ -159,9 +180,9 @@ public final class Tiny2FileReader {
 		while (reader.nextLine(2)) {
 			if (reader.nextCol("p")) { // method parameter: p <lv-index> <names>...
 				int lvIndex = reader.nextIntCol();
-				if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+				if (lvIndex < 0) throw new IOException("missing/invalid parameter-lv-index in line "+reader.getLineNumber());
 				String srcName = reader.nextCol(escapeNames);
-				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
+				if (srcName == null) throw new IOException("missing parameter-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
 
 				if (visitor.visitMethodArg(-1, lvIndex, srcName)) {
@@ -169,12 +190,12 @@ public final class Tiny2FileReader {
 				}
 			} else if (reader.nextCol("v")) { // method variable: v <lv-index> <lv-start-offset> <optional-lvt-index> <names>...
 				int lvIndex = reader.nextIntCol();
-				if (lvIndex < 0) throw new IOException("missing/invalid variable lv-index in line "+reader.getLineNumber());
+				if (lvIndex < 0) throw new IOException("missing/invalid variable-lv-index in line "+reader.getLineNumber());
 				int startOpIdx = reader.nextIntCol();
-				if (startOpIdx < 0) throw new IOException("missing/invalid variable lv-start-offset in line "+reader.getLineNumber());
+				if (startOpIdx < 0) throw new IOException("missing/invalid variable-lv-start-offset in line "+reader.getLineNumber());
 				int lvtRowIndex = reader.nextIntCol();
 				String srcName = reader.nextCol(escapeNames);
-				if (srcName == null) throw new IOException("missing var-name-a column in line "+reader.getLineNumber());
+				if (srcName == null) throw new IOException("missing variable-name-a column in line "+reader.getLineNumber());
 				if (srcName.isEmpty()) srcName = null;
 
 				if (visitor.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, -1, srcName)) {
@@ -198,7 +219,7 @@ public final class Tiny2FileReader {
 	}
 
 	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
-		String comment = reader.nextEscapedCol();
+		String comment = reader.nextCol(true);
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 
 		visitor.visitComment(subjectKind, comment);

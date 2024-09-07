@@ -26,36 +26,61 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.enigma.EnigmaDirReader;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
+import net.fabricmc.mappingio.format.intellij.MigrationMapFileReader;
+import net.fabricmc.mappingio.format.jobf.JobfFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
+import net.fabricmc.mappingio.format.srg.JamFileReader;
 import net.fabricmc.mappingio.format.srg.SrgFileReader;
+import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
-import net.fabricmc.mappingio.format.tsrg.TsrgFileReader;
 
 public final class MappingReader {
+	private MappingReader() {
+	}
+
+	@Nullable
 	public static MappingFormat detectFormat(Path file) throws IOException {
 		if (Files.isDirectory(file)) {
 			return MappingFormat.ENIGMA_DIR;
-		} else {
-			try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
-				return detectFormat(reader);
-			}
+		}
+
+		try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
+			String fileName = file.getFileName().toString();
+			int dotIdx = fileName.lastIndexOf('.');
+			String fileExt = dotIdx >= 0 ? fileName.substring(dotIdx + 1) : null;
+
+			return detectFormat(reader, fileExt);
 		}
 	}
 
+	@Nullable
 	public static MappingFormat detectFormat(Reader reader) throws IOException {
+		return detectFormat(reader, null);
+	}
+
+	private static MappingFormat detectFormat(Reader reader, @Nullable String fileExt) throws IOException {
 		char[] buffer = new char[DETECT_HEADER_LEN];
 		int pos = 0;
 		int len;
 
+		// Be careful not to close the reader, that's up to the caller.
+		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+
+		br.mark(DETECT_HEADER_LEN);
+
 		while (pos < buffer.length
-				&& (len = reader.read(buffer, pos, buffer.length - pos)) >= 0) {
+				&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
 			pos += len;
 		}
 
+		br.reset();
 		if (pos < 3) return null;
 
 		switch (String.valueOf(buffer, 0, 3)) {
@@ -69,20 +94,64 @@ public final class MappingReader {
 			return MappingFormat.ENIGMA_FILE;
 		case "PK:":
 		case "CL:":
-		case "MD:":
 		case "FD:":
-			return MappingFormat.SRG_FILE;
+		case "MD:":
+			return detectSrgOrXsrg(br, fileExt);
+		case "CL ":
+		case "FD ":
+		case "MD ":
+		case "MP ":
+			return MappingFormat.JAM_FILE;
 		}
 
 		String headerStr = String.valueOf(buffer, 0, pos);
 
-		if (headerStr.contains(" -> ")) {
+		if (headerStr.contains("<migrationMap>")) {
+			return MappingFormat.INTELLIJ_MIGRATION_MAP_FILE;
+		} else if ((headerStr.startsWith("p ")
+				|| headerStr.startsWith("c ")
+				|| headerStr.startsWith("f ")
+				|| headerStr.startsWith("m "))
+				&& headerStr.contains(" = ")) {
+			return MappingFormat.JOBF_FILE;
+		} else if (headerStr.contains(" -> ")) {
 			return MappingFormat.PROGUARD_FILE;
 		} else if (headerStr.contains("\n\t")) {
 			return MappingFormat.TSRG_FILE;
 		}
 
-		return null; // unknown format or corrupted
+		if (fileExt != null) {
+			if (fileExt.equals(MappingFormat.CSRG_FILE.fileExt)) return MappingFormat.CSRG_FILE;
+		}
+
+		// TODO: Recaf Simple
+
+		return null; // format unknown, not easily detectable or corrupted
+	}
+
+	private static MappingFormat detectSrgOrXsrg(BufferedReader reader, @Nullable String fileExt) throws IOException {
+		String line;
+
+		while ((line = reader.readLine()) != null) {
+			if (line.startsWith("FD:")) {
+				String[] parts = line.split(" ");
+
+				if (parts.length < 5
+						|| isEmptyOrStartsWithHash(parts[3])
+						|| isEmptyOrStartsWithHash(parts[4])) {
+					return MappingFormat.SRG_FILE;
+				}
+
+				return MappingFormat.XSRG_FILE;
+			}
+		}
+
+		return MappingFormat.XSRG_FILE.fileExt.equals(fileExt) ? MappingFormat.XSRG_FILE : MappingFormat.SRG_FILE;
+	}
+
+	private static boolean isEmptyOrStartsWithHash(String string) {
+		if (string.isEmpty() || string.startsWith("#")) return true;
+		return false;
 	}
 
 	public static List<String> getNamespaces(Path file) throws IOException {
@@ -95,7 +164,7 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
-		if (format.hasNamespaces) {
+		if (format.features().hasNamespaces()) {
 			try (Reader reader = Files.newBufferedReader(file)) {
 				return getNamespaces(reader, format);
 			}
@@ -117,7 +186,7 @@ public final class MappingReader {
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
-		if (format.hasNamespaces) {
+		if (format.features().hasNamespaces()) {
 			checkReaderCompatible(format);
 
 			switch (format) {
@@ -135,37 +204,65 @@ public final class MappingReader {
 		}
 	}
 
-	public static void read(Path file, MappingVisitor visitor) throws IOException {
-		read(file, null, visitor);
+	/**
+	 * Tries to detect the format of the given path and read it.
+	 *
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If the format can't be detected or reading fails.
+	 */
+	public static void read(Path path, MappingVisitor visitor) throws IOException {
+		read(path, null, visitor);
 	}
 
-	public static void read(Path file, MappingFormat format, MappingVisitor visitor) throws IOException {
+	/**
+	 * Tries to read the given path using the passed format's reader.
+	 *
+	 * @param path The path to read from. Can be a file or a directory.
+	 * @param format The format to use. Has to match the path's format.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If reading fails.
+	 */
+	public static void read(Path path, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
-			format = detectFormat(file);
+			format = detectFormat(path);
 			if (format == null) throw new IOException("invalid/unsupported mapping format");
 		}
 
 		if (format.hasSingleFile()) {
-			try (Reader reader = Files.newBufferedReader(file)) {
+			try (Reader reader = Files.newBufferedReader(path)) {
 				read(reader, format, visitor);
 			}
 		} else {
 			switch (format) {
 			case ENIGMA_DIR:
-				EnigmaDirReader.read(file, visitor);
+				EnigmaDirReader.read(path, visitor);
 				break;
-			case MCP_DIR:
-				throw new UnsupportedOperationException(); // TODO: implement
 			default:
 				throw new IllegalStateException();
 			}
 		}
 	}
 
+	/**
+	 * Tries to detect the reader's content's format and read it.
+	 *
+	 * @param reader The reader to read from.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If the format can't be detected or reading fails.
+	 */
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, null, visitor);
 	}
 
+	/**
+	 * Tries to read the reader's content using the passed format's mapping reader.
+	 *
+	 * @param reader The reader to read from.
+	 * @param format The format to use. Has to match the reader's content's format.
+	 * @param visitor The receiving visitor.
+	 * @throws IOException If reading fails.
+	 */
 	public static void read(Reader reader, MappingFormat format, MappingVisitor visitor) throws IOException {
 		if (format == null) {
 			if (!reader.markSupported()) reader = new BufferedReader(reader);
@@ -188,14 +285,28 @@ public final class MappingReader {
 			EnigmaFileReader.read(reader, visitor);
 			break;
 		case SRG_FILE:
+		case XSRG_FILE:
 			SrgFileReader.read(reader, visitor);
 			break;
+		case JAM_FILE:
+			JamFileReader.read(reader, visitor);
+			break;
+		case CSRG_FILE:
 		case TSRG_FILE:
 		case TSRG_2_FILE:
 			TsrgFileReader.read(reader, visitor);
 			break;
 		case PROGUARD_FILE:
 			ProGuardFileReader.read(reader, visitor);
+			break;
+		case INTELLIJ_MIGRATION_MAP_FILE:
+			MigrationMapFileReader.read(reader, visitor);
+			break;
+		case RECAF_SIMPLE_FILE:
+			RecafSimpleFileReader.read(reader, visitor);
+			break;
+		case JOBF_FILE:
+			JobfFileReader.read(reader, visitor);
 			break;
 		default:
 			throw new IllegalStateException();

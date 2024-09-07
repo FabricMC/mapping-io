@@ -20,7 +20,11 @@ import java.io.IOException;
 import java.io.Writer;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#ENIGMA_FILE Enigma file} writer.
+ */
 public final class EnigmaFileWriter extends EnigmaWriterBase {
 	public EnigmaFileWriter(Writer writer) throws IOException {
 		super(writer);

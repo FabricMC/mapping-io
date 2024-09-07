@@ -26,45 +26,66 @@ import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#ENIGMA_FILE Enigma file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class EnigmaFileReader {
+	private EnigmaFileReader() {
+	}
+
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
 		read(reader, MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK, visitor);
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, ' '), sourceNs, targetNs, visitor);
+		read(new ColumnFileReader(reader, '\t', ' '), sourceNs, targetNs, visitor);
 	}
 
-	public static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+	private static void read(ColumnFileReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
+		boolean readerMarked = false;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
+		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
+			reader.mark();
+			readerMarked = true;
 		}
 
-		boolean visitHeader = visitor.visitHeader();
+		for (;;) {
+			if (visitor.visitHeader()) {
+				visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+			}
 
-		if (visitHeader) {
-			visitor.visitNamespaces(sourceNs, Collections.singletonList(targetNs));
+			if (visitor.visitContent()) {
+				StringBuilder commentSb = new StringBuilder(200);
+				final MappingVisitor finalVisitor = visitor;
+
+				do {
+					if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
+						readClass(reader, 0, null, null, commentSb, finalVisitor);
+					}
+				} while (reader.nextLine(0));
+			}
+
+			if (visitor.visitEnd()) break;
+
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
-
-		if (visitor.visitContent()) {
-			StringBuilder commentSb = new StringBuilder(200);
-			final MappingVisitor finalVisitor = visitor;
-
-			do {
-				if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
-					readClass(reader, 0, null, null, commentSb, finalVisitor);
-				}
-			} while (reader.nextLine(0));
-		}
-
-		visitor.visitEnd();
 
 		if (parentVisitor != null) {
 			((MappingTree) visitor).accept(parentVisitor);
@@ -119,10 +140,10 @@ public final class EnigmaFileReader {
 				if (state < 0) continue;
 
 				String srcName = reader.nextCol();
-				if (srcName == null || srcName.isEmpty()) throw new IOException("missing field-name-a in line "+reader.getLineNumber());
+				if (srcName == null || srcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
 
 				String dstNameOrSrcDesc = reader.nextCol();
-				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing field-desc-b in line "+reader.getLineNumber());
+				if (dstNameOrSrcDesc == null || dstNameOrSrcDesc.isEmpty()) throw new IOException("missing member-name-b/member-desc-a in line "+reader.getLineNumber());
 
 				String srcDesc = reader.nextCol();
 				String dstName;
@@ -186,12 +207,11 @@ public final class EnigmaFileReader {
 
 				if (reader.nextCol("ARG")) { // method parameter: ARG <lv-index> <name-b>
 					int lvIndex = reader.nextIntCol();
-					if (lvIndex < 0) throw new IOException("missing/invalid parameter lv-index in line "+reader.getLineNumber());
+					if (lvIndex < 0) throw new IOException("missing/invalid parameter-lv-index in line "+reader.getLineNumber());
 
 					if (visitor.visitMethodArg(-1, lvIndex, null)) {
 						String dstName = reader.nextCol();
-						if (dstName == null) throw new IOException("missing var-name-b column in line "+reader.getLineNumber());
-						if (!dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
+						if (dstName != null && !dstName.isEmpty()) visitor.visitDstName(MappedElementKind.METHOD_ARG, 0, dstName);
 
 						readElement(reader, MappedElementKind.METHOD_ARG, indent, commentSb, visitor);
 					}

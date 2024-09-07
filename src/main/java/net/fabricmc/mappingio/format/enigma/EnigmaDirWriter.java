@@ -29,17 +29,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.format.MappingFormat;
 
+/**
+ * {@linkplain MappingFormat#ENIGMA_DIR Enigma directory} writer.
+ */
 public final class EnigmaDirWriter extends EnigmaWriterBase {
 	public EnigmaDirWriter(Path dir, boolean deleteExistingFiles) throws IOException {
 		super(null);
 		this.dir = dir.toAbsolutePath().normalize();
+		this.deleteExistingFiles = deleteExistingFiles;
+	}
 
+	@Override
+	public boolean visitHeader() throws IOException {
 		if (deleteExistingFiles && Files.exists(dir)) {
 			Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					if (file.getFileName().toString().endsWith("." + EnigmaDirReader.DIR_FILE_EXT)) {
+					if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
 						Files.delete(file);
 					}
 
@@ -58,6 +66,8 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 				}
 			});
 		}
+
+		return super.visitHeader();
 	}
 
 	@Override
@@ -81,7 +91,7 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 				if (pos >= 0) name = name.substring(0, pos);
 
 				// currentClass is not an outer class of srcName (or the same)
-				Path file = dir.resolve(name + "." + EnigmaDirReader.DIR_FILE_EXT).normalize();
+				Path file = dir.resolve(name + "." + MappingFormat.ENIGMA_FILE.fileExt).normalize();
 				if (!file.startsWith(dir)) throw new RuntimeException("invalid name: " + name);
 
 				if (writer != null) {
@@ -142,4 +152,5 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 	}
 
 	private final Path dir;
+	private final boolean deleteExistingFiles;
 }

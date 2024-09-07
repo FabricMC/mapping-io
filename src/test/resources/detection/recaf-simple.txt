@@ -1,0 +1,2 @@
+class_1 RenamedClass
+class_1.field_1 I renamedField

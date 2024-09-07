@@ -22,6 +22,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
@@ -42,6 +44,11 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitHeader() throws IOException {
+		return false;
+	}
+
+	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) { }
 
 	@Override
@@ -51,7 +58,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		writeIndent(0);
 		writer.write("FIELD ");
 		writer.write(srcName);
@@ -62,7 +69,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		writeIndent(0);
 		writer.write("METHOD ");
 		writer.write(srcName);
@@ -73,7 +80,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		writeIndent(1);
 		writer.write("ARG ");
 		writer.write(Integer.toString(lvIndex));
@@ -82,15 +89,8 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 		return false;
-	}
-
-	@Override
-	public boolean visitEnd() throws IOException {
-		close();
-
-		return true;
 	}
 
 	@Override
@@ -209,7 +209,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 		}
 	}
 
-	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_ELEMENT_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 	protected static final String toEscape = "\\\n\r\0\t";
 	protected static final String escaped = "\\nr0t";
 

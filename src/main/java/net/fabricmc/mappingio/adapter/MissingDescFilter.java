@@ -18,22 +18,27 @@ package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that filters out elements with missing source descriptors.
+ */
 public final class MissingDescFilter extends ForwardingMappingVisitor {
 	public MissingDescFilter(MappingVisitor next) {
 		super(next);
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		if (srcDesc == null) return false;
 
 		return super.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		if (srcDesc == null) return false;
 
 		return super.visitMethod(srcName, srcDesc);

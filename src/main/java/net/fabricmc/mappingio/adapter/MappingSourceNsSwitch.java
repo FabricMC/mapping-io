@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
@@ -50,9 +52,9 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	/**
 	 * Create a new MappingSourceNsSwitch instance.
 	 *
-	 * @param next MappingVisitor to pass the output to
-	 * @param newSourceNs namespace to use for the new source name
-	 * @param dropMissingNewSrcName whether to drop elements without a name in newSourceNs, will use original srcName otherwise
+	 * @param next MappingVisitor to pass the output to.
+	 * @param newSourceNs Namespace to use for the new source name.
+	 * @param dropMissingNewSrcName Whether to drop elements without a name in newSourceNs, will use original srcName otherwise.
 	 */
 	public MappingSourceNsSwitch(MappingVisitor next, String newSourceNs, boolean dropMissingNewSrcName) {
 		super(next);
@@ -69,7 +71,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 			Set<MappingFlag> ret = EnumSet.noneOf(MappingFlag.class);
 			ret.addAll(next.getFlags());
 			ret.add(MappingFlag.NEEDS_MULTIPLE_PASSES);
-			ret.add(MappingFlag.NEEDS_UNIQUENESS);
+			ret.add(MappingFlag.NEEDS_ELEMENT_UNIQUENESS);
 
 			return ret;
 		}
@@ -127,7 +129,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		if (classMapReady && relayHeaderOrMetadata) next.visitMetadata(key, value);
 	}
 
@@ -150,7 +152,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitField(srcName, srcDesc);
 
@@ -161,7 +163,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethod(srcName, srcDesc);
 
@@ -172,7 +174,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethodArg(argPosition, lvIndex, srcName);
 
@@ -184,7 +186,7 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		assert classMapReady;
 		if (passThrough) return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 

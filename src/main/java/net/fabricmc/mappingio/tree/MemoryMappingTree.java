@@ -17,25 +17,33 @@
 package net.fabricmc.mappingio.tree;
 
 import java.io.IOException;
-import java.util.AbstractMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public final class MemoryMappingTree implements MappingTree, MappingVisitor {
+/**
+ * {@link VisitableMappingTree} implementation that stores all data in memory.
+ */
+public final class MemoryMappingTree implements VisitableMappingTree {
 	public MemoryMappingTree() {
 		this(false);
 	}
@@ -52,8 +60,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		setSrcNamespace(src.getSrcNamespace());
 		setDstNamespaces(src.getDstNamespaces());
 
-		for (Map.Entry<String, String> entry : src.getMetadata()) {
-			addMetadata(entry.getKey(), entry.getValue());
+		for (MetadataEntry entry : src.getMetadata()) {
+			addMetadata(entry);
 		}
 
 		for (ClassMapping cls : src.getClasses()) {
@@ -89,7 +97,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 	}
 
-	public void setHierarchyInfoProvider(HierarchyInfoProvider<?> provider) {
+	@ApiStatus.Experimental
+	public void setHierarchyInfoProvider(@Nullable HierarchyInfoProvider<?> provider) {
 		hierarchyInfo = provider;
 
 		if (provider != null) {
@@ -98,11 +107,13 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
+	@Nullable
 	public String getSrcNamespace() {
 		return srcNamespace;
 	}
 
 	@Override
+	@Nullable
 	public String setSrcNamespace(String namespace) {
 		String ret = srcNamespace;
 		srcNamespace = namespace;
@@ -205,37 +216,25 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public Collection<Map.Entry<String, String>> getMetadata() {
+	public List<? extends MetadataEntry> getMetadata() {
 		return metadata;
 	}
 
 	@Override
-	public String getMetadata(String key) {
-		for (Map.Entry<String, String> entry : metadata) {
-			if (entry.getKey().equals(key)) return entry.getValue();
-		}
-
-		return null;
+	public List<? extends MetadataEntry> getMetadata(String key) {
+		return Collections.unmodifiableList(metadata.stream()
+				.filter(entry -> entry.getKey().equals(key))
+				.collect(Collectors.toList()));
 	}
 
 	@Override
-	public void addMetadata(String key, String value) {
-		metadata.add(new AbstractMap.SimpleEntry<>(key, value));
+	public void addMetadata(MetadataEntry entry) {
+		metadata.add(entry);
 	}
 
 	@Override
-	public String removeMetadata(String key) {
-		for (Iterator<Map.Entry<String, String>> it = metadata.iterator(); it.hasNext(); ) {
-			Map.Entry<String, String> entry = it.next();
-
-			if (entry.getKey().equals(key)) {
-				it.remove();
-
-				return entry.getValue();
-			}
-		}
-
-		return null;
+	public boolean removeMetadata(String key) {
+		return metadata.removeIf(entry -> entry.getKey().equals(key));
 	}
 
 	@Override
@@ -244,14 +243,16 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping getClass(String srcName) {
 		return classesBySrcName.get(srcName);
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping getClass(String name, int namespace) {
 		if (namespace < 0 || !indexByDstNames) {
-			return MappingTree.super.getClass(name, namespace);
+			return VisitableMappingTree.super.getClass(name, namespace);
 		} else {
 			return classesByDstNames[namespace].get(name);
 		}
@@ -285,6 +286,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
+	@Nullable
 	public ClassMapping removeClass(String srcName) {
 		ClassEntry ret = classesBySrcName.remove(srcName);
 
@@ -303,8 +305,26 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		do {
 			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
+				Collection<MetadataEntry> metadataToVisit = metadata;
 
-				for (Map.Entry<String, String> entry : metadata) {
+				if (visitor.getFlags().contains(MappingFlag.NEEDS_METADATA_UNIQUENESS)) {
+					Deque<MetadataEntry> uniqueMetadata = new ArrayDeque<>();
+					Set<String> addedKeys = new HashSet<>();
+
+					// Iterate last-to-first to construct a list of each key's latest occurrence.
+					for (int i = metadata.size() - 1; i >= 0; i--) {
+						MetadataEntry entry = metadata.get(i);
+
+						if (!addedKeys.contains(entry.getKey())) {
+							addedKeys.add(entry.getKey());
+							uniqueMetadata.addFirst(entry);
+						}
+					}
+
+					metadataToVisit = uniqueMetadata;
+				}
+
+				for (MetadataEntry entry : metadataToVisit) {
 					visitor.visitMetadata(entry.getKey(), entry.getValue());
 				}
 			}
@@ -390,8 +410,9 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) {
-		this.metadata.add(new AbstractMap.SimpleEntry<>(key, value));
+	public void visitMetadata(String key, @Nullable String value) {
+		MetadataEntryImpl entry = new MetadataEntryImpl(key, value);
+		addMetadata(entry);
 	}
 
 	@Override
@@ -416,7 +437,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) {
+	public boolean visitField(String srcName, @Nullable String srcDesc) {
 		if (currentClass == null) throw new UnsupportedOperationException("Tried to visit field before owning class");
 
 		currentMethod = null;
@@ -440,7 +461,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) {
 		if (currentClass == null) throw new UnsupportedOperationException("Tried to visit method before owning class");
 
 		MethodEntry method = currentClass.getMethod(srcName, srcDesc, srcNsMap);
@@ -461,7 +482,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		return true;
 	}
 
-	private MemberEntry<?> queuePendingMember(String name, String desc, boolean isField) {
+	private MemberEntry<?> queuePendingMember(String name, @Nullable String desc, boolean isField) {
 		if (pendingMembers == null) pendingMembers = new HashMap<>();
 		GlobalMemberKey key = new GlobalMemberKey(currentClass, name, desc, isField);
 		MemberEntry<?> member = pendingMembers.get(key);
@@ -514,7 +535,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) {
 		if (currentMethod == null) throw new UnsupportedOperationException("Tried to visit method argument before owning method");
 
 		MethodArgEntry arg = currentMethod.getArg(argPosition, lvIndex, srcName);
@@ -538,7 +559,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 		if (currentMethod == null) throw new UnsupportedOperationException("Tried to visit method variable before owning method");
 
 		MethodVarEntry var = currentMethod.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
@@ -691,6 +712,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
 		protected Entry(MemoryMappingTree tree, String srcName) {
+			this.tree = tree;
 			this.srcName = srcName;
 			this.dstNames = new String[tree.dstNamespaces.size()];
 		}
@@ -717,6 +739,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
+		@Nullable
 		public final String getDstName(int namespace) {
 			return dstNames[namespace];
 		}
@@ -745,6 +768,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
+		@Nullable
 		public final String getComment() {
 			return comment;
 		}
@@ -754,7 +778,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.comment = comment;
 		}
 
-		protected final boolean acceptElement(MappingVisitor visitor, String[] dstDescs) throws IOException {
+		protected final boolean acceptElement(MappingVisitor visitor, @Nullable String[] dstDescs) throws IOException {
 			MappedElementKind kind = getKind();
 
 			for (int i = 0; i < dstNames.length; i++) {
@@ -794,6 +818,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			// TODO: copy args+vars
 		}
 
+		protected final MemoryMappingTree tree;
 		protected String srcName;
 		protected String[] dstNames;
 		protected String comment;
@@ -802,14 +827,10 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	static final class ClassEntry extends Entry<ClassEntry> implements ClassMapping {
 		ClassEntry(MemoryMappingTree tree, String srcName) {
 			super(tree, srcName);
-
-			this.tree = tree;
 		}
 
 		ClassEntry(MemoryMappingTree tree, ClassMapping src, int srcNsEquivalent) {
 			super(tree, src, srcNsEquivalent);
-
-			this.tree = tree;
 
 			for (FieldMapping field : src.getFields()) {
 				addField(field);
@@ -858,12 +879,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public FieldEntry getField(String srcName, String srcDesc) {
+		@Nullable
+		public FieldEntry getField(String srcName, @Nullable String srcDesc) {
 			return getMember(srcName, srcDesc, fields, flags, FLAG_HAS_ANY_FIELD_DESC, FLAG_MISSES_ANY_FIELD_DESC);
 		}
 
 		@Override
-		public FieldEntry getField(String name, String desc, int namespace) {
+		@Nullable
+		public FieldEntry getField(String name, @Nullable String desc, int namespace) {
 			return (FieldEntry) ClassMapping.super.getField(name, desc, namespace);
 		}
 
@@ -877,7 +900,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public FieldEntry removeField(String srcName, String srcDesc) {
+		@Nullable
+		public FieldEntry removeField(String srcName, @Nullable String srcDesc) {
 			FieldEntry ret = getField(srcName, srcDesc);
 			if (ret != null) fields.remove(ret.key);
 
@@ -892,12 +916,14 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodEntry getMethod(String srcName, String srcDesc) {
+		@Nullable
+		public MethodEntry getMethod(String srcName, @Nullable String srcDesc) {
 			return getMember(srcName, srcDesc, methods, flags, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
 		}
 
 		@Override
-		public MethodEntry getMethod(String name, String desc, int namespace) {
+		@Nullable
+		public MethodEntry getMethod(String name, @Nullable String desc, int namespace) {
 			return (MethodEntry) ClassMapping.super.getMethod(name, desc, namespace);
 		}
 
@@ -911,14 +937,16 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodEntry removeMethod(String srcName, String srcDesc) {
+		@Nullable
+		public MethodEntry removeMethod(String srcName, @Nullable String srcDesc) {
 			MethodEntry ret = getMethod(srcName, srcDesc);
 			if (ret != null) methods.remove(ret.key);
 
 			return ret;
 		}
 
-		private static <T extends MemberEntry<T>> T getMember(String srcName, String srcDesc, Map<MemberKey, T> map, int flags, int flagHasAny, int flagMissesAny) {
+		private static <T extends MemberEntry<T>> T getMember(String srcName, @Nullable String srcDesc,
+				@Nullable Map<MemberKey, T> map, int flags, int flagHasAny, int flagMissesAny) {
 			if (map == null) return null;
 
 			boolean hasAnyDesc = (flags & flagHasAny) != 0;
@@ -987,7 +1015,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 				flags |= flagHasAny;
 
 				if ((flags & flagMissesAny) != 0) {
-					ret = map.remove(new MemberKey(srcName, null));
+					ret = map.remove(new MemberKey(entry.srcName, null));
 
 					if (ret != null) { // compatible entry exists, copy desc + extra content
 						ret.key = entry.key;
@@ -1002,7 +1030,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			} else { // entry.srcDesc == null, may have replaced desc-containing
 				if ((flags & flagHasAny) != 0) {
 					for (T prevEntry : map.values()) {
-						if (prevEntry != entry && prevEntry.srcName.equals(srcName) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
+						if (prevEntry != entry && prevEntry.srcName.equals(entry.srcName) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
 							map.remove(entry.key);
 							prevEntry.copyFrom(entry, false);
 
@@ -1098,14 +1126,13 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private static final byte FLAG_HAS_ANY_METHOD_DESC = 4;
 		private static final byte FLAG_MISSES_ANY_METHOD_DESC = 8;
 
-		protected final MemoryMappingTree tree;
 		private Map<MemberKey, FieldEntry> fields = null;
 		private Map<MemberKey, MethodEntry> methods = null;
 		private byte flags;
 	}
 
 	abstract static class MemberEntry<T extends MemberEntry<T>> extends Entry<T> implements MemberMapping {
-		protected MemberEntry(ClassEntry owner, String srcName, String srcDesc) {
+		protected MemberEntry(ClassEntry owner, String srcName, @Nullable String srcDesc) {
 			super(owner.tree, srcName);
 
 			this.owner = owner;
@@ -1132,6 +1159,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
+		@Nullable
 		public final String getSrcDesc() {
 			return srcDesc;
 		}
@@ -1159,7 +1187,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class FieldEntry extends MemberEntry<FieldEntry> implements FieldMapping {
-		FieldEntry(ClassEntry owner, String srcName, String srcDesc) {
+		FieldEntry(ClassEntry owner, String srcName, @Nullable String srcDesc) {
 			super(owner, srcName, srcDesc);
 		}
 
@@ -1173,7 +1201,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public void setSrcDesc(String desc) {
+		public void setSrcDesc(@Nullable String desc) {
 			if (Objects.equals(desc, srcDesc)) return;
 
 			MemberKey newKey = new MemberKey(srcName, desc);
@@ -1204,7 +1232,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MethodEntry extends MemberEntry<MethodEntry> implements MethodMapping {
-		MethodEntry(ClassEntry owner, String srcName, String srcDesc) {
+		MethodEntry(ClassEntry owner, String srcName, @Nullable String srcDesc) {
 			super(owner, srcName, srcDesc);
 		}
 
@@ -1226,7 +1254,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public void setSrcDesc(String desc) {
+		public void setSrcDesc(@Nullable String desc) {
 			if (Objects.equals(desc, srcDesc)) return;
 
 			MemberKey newKey = new MemberKey(srcName, desc);
@@ -1252,13 +1280,15 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodArgEntry getArg(int argPosition, int lvIndex, String srcName) {
+		@Nullable
+		public MethodArgEntry getArg(int argPosition, int lvIndex, @Nullable String srcName) {
 			if (args == null) return null;
 
 			if (argPosition >= 0 || lvIndex >= 0) {
 				for (MethodArgEntry entry : args) {
 					if (argPosition >= 0 && entry.argPosition == argPosition
 							|| lvIndex >= 0 && entry.lvIndex == lvIndex) {
+						if (srcName != null && entry.srcName != null && !srcName.equals(entry.srcName)) continue; // both srcNames are present but not equal
 						return entry;
 					}
 				}
@@ -1300,7 +1330,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodArgEntry removeArg(int argPosition, int lvIndex, String srcName) {
+		@Nullable
+		public MethodArgEntry removeArg(int argPosition, int lvIndex, @Nullable String srcName) {
 			MethodArgEntry ret = getArg(argPosition, lvIndex, srcName);
 			if (ret != null) args.remove(ret);
 
@@ -1315,7 +1346,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+		@Nullable
+		public MethodVarEntry getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 			if (vars == null) return null;
 
 			if (lvtRowIndex >= 0) {
@@ -1414,7 +1446,8 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		}
 
 		@Override
-		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+		@Nullable
+		public MethodVarEntry removeVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 			MethodVarEntry ret = getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 			if (ret != null) vars.remove(ret);
 
@@ -1484,7 +1517,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MethodArgEntry extends Entry<MethodArgEntry> implements MethodArgMapping {
-		MethodArgEntry(MethodEntry method, int argPosition, int lvIndex, String srcName) {
+		MethodArgEntry(MethodEntry method, int argPosition, int lvIndex, @Nullable String srcName) {
 			super(method.owner.tree, srcName);
 
 			this.method = method;
@@ -1535,7 +1568,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.lvIndex = index;
 		}
 
-		public void setSrcName(String name) {
+		public void setSrcName(@Nullable String name) {
 			this.srcName = name;
 		}
 
@@ -1565,7 +1598,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MethodVarEntry extends Entry<MethodVarEntry> implements MethodVarMapping {
-		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) {
+		MethodVarEntry(MethodEntry method, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
 			super(method.owner.tree, srcName);
 
 			this.method = method;
@@ -1632,7 +1665,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 			this.endOpIdx = endOpIdx;
 		}
 
-		public void setSrcName(String name) {
+		public void setSrcName(@Nullable String name) {
 			this.srcName = name;
 		}
 
@@ -1664,7 +1697,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	}
 
 	static final class MemberKey {
-		MemberKey(String name, String desc) {
+		MemberKey(String name, @Nullable String desc) {
 			this.name = name;
 			this.desc = desc;
 
@@ -1699,8 +1732,51 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 		private final int hash;
 	}
 
+	static final class MetadataEntryImpl implements MetadataEntry {
+		MetadataEntryImpl(String key, @Nullable String value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public String getKey() {
+			return key;
+		}
+
+		@Override
+		public String getValue() {
+			return value;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other == this) return true;
+
+			if (!(other instanceof MetadataEntryImpl)) {
+				return false;
+			}
+
+			MetadataEntryImpl entry = (MetadataEntryImpl) other;
+
+			return this.key.equals(entry.key) && this.value.equals(entry.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return key.hashCode() | value.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return key + ":" + value;
+		}
+
+		final String key;
+		final String value;
+	}
+
 	static final class GlobalMemberKey {
-		GlobalMemberKey(ClassEntry owner, String name, String desc, boolean isField) {
+		GlobalMemberKey(ClassEntry owner, String name, @Nullable String desc, boolean isField) {
 			this.owner = owner;
 			this.name = name;
 			this.desc = desc;
@@ -1739,7 +1815,7 @@ public final class MemoryMappingTree implements MappingTree, MappingVisitor {
 	private boolean indexByDstNames;
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
-	private final List<Map.Entry<String, String>> metadata = new ArrayList<>();
+	private final List<MetadataEntry> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private Map<String, ClassEntry>[] classesByDstNames;
 

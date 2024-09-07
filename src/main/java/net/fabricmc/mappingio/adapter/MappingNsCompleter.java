@@ -22,14 +22,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * A mapping visitor that completes missing destination names.
+ *
+ * <p>Some mapping formats allow omitting destination names if equal to the source name.
+ * This visitor fills in these "holes" by copying names from another namespace.
+ */
 public final class MappingNsCompleter extends ForwardingMappingVisitor {
+	/**
+	 * @param next The next visitor to forward the data to.
+	 * @param alternatives A map of which namespaces should copy from which others.
+	 */
 	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives) {
 		this(next, alternatives, false);
 	}
 
+	/**
+	 * @param next The next visitor to forward the data to.
+	 * @param alternatives A map of which namespaces should copy from which others.
+	 * @param addMissingNs Whether or not to copy namespaces from the alternatives keyset if not already present.
+	 */
 	public MappingNsCompleter(MappingVisitor next, Map<String, String> alternatives, boolean addMissingNs) {
 		super(next);
 
@@ -87,7 +104,7 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public void visitMetadata(String key, String value) throws IOException {
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		if (relayHeaderOrMetadata) next.visitMetadata(key, value);
 	}
 
@@ -106,28 +123,28 @@ public final class MappingNsCompleter extends ForwardingMappingVisitor {
 	}
 
 	@Override
-	public boolean visitField(String srcName, String srcDesc) throws IOException {
+	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitField(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethod(String srcName, String srcDesc) throws IOException {
+	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethod(srcName, srcDesc);
 	}
 
 	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, String srcName) throws IOException {
+	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethodArg(argPosition, lvIndex, srcName);
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName) throws IOException {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		this.srcName = srcName;
 
 		return next.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);

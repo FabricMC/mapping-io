@@ -26,12 +26,22 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.ColumnFileReader;
+import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
+/**
+ * {@linkplain MappingFormat#TINY_FILE Tiny v1 file} reader.
+ *
+ * <p>Crashes if a second visit pass is requested without
+ * {@link MappingFlag#NEEDS_MULTIPLE_PASSES} having been passed beforehand.
+ */
 public final class Tiny1FileReader {
+	private Tiny1FileReader() {
+	}
+
 	public static List<String> getNamespaces(Reader reader) throws IOException {
-		return getNamespaces(new ColumnFileReader(reader, '\t'));
+		return getNamespaces(new ColumnFileReader(reader, '\t', '\t'));
 	}
 
 	private static List<String> getNamespaces(ColumnFileReader reader) throws IOException {
@@ -50,7 +60,7 @@ public final class Tiny1FileReader {
 	}
 
 	public static void read(Reader reader, MappingVisitor visitor) throws IOException {
-		read(new ColumnFileReader(reader, '\t'), visitor);
+		read(new ColumnFileReader(reader, '\t', '\t'), visitor);
 	}
 
 	private static void read(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
@@ -59,34 +69,38 @@ public final class Tiny1FileReader {
 		}
 
 		String srcNamespace = reader.nextCol();
+		if (srcNamespace == null || srcNamespace.isEmpty()) throw new IOException("no source namespace in Tiny v1 header");
+
 		List<String> dstNamespaces = new ArrayList<>();
 		String dstNamespace;
 
 		while ((dstNamespace = reader.nextCol()) != null) {
+			if (dstNamespace.isEmpty()) throw new IOException("empty destination namespace in Tiny v1 header");
 			dstNamespaces.add(dstNamespace);
 		}
 
 		int dstNsCount = dstNamespaces.size();
+		if (dstNsCount == 0) throw new IOException("no destination namespaces in Tiny v1 header");
+
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
+		boolean readerMarked = false;
 
-		if (flags.contains(MappingFlag.NEEDS_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
 			reader.mark();
+			readerMarked = true;
 		}
 
 		for (;;) {
-			boolean visitHeader = visitor.visitHeader();
-
-			if (visitHeader) {
+			if (visitor.visitHeader()) {
 				visitor.visitNamespaces(srcNamespace, dstNamespaces);
 			}
 
 			if (visitor.visitContent()) {
 				String lastClass = null;
-				boolean lastClassDstNamed = false;;
 				boolean visitLastClass = false;
 
 				while (reader.nextLine(0)) {
@@ -96,15 +110,12 @@ public final class Tiny1FileReader {
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 
-						if (!lastClassDstNamed || !srcName.equals(lastClass)) {
-							lastClass = srcName;
-							lastClassDstNamed = true;
-							visitLastClass = visitor.visitClass(srcName);
+						lastClass = srcName;
+						visitLastClass = visitor.visitClass(srcName);
 
-							if (visitLastClass) {
-								readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
-								visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
-							}
+						if (visitLastClass) {
+							readDstNames(reader, MappedElementKind.CLASS, dstNsCount, visitor);
+							visitLastClass = visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 					} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD cls-a desc-a <names>... or field: FIELD cls-a desc-a <names>...
 						String srcOwner = reader.nextCol();
@@ -112,15 +123,14 @@ public final class Tiny1FileReader {
 
 						if (!srcOwner.equals(lastClass)) {
 							lastClass = srcOwner;
-							lastClassDstNamed = false;
 							visitLastClass = visitor.visitClass(srcOwner) && visitor.visitElementContent(MappedElementKind.CLASS);
 						}
 
 						if (visitLastClass) {
 							String srcDesc = reader.nextCol();
-							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing desc-a in line "+reader.getLineNumber());
+							if (srcDesc == null || srcDesc.isEmpty()) throw new IOException("missing member-desc-a in line "+reader.getLineNumber());
 							String srcName = reader.nextCol();
-							if (srcName == null || srcName.isEmpty()) throw new IOException("missing name-a in line "+reader.getLineNumber());
+							if (srcName == null || srcName.isEmpty()) throw new IOException("missing member-name-a in line "+reader.getLineNumber());
 
 							if (isMethod && visitor.visitMethod(srcName, srcDesc)
 									|| !isMethod && visitor.visitField(srcName, srcDesc)) {
@@ -160,7 +170,12 @@ public final class Tiny1FileReader {
 
 			if (visitor.visitEnd()) break;
 
-			reader.reset();
+			if (!readerMarked) {
+				throw new IllegalStateException("repeated visitation requested without NEEDS_MULTIPLE_PASSES");
+			}
+
+			int markIdx = reader.reset();
+			assert markIdx == 1;
 		}
 
 		if (parentVisitor != null) {

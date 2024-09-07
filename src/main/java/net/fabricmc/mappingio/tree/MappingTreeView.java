@@ -19,23 +19,36 @@ package net.fabricmc.mappingio.tree;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * Read-only mapping tree.
+ */
 public interface MappingTreeView {
+	/**
+	 * @return The source namespace, or {@code null} if the tree is uninitialized.
+	 */
+	@Nullable
 	String getSrcNamespace();
+
+	/**
+	 * @return A list containing the destination namespaces, in order of their IDs.
+	 * Can only be empty if the tree is uninitialized.
+	 */
 	List<String> getDstNamespaces();
 
 	/**
-	 * Get the maximum available namespace ID (exclusive).
+	 * @return The maximum available namespace ID (exclusive).
 	 */
 	default int getMaxNamespaceId() {
 		return getDstNamespaces().size();
 	}
 
 	/**
-	 * Get the minimum available namespace ID (inclusive).
+	 * @return The minimum available namespace ID (inclusive).
 	 */
 	default int getMinNamespaceId() {
 		return MIN_NAMESPACE_ID;
@@ -57,11 +70,13 @@ public interface MappingTreeView {
 		return getDstNamespaces().get(id);
 	}
 
-	Collection<Entry<String, String>> getMetadata();
-	String getMetadata(String key);
+	List<? extends MetadataEntryView> getMetadata();
+	List<? extends MetadataEntryView> getMetadata(String key);
 
 	Collection<? extends ClassMappingView> getClasses();
+	@Nullable
 	ClassMappingView getClass(String srcName);
+	@Nullable
 	default ClassMappingView getClass(String name, int namespace) {
 		if (namespace < 0) return getClass(name);
 
@@ -75,32 +90,33 @@ public interface MappingTreeView {
 	/**
 	 * @see MappingTreeView#getField(String, String, String, int)
 	 */
-	default FieldMappingView getField(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMappingView owner = getClass(srcOwnerName);
+	@Nullable
+	default FieldMappingView getField(String srcClsName, String srcName, @Nullable String srcDesc) {
+		ClassMappingView owner = getClass(srcClsName);
 		return owner != null ? owner.getField(srcName, srcDesc) : null;
 	}
 
-	/**
-	 * @param desc Nullable.
-	 */
-	default FieldMappingView getField(String ownerName, String name, String desc, int namespace) {
-		ClassMappingView owner = getClass(ownerName, namespace);
+	@Nullable
+	default FieldMappingView getField(String clsName, String name, @Nullable String desc, int namespace) {
+		ClassMappingView owner = getClass(clsName, namespace);
 		return owner != null ? owner.getField(name, desc, namespace) : null;
 	}
 
 	/**
 	 * @see MappingTreeView#getMethod(String, String, String, int)
 	 */
-	default MethodMappingView getMethod(String srcOwnerName, String srcName, String srcDesc) {
-		ClassMappingView owner = getClass(srcOwnerName);
+	@Nullable
+	default MethodMappingView getMethod(String srcClsName, String srcName, @Nullable String srcDesc) {
+		ClassMappingView owner = getClass(srcClsName);
 		return owner != null ? owner.getMethod(srcName, srcDesc) : null;
 	}
 
 	/**
-	 * @param desc Nullable. Can be either complete desc or parameter-only desc.
+	 * @param desc Can be either complete desc or parameter-only desc.
 	 */
-	default MethodMappingView getMethod(String ownerName, String name, String desc, int namespace) {
-		ClassMappingView owner = getClass(ownerName, namespace);
+	@Nullable
+	default MethodMappingView getMethod(String clsName, String name, @Nullable String desc, int namespace) {
+		ClassMappingView owner = getClass(clsName, namespace);
 		return owner != null ? owner.getMethod(name, desc, namespace) : null;
 	}
 
@@ -182,12 +198,20 @@ public interface MappingTreeView {
 		return ret.toString();
 	}
 
+	interface MetadataEntryView {
+		String getKey();
+		@Nullable
+		String getValue();
+	}
+
 	interface ElementMappingView {
 		MappingTreeView getTree();
 
 		String getSrcName();
+		@Nullable
 		String getDstName(int namespace);
 
+		@Nullable
 		default String getName(int namespace) {
 			if (namespace < 0) {
 				return getSrcName();
@@ -196,6 +220,7 @@ public interface MappingTreeView {
 			}
 		}
 
+		@Nullable
 		default String getName(String namespace) {
 			int nsId = getTree().getNamespaceId(namespace);
 
@@ -206,6 +231,7 @@ public interface MappingTreeView {
 			}
 		}
 
+		@Nullable
 		String getComment();
 	}
 
@@ -215,12 +241,14 @@ public interface MappingTreeView {
 		/**
 		 * @see MappingTreeView#getField(String, String, String, int)
 		 */
-		FieldMappingView getField(String srcName, String srcDesc);
+		@Nullable
+		FieldMappingView getField(String srcName, @Nullable String srcDesc);
 
 		/**
 		 * @see MappingTreeView#getField(String, String, String, int)
 		 */
-		default FieldMappingView getField(String name, String desc, int namespace) {
+		@Nullable
+		default FieldMappingView getField(String name, @Nullable String desc, int namespace) {
 			if (namespace < 0) return getField(name, desc);
 
 			for (FieldMappingView field : getFields()) {
@@ -239,12 +267,14 @@ public interface MappingTreeView {
 		/**
 		 * @see MappingTreeView#getMethod(String, String, String, int)
 		 */
-		MethodMappingView getMethod(String srcName, String srcDesc);
+		@Nullable
+		MethodMappingView getMethod(String srcName, @Nullable String srcDesc);
 
 		/**
 		 * @see MappingTreeView#getMethod(String, String, String, int)
 		 */
-		default MethodMappingView getMethod(String name, String desc, int namespace) {
+		@Nullable
+		default MethodMappingView getMethod(String name, @Nullable String desc, int namespace) {
 			if (namespace < 0) return getMethod(name, desc);
 
 			for (MethodMappingView method : getMethods()) {
@@ -262,14 +292,17 @@ public interface MappingTreeView {
 
 	interface MemberMappingView extends ElementMappingView {
 		ClassMappingView getOwner();
+		@Nullable
 		String getSrcDesc();
 
+		@Nullable
 		default String getDstDesc(int namespace) {
 			String srcDesc = getSrcDesc();
 
 			return srcDesc != null ? getTree().mapDesc(srcDesc, namespace) : null;
 		}
 
+		@Nullable
 		default String getDesc(int namespace) {
 			String srcDesc = getSrcDesc();
 
@@ -280,6 +313,7 @@ public interface MappingTreeView {
 			}
 		}
 
+		@Nullable
 		default String getDesc(String namespace) {
 			int nsId = getTree().getNamespaceId(namespace);
 
@@ -295,10 +329,12 @@ public interface MappingTreeView {
 
 	interface MethodMappingView extends MemberMappingView {
 		Collection<? extends MethodArgMappingView> getArgs();
-		MethodArgMappingView getArg(int argPosition, int lvIndex, String srcName);
+		@Nullable
+		MethodArgMappingView getArg(int argPosition, int lvIndex, @Nullable String srcName);
 
 		Collection<? extends MethodVarMappingView> getVars();
-		MethodVarMappingView getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, String srcName);
+		@Nullable
+		MethodVarMappingView getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 	}
 
 	interface MethodArgMappingView extends ElementMappingView {

@@ -12,3 +12,6 @@ ij_java_class_count_to_use_import_on_demand = 999
 [*.{yml,yaml}]
 indent_style = space
 indent_size = 2
+
+[*.{tiny,mapping,mappings,csrg,tsrg}]
+trim_trailing_whitespace = false
