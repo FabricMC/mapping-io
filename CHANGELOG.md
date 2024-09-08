@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `MappingFormat#features()` to allow for more fine-grained programmatic querying of format capabilities
 - Added tests to validate our writer outputs against 3rd-party readers
 - Overhauled the internal `ColumnFileReader` to behave more consistently
+- Made `VisitOrder#createByName` use alphanumeric and nest-aware sorting
 - Made handling of the `NEEDS_MULTIPLE_PASSES` flag more consistent, reducing memory usage in a few cases
 - Made some internal methods in Enigma and TSRG readers actually private
 - Made all writers for formats which can't represent empty destination names skip such elements entirely, unless mapped child elements are present
