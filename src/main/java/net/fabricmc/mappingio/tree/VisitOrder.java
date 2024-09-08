@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.mappingio.lib.alphanum.AlphanumComparator;
+import net.fabricmc.mappingio.lib.alphanum.AlphanumericComparator;
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ElementMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;
@@ -313,7 +313,7 @@ public final class VisitOrder {
 		return methodVarsFirst;
 	}
 
-	private static final AlphanumComparator ALPHANUM = new AlphanumComparator();
+	private static final AlphanumericComparator ALPHANUM = new AlphanumericComparator();
 	private Comparator<ClassMappingView> classComparator;
 	private Comparator<FieldMappingView> fieldComparator;
 	private Comparator<MethodMappingView> methodComparator;
