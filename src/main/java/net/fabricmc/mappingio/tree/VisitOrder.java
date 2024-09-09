@@ -24,7 +24,6 @@ import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.mappingio.lib.alphanum.AlphanumericComparator;
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ElementMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.FieldMappingView;

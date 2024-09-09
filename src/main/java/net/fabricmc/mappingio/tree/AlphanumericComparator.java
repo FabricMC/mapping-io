@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.lib.alphanum;
+package net.fabricmc.mappingio.tree;
 
 import static java.nio.CharBuffer.wrap;
 import static java.util.Objects.requireNonNull;
@@ -26,16 +26,13 @@ import java.text.Collator;
 import java.util.Comparator;
 import java.util.Locale;
 
-import org.jetbrains.annotations.ApiStatus;
-
-@ApiStatus.Internal
-public class AlphanumericComparator implements Comparator<CharSequence> {
+class AlphanumericComparator implements Comparator<CharSequence> {
 	private final Collator collator;
 
 	/**
 	 * Creates a comparator that will use lexicographical sorting of the non-numerical parts of the compared strings.
 	*/
-	public AlphanumericComparator() {
+	AlphanumericComparator() {
 		collator = null;
 	}
 
@@ -44,7 +41,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 	*
 	* @param locale The locale to use.
 	*/
-	public AlphanumericComparator(Locale locale) {
+	AlphanumericComparator(Locale locale) {
 		this(Collator.getInstance(requireNonNull(locale)));
 	}
 
@@ -53,7 +50,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 	*
 	* @param collator The collator to use.
 	*/
-	public AlphanumericComparator(Collator collator) {
+	AlphanumericComparator(Collator collator) {
 		this.collator = requireNonNull(collator);
 	}
 

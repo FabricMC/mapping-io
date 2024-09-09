@@ -44,7 +44,8 @@ allprojects {
 	spotless {
 		java {
 			licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
-			targetExclude 'src/**/java/net/fabricmc/mappingio/lib/**/*.java'
+			targetExclude 'src/test/java/net/fabricmc/mappingio/lib/**/*.java',
+			              'src/main/java/net/fabricmc/mappingio/tree/AlphanumericComparator.java'
 		}
 	}
 
