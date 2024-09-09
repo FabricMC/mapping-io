@@ -35,9 +35,11 @@ public final class ProGuardFileWriter implements MappingWriter {
 	private final Writer writer;
 	private final String dstNamespaceString;
 	private int dstNamespace = -1;
-	private String srcName;
-	private String srcDesc;
+	private String clsSrcName;
+	private String memberSrcName;
+	private String memberSrcDesc;
 	private String dstName;
+	private boolean classContentVisitPending;
 
 	/**
 	 * Constructs a ProGuard mapping writer that uses
@@ -101,23 +103,23 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		this.srcName = srcName;
+		clsSrcName = srcName;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
 
 		return true;
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
 
 		return true;
 	}
@@ -143,26 +145,41 @@ public final class ProGuardFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		if (dstName == null) dstName = srcName;
+		if (targetKind == MappedElementKind.CLASS) {
+			if (dstName == null) {
+				classContentVisitPending = true;
+				return true;
+			}
+		} else {
+			if (dstName == null) {
+				return false;
+			} else if (classContentVisitPending) {
+				String memberDstName = dstName;
+				dstName = clsSrcName;
+				visitElementContent(MappedElementKind.CLASS);
+				classContentVisitPending = false;
+				dstName = memberDstName;
+			}
+		}
 
 		switch (targetKind) {
 		case CLASS:
-			writer.write(toJavaClassName(srcName));
+			writer.write(toJavaClassName(clsSrcName));
 			dstName = toJavaClassName(dstName) + ":";
 			break;
 		case FIELD:
 			writeIndent();
-			writer.write(toJavaType(srcDesc));
+			writer.write(toJavaType(memberSrcDesc));
 			writer.write(' ');
-			writer.write(srcName);
+			writer.write(memberSrcName);
 			break;
 		case METHOD:
 			writeIndent();
-			writer.write(toJavaType(srcDesc.substring(srcDesc.indexOf(')', 1) + 1)));
+			writer.write(toJavaType(memberSrcDesc.substring(memberSrcDesc.indexOf(')', 1) + 1)));
 			writer.write(' ');
-			writer.write(srcName);
+			writer.write(memberSrcName);
 			writer.write('(');
-			List<String> argTypes = extractArgumentTypes(srcDesc);
+			List<String> argTypes = extractArgumentTypes(memberSrcDesc);
 
 			for (int i = 0; i < argTypes.size(); i++) {
 				if (i > 0) {
@@ -182,8 +199,8 @@ public final class ProGuardFileWriter implements MappingWriter {
 		writer.write(dstName);
 		writer.write('\n');
 
-		srcName = srcDesc = dstName = null;
-		return true;
+		dstName = null;
+		return targetKind == MappedElementKind.CLASS;
 	}
 
 	@Override

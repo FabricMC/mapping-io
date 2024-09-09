@@ -48,6 +48,9 @@ public final class EnigmaDirReader {
 	}
 
 	public static void read(Path dir, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
+		if (!Files.exists(dir)) throw new IOException("Directory does not exist: " + dir);
+		if (!Files.isDirectory(dir)) throw new IOException("Not a directory: " + dir);
+
 		Set<MappingFlag> flags = visitor.getFlags();
 		MappingVisitor parentVisitor = null;
 

@@ -29,6 +29,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 
 /**
  * {@linkplain MappingFormat#TINY_2_FILE Tiny v2 file} writer.
@@ -66,9 +67,13 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		if (key.equals(Tiny2Util.escapedNamesProperty)) {
+		switch (key) {
+		case Tiny2Util.escapedNamesProperty:
 			escapeNames = true;
 			wroteEscapedNamesProperty = true;
+			break;
+		case MigrationMapConstants.ORDER_KEY:
+			return;
 		}
 
 		writeTab();

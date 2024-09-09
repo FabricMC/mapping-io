@@ -1,4 +1,5 @@
 tiny	2	0	source	target	target2
+	name	repeated-elements
 c	class_1	class1Ns0Rename0	class1Ns1Rename0
 c	class_1	class1Ns0Rename	class1Ns1Rename
 	f	I	field_1	field1Ns0Rename0	field1Ns1Rename0

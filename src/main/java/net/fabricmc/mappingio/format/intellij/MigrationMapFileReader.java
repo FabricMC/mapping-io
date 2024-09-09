@@ -108,9 +108,15 @@ public final class MigrationMapFileReader {
 
 						switch (name) {
 						case "name":
+						case "order":
 						case "description":
 							if (visitHeader) {
-								// TODO: visit as metadata once https://github.com/FabricMC/mapping-io/pull/29 is merged
+								String value = xmlReader.getAttributeValue(null, "value");
+
+								if (name.equals("order")) name = MigrationMapConstants.ORDER_KEY;
+								if (name.equals("name") && value.equals(MigrationMapConstants.MISSING_NAME)) break;
+
+								visitor.visitMetadata(name, value);
 							}
 
 							break;

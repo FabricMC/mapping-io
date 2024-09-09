@@ -44,6 +44,7 @@ allprojects {
 	spotless {
 		java {
 			licenseHeaderFile(rootProject.file("HEADER")).yearSeparator(", ")
+			targetExclude 'src/test/java/net/fabricmc/mappingio/lib/**/*.java'
 		}
 	}
 
@@ -183,8 +184,20 @@ jar {
 	}
 }
 
+tasks.register("generateTestMappings", JavaExec) {
+	dependsOn("testClasses")
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'net.fabricmc.mappingio.TestFileUpdater'
+}
+
+tasks.register("updateTestMappings", Copy) {
+	dependsOn("generateTestMappings")
+	from 'build/resources/test/'
+	into 'src/test/resources/'
+}
+
 // A task to ensure that the version being released has not already been released.
-task checkVersion {
+tasks.register("checkVersion") {
 	doFirst {
 		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/mapping-io/maven-metadata.xml").text
 		def metadata = new XmlSlurper().parseText(xml)
