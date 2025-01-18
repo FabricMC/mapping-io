@@ -16,11 +16,14 @@
 
 package net.fabricmc.mappingio.format;
 
+import java.util.Locale;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.format.FeatureSet.ElementCommentSupport;
 import net.fabricmc.mappingio.format.FeatureSet.FeaturePresence;
 import net.fabricmc.mappingio.format.FeatureSet.MetadataSupport;
+import net.fabricmc.mappingio.i18n.Translatable;
 
 /**
  * Represents a supported mapping format. Every format can be assumed to have an associated reader available.
@@ -34,7 +37,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote File metadata only has limited support as of now, and is hardcoded to intermediary counters.
 	 */
-	TINY_FILE("Tiny file", "tiny", true, FeatureSetBuilder.create()
+	TINY_FILE("tiny", true, FeatureSetBuilder.create()
 			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.FIXED) // TODO: change this to ARBITRARY once https://github.com/FabricMC/mapping-io/pull/29 is merged
 			.withClasses(c -> c
@@ -54,7 +57,7 @@ public enum MappingFormat {
 	/**
 	 * The {@code Tiny v2} mapping format, as specified <a href="https://fabricmc.net/wiki/documentation:tiny2">here</a>.
 	 */
-	TINY_2_FILE("Tiny v2 file", "tiny", true, FeatureSetBuilder.create()
+	TINY_2_FILE("tiny", true, FeatureSetBuilder.create()
 			.withNamespaces(true)
 			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withClasses(c -> c
@@ -87,7 +90,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Access modifiers are currently not supported.
 	 */
-	ENIGMA_FILE("Enigma file", "mapping", true, FeatureSetBuilder.create()
+	ENIGMA_FILE("mapping", true, FeatureSetBuilder.create()
 			.withElementMetadata(MetadataSupport.FIXED) // access modifiers
 			.withClasses(c -> c
 					.withSrcNames(FeaturePresence.REQUIRED)
@@ -112,14 +115,14 @@ public enum MappingFormat {
 	 *
 	 * @implNote Access modifiers are currently not supported.
 	 */
-	ENIGMA_DIR("Enigma directory", null, true, FeatureSetBuilder.createFrom(ENIGMA_FILE.features)),
+	ENIGMA_DIR(null, true, FeatureSetBuilder.createFrom(ENIGMA_FILE.features)),
 
 	/**
 	 * ProGuard's mapping format, as specified <a href="https://www.guardsquare.com/manual/tools/retrace">here</a>.
 	 *
 	 * @implNote Line numbers are currently not supported.
 	 */
-	PROGUARD_FILE("ProGuard file", "txt", true, FeatureSetBuilder.create()
+	PROGUARD_FILE("txt", true, FeatureSetBuilder.create()
 			.withElementMetadata(MetadataSupport.FIXED) // line numbers
 			.withClasses(c -> c
 					.withSrcNames(FeaturePresence.REQUIRED)
@@ -140,7 +143,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings are currently not supported.
 	 */
-	SRG_FILE("SRG file", "srg", true, FeatureSetBuilder.create()
+	SRG_FILE("srg", true, FeatureSetBuilder.create()
 			.withPackages(p -> p
 					.withSrcNames(FeaturePresence.REQUIRED)
 					.withDstNames(FeaturePresence.REQUIRED))
@@ -165,7 +168,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings are currently not supported.
 	 */
-	XSRG_FILE("XSRG file", "xsrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
+	XSRG_FILE("xsrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withFields(f -> f
 					.withSrcDescs(FeaturePresence.REQUIRED)
 					.withDstDescs(FeaturePresence.REQUIRED))),
@@ -173,7 +176,7 @@ public enum MappingFormat {
 	/**
 	 * The {@code JAM} ("Java Associated Mapping"; formerly {@code SRGX}) mapping format, as specified <a href="https://github.com/caseif/JAM">here</a>.
 	 */
-	JAM_FILE("JAM file", "jam", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
+	JAM_FILE("jam", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withPackages(p -> p
 					.withSrcNames(FeaturePresence.ABSENT)
 					.withDstNames(FeaturePresence.ABSENT))
@@ -191,7 +194,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings are currently not supported.
 	 */
-	CSRG_FILE("CSRG file", "csrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
+	CSRG_FILE("csrg", true, FeatureSetBuilder.createFrom(SRG_FILE.features)
 			.withMethods(m -> m
 					.withDstDescs(FeaturePresence.ABSENT))),
 
@@ -202,14 +205,14 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings are currently not supported.
 	 */
-	TSRG_FILE("TSRG file", "tsrg", true, FeatureSetBuilder.createFrom(CSRG_FILE.features)),
+	TSRG_FILE("tsrg", true, FeatureSetBuilder.createFrom(CSRG_FILE.features)),
 
 	/**
 	 * The {@code TSRG v2} mapping format, as specified <a href="https://github.com/MinecraftForge/SrgUtils/blob/67f30647ece29f18256ca89a23cda6216d6bd21e/src/main/java/net/minecraftforge/srgutils/InternalUtils.java#L262-L285">here</a>.
 	 *
 	 * @implNote Package mappings and static markers for methods are currently not supported.
 	 */
-	TSRG_2_FILE("TSRG v2 file", "tsrg", true, FeatureSetBuilder.createFrom(TSRG_FILE.features)
+	TSRG_2_FILE("tsrg", true, FeatureSetBuilder.createFrom(TSRG_FILE.features)
 			.withNamespaces(true)
 			.withElementMetadata(MetadataSupport.FIXED) // static info for methods
 			.withFields(f -> f
@@ -224,7 +227,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings and file metadata are currently not supported.
 	 */
-	INTELLIJ_MIGRATION_MAP_FILE("IntelliJ migration map file", "xml", true, FeatureSetBuilder.create()
+	INTELLIJ_MIGRATION_MAP_FILE("xml", true, FeatureSetBuilder.create()
 			.withFileMetadata(MetadataSupport.FIXED) // migration map name and description
 			.withPackages(p -> p
 					.withSrcNames(FeaturePresence.REQUIRED)
@@ -238,7 +241,7 @@ public enum MappingFormat {
 	/**
 	 * Recaf's {@code Simple} mapping format, as specified <a href="https://github.com/Col-E/Recaf/blob/e9765d4e02991a9dd48e67c9572a063c14552e7c/src/main/java/me/coley/recaf/mapping/SimpleMappings.java#L14-L23">here</a>.
 	 */
-	RECAF_SIMPLE_FILE("Recaf Simple file", "txt", true, FeatureSetBuilder.create()
+	RECAF_SIMPLE_FILE("txt", true, FeatureSetBuilder.create()
 			.withClasses(c -> c
 					.withSrcNames(FeaturePresence.REQUIRED)
 					.withDstNames(FeaturePresence.REQUIRED)
@@ -258,7 +261,7 @@ public enum MappingFormat {
 	 *
 	 * @implNote Package mappings are currently not supported.
 	 */
-	JOBF_FILE("JOBF file", "jobf", true, FeatureSetBuilder.create()
+	JOBF_FILE("jobf", true, FeatureSetBuilder.create()
 			.withPackages(p -> p
 					.withSrcNames(FeaturePresence.REQUIRED)
 					.withDstNames(FeaturePresence.REQUIRED))
@@ -275,8 +278,9 @@ public enum MappingFormat {
 					.withSrcDescs(FeaturePresence.REQUIRED))
 			.withFileComments(true));
 
-	MappingFormat(String name, @Nullable String fileExt, boolean hasWriter, FeatureSetBuilder featureBuilder) {
-		this.name = name;
+	MappingFormat(@Nullable String fileExt, boolean hasWriter, FeatureSetBuilder featureBuilder) {
+		this.translationKey = "format." + name().toLowerCase(Locale.ROOT);
+		this.name = translatableName().translate(Locale.US);
 		this.fileExt = fileExt;
 		this.hasWriter = hasWriter;
 		this.features = featureBuilder.build();
@@ -285,6 +289,10 @@ public enum MappingFormat {
 		this.supportsComments = features.elementComments() != ElementCommentSupport.NONE;
 		this.supportsArgs = features.supportsArgs();
 		this.supportsLocals = features.supportsVars();
+	}
+
+	public Translatable translatableName() {
+		return Translatable.of(translationKey);
 	}
 
 	public FeatureSet features() {
@@ -301,8 +309,15 @@ public enum MappingFormat {
 		return "*."+fileExt;
 	}
 
+	private final String translationKey;
 	private final FeatureSet features;
+
+	/**
+	 * @deprecated Use {@link #translatableName()} instead.
+	 */
+	@Deprecated
 	public final String name;
+
 	public final boolean hasWriter;
 	@Nullable
 	public final String fileExt;

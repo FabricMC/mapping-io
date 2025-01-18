@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made `OuterClassNamePropagator` configurable
 - Made Enigma writer always output destination names if visited explicitly, establishing consistency across all writers
 - Added a simplified `MappingNsCompleter` constructor for completing all destination names with the source names
+- Added `MappingFormat#translatableName()`
 
 ## [0.7.1] - 2025-01-07
 - Restored the ability to read source-namespace-only mapping files, even if not spec-compliant
