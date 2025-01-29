@@ -25,8 +25,8 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
-import net.fabricmc.mappingio.adapter.SubsetAssertingVisitor;
-import net.fabricmc.mappingio.adapter.VisitOrderVerifyingVisitor;
+import net.fabricmc.mappingio.adapter.SubsetEnforcer;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
@@ -62,7 +62,7 @@ public class ValidContentReadTest {
 		VisitableMappingTree referenceTree = dir.generate(new MemoryMappingTree());
 		VisitableMappingTree tree = new MemoryMappingTree();
 
-		dir.read(format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
+		dir.read(format, new VisitOrderVerifier(tree, allowConsecutiveDuplicateElementVisits));
 		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
 
 		if (dir == TestMappings.READING.HOLES && !format.features().hasNamespaces()) {
@@ -74,9 +74,9 @@ public class ValidContentReadTest {
 				? referenceTree.getDstNamespaces().get(0)
 				: MappingUtil.NS_TARGET_FALLBACK;
 		MappingVisitor target = new MappingSourceNsSwitch(
-				new VisitOrderVerifyingVisitor(
+				new VisitOrderVerifier(
 						new MappingSourceNsSwitch(
-								new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
+								new VisitOrderVerifier(tree, allowConsecutiveDuplicateElementVisits),
 								referenceTree.getSrcNamespace()),
 						allowConsecutiveDuplicateElementVisits),
 				newSrcNs);
@@ -91,9 +91,9 @@ public class ValidContentReadTest {
 	}
 
 	private void assertSubset(MappingTreeView subTree, @Nullable MappingFormat subFormat, MappingTreeView supTree, @Nullable MappingFormat supFormat, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
-		subTree.accept(new VisitOrderVerifyingVisitor(
+		subTree.accept(new VisitOrderVerifier(
 				new FlatAsRegularMappingVisitor(
-						new SubsetAssertingVisitor(supTree, supFormat, subFormat)),
+						new SubsetEnforcer(supTree, supFormat, subFormat)),
 				allowConsecutiveDuplicateElementVisits));
 	}
 }

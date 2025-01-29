@@ -33,8 +33,8 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
-import net.fabricmc.mappingio.adapter.SubsetAssertingVisitor;
-import net.fabricmc.mappingio.adapter.VisitOrderVerifyingVisitor;
+import net.fabricmc.mappingio.adapter.SubsetEnforcer;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
@@ -61,7 +61,7 @@ public class MergeTest {
 	@BeforeEach
 	public void setup() {
 		tree = new MemoryMappingTree();
-		delegate = new VisitOrderVerifyingVisitor(tree);
+		delegate = new VisitOrderVerifier(tree);
 	}
 
 	@Test
@@ -290,14 +290,14 @@ public class MergeTest {
 
 		MemoryMappingTree referenceTree = new MemoryMappingTree();
 		MappingReader.read(dir.resolve("tree1+2.tiny"), referenceTree);
-		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
-		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
+		tree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(referenceTree, null, null)));
+		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(tree, null, null)));
 
 		MappingReader.read(dir.resolve("tree3.tiny"), delegate);
 
 		referenceTree = new MemoryMappingTree();
 		MappingReader.read(dir.resolve("tree1+2+3.tiny"), referenceTree);
-		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
-		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
+		tree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(referenceTree, null, null)));
+		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(tree, null, null)));
 	}
 }

@@ -34,7 +34,7 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
-import net.fabricmc.mappingio.adapter.SubsetAssertingVisitor;
+import net.fabricmc.mappingio.adapter.SubsetEnforcer;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
@@ -134,8 +134,8 @@ public class OuterClassNamePropagationTest {
 
 			VisitableMappingTree diskTree = dir.read(format, new MemoryMappingTree());
 
-			tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(diskTree, format, null)));
-			diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, format)));
+			tree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(diskTree, format, null)));
+			diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(tree, null, format)));
 		}
 	}
 

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.adapter.VisitOrderVerifyingVisitor;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.intellij.MigrationMapFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
@@ -43,7 +43,7 @@ public class EmptyContentReadTest {
 
 	@BeforeEach
 	public void instantiateTree() {
-		target = new VisitOrderVerifyingVisitor(new MemoryMappingTree());
+		target = new VisitOrderVerifier(new MemoryMappingTree());
 	}
 
 	@Test

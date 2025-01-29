@@ -35,12 +35,12 @@ import net.fabricmc.mappingio.MappingVisitor;
  * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
 @ApiStatus.Experimental
-public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
-	public VisitOrderVerifyingVisitor(MappingVisitor next) {
+public class VisitOrderVerifier extends ForwardingMappingVisitor {
+	public VisitOrderVerifier(MappingVisitor next) {
 		this(next, false);
 	}
 
-	public VisitOrderVerifyingVisitor(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
+	public VisitOrderVerifier(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
 		super(next);
 		this.allowConsecutiveDuplicateElementVisits = allowConsecutiveDuplicateElementVisits;
 		init();
