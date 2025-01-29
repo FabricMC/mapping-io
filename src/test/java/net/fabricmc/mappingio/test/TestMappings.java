@@ -35,12 +35,12 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 import net.fabricmc.mappingio.test.lib.jool.Unchecked;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
-import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
 
 /*
  * After any changes to the "generate" methods, run the "generateTestMappings" Gradle task

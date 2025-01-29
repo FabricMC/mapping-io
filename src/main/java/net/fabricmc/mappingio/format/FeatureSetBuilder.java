@@ -55,7 +55,8 @@ public class FeatureSetBuilder {
 				featureSet.hasFileComments());
 	}
 
-	FeatureSetBuilder(boolean initWithFullSupport) {
+	@ApiStatus.Internal
+	public FeatureSetBuilder(boolean initWithFullSupport) {
 		this(initWithFullSupport,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,

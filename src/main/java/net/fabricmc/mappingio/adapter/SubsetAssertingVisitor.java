@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.test.visitors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +30,7 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.FeatureSet;
 import net.fabricmc.mappingio.format.FeatureSet.ElementCommentSupport;
 import net.fabricmc.mappingio.format.FeatureSet.FeaturePresence;
-import net.fabricmc.mappingio.format.FeatureSetInstantiator;
+import net.fabricmc.mappingio.format.FeatureSetBuilder;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MappingTreeView.ClassMappingView;
@@ -44,6 +41,8 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 
 /**
  * A visitor which asserts that the visited mappings are a subset of a superset tree.
+ *
+ * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
 public class SubsetAssertingVisitor implements FlatMappingVisitor {
 	/**
@@ -55,8 +54,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		this.supTree = supTree;
 		this.subFormat = subFormat;
 		this.supDstNsCount = supTree.getMaxNamespaceId();
-		this.supFeatures = supFormat == null ? FeatureSetInstantiator.withFullSupport() : supFormat.features();
-		this.subFeatures = subFormat == null ? FeatureSetInstantiator.withFullSupport() : subFormat.features();
+		this.supFeatures = supFormat == null ? new FeatureSetBuilder(true).build() : supFormat.features();
+		this.subFeatures = subFormat == null ? new FeatureSetBuilder(true).build() : subFormat.features();
 	}
 
 	@Override
@@ -275,7 +274,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming field comment's parent class not contained in supTree: " + subFldId);
 		FieldMappingView supFld = Objects.requireNonNull(supCls.getField(srcName, srcDesc), "Incoming field comment's parent field not contained in supTree: " + subFldId);
 
-		assertEquals(supFld.getComment(), comment);
+		assertEquals(supFld.getComment(), comment, "Incoming comment differs from supTree");
 	}
 
 	@Override
@@ -360,7 +359,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming method comment's parent class not contained in supTree: " + subMthId);
 		MethodMappingView supMth = Objects.requireNonNull(supCls.getMethod(srcName, srcDesc), "Incoming method comment's parent method not contained in supTree: " + subMthId);
 
-		assertEquals(supMth.getComment(), comment);
+		assertEquals(supMth.getComment(), comment, "Incoming comment differs from supTree");
 	}
 
 	@Override
@@ -436,7 +435,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		MethodMappingView supMth = Objects.requireNonNull(supCls.getMethod(srcMethodName, srcMethodDesc), "Incoming arg comment's parent method not contained in supTree: " + subArgId);
 		MethodArgMappingView supArg = Objects.requireNonNull(supMth.getArg(argPosition, lvIndex, srcArgName), "Incoming arg comment's parent arg not contained in supTree: " + subArgId);
 
-		assertEquals(supArg.getComment(), comment);
+		assertEquals(supArg.getComment(), comment, "Incoming comment differs from supTree");
 	}
 
 	@Override
@@ -524,7 +523,19 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		MethodMappingView supMth = Objects.requireNonNull(supCls.getMethod(srcMethodName, srcMethodDesc), "Incoming var comment's parent method not contained in supTree: " + subVarId);
 		MethodVarMappingView supVar = Objects.requireNonNull(supMth.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName), "Incoming var comment's parent var not contained in supTree: " + subVarId);
 
-		assertEquals(supVar.getComment(), comment);
+		assertEquals(supVar.getComment(), comment, "Incoming comment differs from supTree");
+	}
+
+	private void assertTrue(boolean condition, String message) {
+		if (!condition) {
+			throw new AssertionError(message);
+		}
+	}
+
+	private void assertEquals(Object expected, Object actual, String message) {
+		if (!Objects.equals(expected, actual)) {
+			throw new AssertionError(message + ": Expected: " + expected + ", Actual: " + actual);
+		}
 	}
 
 	private boolean isEmpty(String[] arr) {
