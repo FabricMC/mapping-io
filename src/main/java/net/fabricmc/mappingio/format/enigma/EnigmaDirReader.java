@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.format.enigma;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -92,7 +93,9 @@ public final class EnigmaDirReader {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				if (file.getFileName().toString().endsWith("." + MappingFormat.ENIGMA_FILE.fileExt)) {
-					EnigmaFileReader.read(Files.newBufferedReader(file), sourceNs, targetNs, delegatingVisitor);
+					try (BufferedReader reader = Files.newBufferedReader(file)) {
+						EnigmaFileReader.read(reader, sourceNs, targetNs, delegatingVisitor);
+					}
 				}
 
 				return FileVisitResult.CONTINUE;
