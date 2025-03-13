@@ -1067,7 +1067,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 			if (fields == null) {
 				fields = new LinkedHashMap<>();
-				fieldsView = Collections.unmodifiableCollection(fields.values());
+				fieldsView = new MappingElementCollectionView<>(tree, fields.values());
 			}
 
 			return addMember(entry, fields, FLAG_HAS_ANY_FIELD_DESC, FLAG_MISSES_ANY_FIELD_DESC);
@@ -1114,7 +1114,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 			if (methods == null) {
 				methods = new LinkedHashMap<>();
-				methodsView = Collections.unmodifiableCollection(methods.values());
+				methodsView = new MappingElementCollectionView<>(tree, methods.values());
 			}
 
 			return addMember(entry, methods, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
@@ -1556,7 +1556,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (prev == null) {
 				if (args == null) {
 					args = new ArrayList<>();
-					argsView = Collections.unmodifiableList(args);
+					argsView = new MappingElementListView<>(tree, args);
 				}
 
 				args.add(entry);
@@ -1673,7 +1673,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (prev == null) {
 				if (vars == null) {
 					vars = new ArrayList<>();
-					varsView = Collections.unmodifiableList(vars);
+					varsView = new MappingElementListView<>(tree, vars);
 				}
 
 				vars.add(entry);
@@ -2104,7 +2104,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<MetadataEntry> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
-	private final Collection<ClassEntry> classesView = Collections.unmodifiableCollection(classesBySrcName.values());
+	private final Collection<ClassEntry> classesView = new MappingElementCollectionView<>(this, classesBySrcName.values());
 	private Map<String, ClassEntry>[] classesByDstNames;
 
 	private HierarchyInfoProvider<?> hierarchyInfo;

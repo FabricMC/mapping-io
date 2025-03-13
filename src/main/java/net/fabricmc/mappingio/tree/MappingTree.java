@@ -30,6 +30,8 @@ import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
  * Mutable mapping tree.
  *
  * <p>All returned collections are to be assumed unmodifiable, unless explicitly stated otherwise.
+ * Collections containing {@linkplain MappingTree.ElementMapping tree elements} and their children support removals,
+ * except during visitation passes.
  */
 public interface MappingTree extends MappingTreeView {
 	/**
