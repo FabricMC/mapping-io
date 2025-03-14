@@ -17,6 +17,7 @@
 package net.fabricmc.mappingio.tree;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -394,17 +395,19 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		inVisitPass = false;
 		srcNsMap = SRC_NAMESPACE_ID;
 		dstNameMap = null;
+		disassociatedSourceNs = false;
 		currentEntry = null;
 		currentClass = null;
 		currentMethod = null;
 		pendingClasses = null;
 		pendingMembers = null;
+		pendingMemberDescs = null;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) {
+		reset(); // Just in case we never reached visitEnd in the previous pass due to an unexpected exception
 		inVisitPass = true;
-		srcNsMap = SRC_NAMESPACE_ID;
 		dstNameMap = new int[dstNamespaces.size()];
 
 		if (this.srcNamespace != null) { // ns already set, try to merge
@@ -412,12 +415,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				srcNsMap = this.dstNamespaces.indexOf(srcNamespace);
 
 				if (srcNsMap < 0) {
-					reset();
-					throw new IllegalArgumentException("can't merge with disassociated src namespace"); // srcNamespace must already be present
+					disassociatedSourceNs = true;
+					srcNsMap = NULL_NAMESPACE_ID;
 				}
 			}
 
 			int newDstNamespaces = 0;
+			List<String> treeSideDstNamespaces = this.dstNamespaces;
 
 			for (int i = 0; i < dstNameMap.length; i++) {
 				String dstNs = dstNamespaces.get(i);
@@ -429,19 +433,38 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					reset();
 					throw new IllegalArgumentException("namespace \"" + srcNamespace + "\" is present on both source and destination side simultaneously");
 				} else {
-					idx = this.dstNamespaces.indexOf(dstNs);
+					idx = treeSideDstNamespaces.indexOf(dstNs);
 
 					if (idx < 0) {
-						if (newDstNamespaces == 0) this.dstNamespaces = new ArrayList<>(this.dstNamespaces);
+						if (newDstNamespaces == 0) {
+							treeSideDstNamespaces = new ArrayList<>(treeSideDstNamespaces);
+						}
 
-						idx = this.dstNamespaces.size();
-						this.dstNamespaces.add(dstNs);
+						idx = treeSideDstNamespaces.size();
+						treeSideDstNamespaces.add(dstNs);
 						newDstNamespaces++;
 					}
 				}
 
 				dstNameMap[i] = idx;
 			}
+
+			if (disassociatedSourceNs) {
+				if (newDstNamespaces == dstNameMap.length) {
+					reset();
+					throw new IllegalArgumentException("none of the incoming namespaces are present in the tree, can't merge");
+				}
+
+				if (newDstNamespaces == 0) {
+					treeSideDstNamespaces = new ArrayList<>(treeSideDstNamespaces);
+				}
+
+				srcNsMap = treeSideDstNamespaces.size();
+				treeSideDstNamespaces.add(srcNamespace);
+				newDstNamespaces++;
+			}
+
+			this.dstNamespaces = treeSideDstNamespaces;
 
 			if (newDstNamespaces > 0) {
 				int newSize = this.dstNamespaces.size();
@@ -557,6 +580,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	private ClassEntry queuePendingClass(String name) {
+		assert srcNsMap >= 0;
+
 		if (pendingClasses == null) pendingClasses = new HashMap<>();
 		ClassEntry cls = pendingClasses.get(name);
 
@@ -565,84 +590,175 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			pendingClasses.put(name, cls);
 		}
 
-		assert srcNsMap >= 0;
 		cls.setDstNameInternal(name, srcNsMap);
 
 		return cls;
 	}
 
 	private MemberEntry<?> queuePendingMember(String name, @Nullable String desc, boolean isField) {
-		if (pendingMembers == null) pendingMembers = new HashMap<>();
+		assert srcNsMap >= 0;
+
+		if (pendingMembers == null) {
+			pendingMembers = new HashMap<>();
+			pendingMemberDescs = new HashMap<>();
+		}
+
 		GlobalMemberKey key = new GlobalMemberKey(currentClass, name, desc, isField);
 		MemberEntry<?> member = pendingMembers.get(key);
 
 		if (member == null) {
 			if (isField) {
-				member = new FieldEntry(currentClass, null, desc); // we're misusing the srcDesc field to store the dstDesc (as there is no dstDesc field)
+				member = new FieldEntry(currentClass, null, null);
 			} else {
-				member = new MethodEntry(currentClass, null, desc);
+				member = new MethodEntry(currentClass, null, null);
 			}
 
 			pendingMembers.put(key, member);
+			pendingMemberDescs.computeIfAbsent(member, m -> new String[dstNamespaces.size()])[srcNsMap] = desc;
 		}
 
-		assert srcNsMap >= 0;
 		member.setDstNameInternal(name, srcNsMap);
 
 		return member;
 	}
 
 	private void addPendingClass(ClassEntry cls) {
-		if (cls.isSrcNameMissing()) {
-			return;
-		}
+		int startIdx = cls.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
+		int endIdx = disassociatedSourceNs ? dstNameMap.length - 1 : dstNameMap.length;
 
-		String srcName = cls.getSrcName();
-		ClassEntry existing = classesBySrcName.get(srcName);
+		for (int i = startIdx; i <= endIdx; i++) {
+			int ns = i;
 
-		if (existing == null) {
-			classesBySrcName.put(srcName, cls);
-		} else { // copy remaining data
-			existing.copyFrom(cls, true);
+			if (ns != SRC_NAMESPACE_ID) {
+				if (disassociatedSourceNs) {
+					ns = dstNameMap[ns];
+				} else {
+					if (ns == 0) {
+						ns = srcNsMap;
+					} else {
+						ns = dstNameMap[ns - 1];
+					}
+				}
+
+				if (ns == SRC_NAMESPACE_ID && cls.isSrcNameMissing()) {
+					continue;
+				}
+			}
+
+			String name = cls.getName(ns);
+
+			if (name == null) {
+				continue;
+			}
+
+			ClassEntry existing = (ClassEntry) getClass(name, ns);
+
+			if (existing != null) {
+				existing.copyFrom(cls, true);
+
+				if (cls.isSrcNameMissing()) {
+					// Copy source name so cls's pending members can be processed later on
+					cls.setSrcName(existing.getSrcName());
+				}
+
+				break; // this ignores potential matches with other namespaces, but at that point it's the user's fault for being too ambiguous
+			} else if (ns == SRC_NAMESPACE_ID) {
+				classesBySrcName.put(name, cls);
+				break;
+			}
 		}
 	}
 
 	private void addPendingMember(MemberEntry<?> member) {
-		if (member.isSrcNameMissing() || member.getOwner().isSrcNameMissing()) {
+		if (member.getOwner().isSrcNameMissing()) {
 			return;
 		}
 
 		// Make sure the owner reference is pointing to an in-tree entry
 		ClassEntry owner = classesBySrcName.get(member.getOwner().getSrcName());
 		member.setOwner(owner);
+
 		boolean isField = member.getKind() == MappedElementKind.FIELD;
-		String srcName = member.getSrcName();
-		String dstDesc = member.getSrcDesc(); // pending members' srcDesc is actually their dst desc
-		String srcDesc = null;
+		int startIdx = member.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
+		int endIdx = disassociatedSourceNs ? dstNameMap.length - 1 : dstNameMap.length;
+		Map.Entry<Integer, String> anyDesc = null;
+		int findDescPhase = 0;
+		int addToTreePhase = 1;
 
-		if (isValidDescriptor(dstDesc, !isField)) {
-			srcDesc = mapDesc(dstDesc, srcNsMap, SRC_NAMESPACE_ID);
-		}
+		for (int phase = findDescPhase; phase <= addToTreePhase; phase++) {
+			for (int i = startIdx; i <= endIdx; i++) {
+				int ns = i;
 
-		member.setSrcDescInternal(srcDesc);
+				if (ns != SRC_NAMESPACE_ID) {
+					if (disassociatedSourceNs) {
+						ns = dstNameMap[ns];
+					} else {
+						if (ns == 0) {
+							ns = srcNsMap;
+						} else {
+							ns = dstNameMap[ns - 1];
+						}
+					}
 
-		if (isField) {
-			FieldEntry queuedField = (FieldEntry) member;
-			FieldEntry existingField = owner.getField(srcName, srcDesc);
+					if (ns == SRC_NAMESPACE_ID && member.isSrcNameMissing()) {
+						continue;
+					}
+				}
 
-			if (existingField == null) {
-				owner.addFieldInternal(queuedField);
-			} else { // copy remaining data
-				existingField.copyFrom(queuedField, true);
-			}
-		} else {
-			MethodEntry queuedMethod = (MethodEntry) member;
-			MethodEntry existingMethod = owner.getMethod(srcName, srcDesc);
+				String desc = ns == SRC_NAMESPACE_ID
+						? member.getSrcDesc()
+						: pendingMemberDescs.get(member)[ns];
 
-			if (existingMethod == null) {
-				owner.addMethodInternal(queuedMethod);
-			} else { // copy remaining data
-				existingMethod.copyFrom(queuedMethod, true);
+				if (phase == findDescPhase) {
+					if (isValidDescriptor(desc, !isField)) {
+						anyDesc = new AbstractMap.SimpleEntry<>(ns, desc);
+						break;
+					}
+
+					continue;
+				}
+
+				String name = member.getName(ns);
+
+				if (name == null) {
+					continue;
+				}
+
+				if (desc == null && anyDesc != null) {
+					desc = mapDesc(anyDesc.getValue(), anyDesc.getKey(), ns);
+				}
+
+				MemberEntry<?> existing = isField
+						? owner.getField(name, desc, ns)
+						: owner.getMethod(name, desc, ns);
+
+				if (ns != SRC_NAMESPACE_ID && existing == null) {
+					continue;
+				}
+
+				if (member.getSrcDesc() == null && desc != null && (existing == null || existing.getSrcDesc() == null)) {
+					member.setSrcDescInternal(mapDesc(desc, ns, SRC_NAMESPACE_ID));
+				}
+
+				if (existing != null) {
+					assert member.srcDesc == null || existing.srcDesc == null || member.srcDesc.equals(existing.srcDesc);
+
+					if (isField) {
+						((FieldEntry) existing).copyFrom((FieldEntry) member, true);
+					} else {
+						((MethodEntry) existing).copyFrom((MethodEntry) member, true);
+					}
+
+					break; // this ignores potential matches with other namespaces, but at that point it's the user's fault for being too ambiguous
+				} else { // ns == SRC_NAMESPACE_ID
+					if (isField) {
+						owner.addFieldInternal((FieldEntry) member);
+					} else {
+						owner.addMethodInternal((MethodEntry) member);
+					}
+
+					break;
+				}
 			}
 		}
 	}
@@ -801,6 +917,25 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			throw new UnsupportedOperationException("can't change src name for "+currentEntry.getKind());
 		} else {
 			currentEntry.setDstNameInternal(name, namespace);
+		}
+	}
+
+	@Override
+	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
+		namespace = dstNameMap[namespace];
+
+		if (currentEntry == null) throw new UnsupportedOperationException("Tried to visit mapped descriptor before owner");
+
+		MemberEntry<?> currentMember = (MemberEntry<?>) currentEntry;
+
+		if (pendingMemberDescs == null || !pendingMemberDescs.containsKey(currentMember)) {
+			return;
+		}
+
+		if (namespace < 0) {
+			currentMember.setSrcDescInternal(desc);
+		} else {
+			pendingMemberDescs.get(currentMember)[namespace] = desc;
 		}
 	}
 
@@ -2111,11 +2246,15 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	/** The incoming source namespace's namespace index on the tree side. */
 	private int srcNsMap;
+	/** Incoming destination namespaces' namespace indices on the tree side. dstNameMap[incomingNsIdx] = treeSideNsIdx. */
 	private int[] dstNameMap;
+	/** Whether the incoming source namespace was not in the tree prior to the current visit pass. */
+	private boolean disassociatedSourceNs;
 	private Entry<?> currentEntry;
 	private ClassEntry currentClass;
 	private MethodEntry currentMethod;
 	/** originalSrcName -> clsEntry. */
 	private Map<String, ClassEntry> pendingClasses;
 	private Map<GlobalMemberKey, MemberEntry<?>> pendingMembers;
+	private Map<MemberEntry<?>, String[]> pendingMemberDescs;
 }
