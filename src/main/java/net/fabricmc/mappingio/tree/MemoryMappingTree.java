@@ -452,7 +452,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (disassociatedSourceNs) {
 				if (newDstNamespaces == dstNameMap.length) {
 					reset();
-					throw new IllegalArgumentException("none of the incoming namespaces are present in the tree, can't merge");
+					throw new IllegalArgumentException("none of the incoming namespaces are present in the non-empty tree, can't merge");
 				}
 
 				if (newDstNamespaces == 0) {
@@ -624,20 +624,19 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	private void addPendingClass(ClassEntry cls) {
 		int startIdx = cls.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
-		int endIdx = disassociatedSourceNs ? dstNameMap.length - 1 : dstNameMap.length;
 
-		for (int i = startIdx; i <= endIdx; i++) {
+		for (int i = startIdx; i <= dstNameMap.length; i++) {
 			int ns = i;
 
 			if (ns != SRC_NAMESPACE_ID) {
-				if (disassociatedSourceNs) {
-					ns = dstNameMap[ns];
-				} else {
-					if (ns == 0) {
-						ns = srcNsMap;
-					} else {
-						ns = dstNameMap[ns - 1];
+				if (ns == 0) {
+					ns = srcNsMap;
+
+					if (disassociatedSourceNs) {
+						continue; // no existing names can be found here, ns didn't exist before this pass
 					}
+				} else {
+					ns = dstNameMap[ns - 1];
 				}
 
 				if (ns == SRC_NAMESPACE_ID && cls.isSrcNameMissing()) {
@@ -680,24 +679,23 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		boolean isField = member.getKind() == MappedElementKind.FIELD;
 		int startIdx = member.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
-		int endIdx = disassociatedSourceNs ? dstNameMap.length - 1 : dstNameMap.length;
 		Map.Entry<Integer, String> anyDesc = null;
 		int findDescPhase = 0;
 		int addToTreePhase = 1;
 
 		for (int phase = findDescPhase; phase <= addToTreePhase; phase++) {
-			for (int i = startIdx; i <= endIdx; i++) {
+			for (int i = startIdx; i <= dstNameMap.length; i++) {
 				int ns = i;
 
 				if (ns != SRC_NAMESPACE_ID) {
-					if (disassociatedSourceNs) {
-						ns = dstNameMap[ns];
-					} else {
-						if (ns == 0) {
-							ns = srcNsMap;
-						} else {
-							ns = dstNameMap[ns - 1];
+					if (ns == 0) {
+						ns = srcNsMap;
+
+						if (disassociatedSourceNs && phase != findDescPhase) {
+							continue; // no existing names can be found here, ns didn't exist before this pass
 						}
+					} else {
+						ns = dstNameMap[ns - 1];
 					}
 
 					if (ns == SRC_NAMESPACE_ID && member.isSrcNameMissing()) {
