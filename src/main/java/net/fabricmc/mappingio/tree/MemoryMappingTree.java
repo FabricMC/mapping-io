@@ -633,18 +633,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					ns = srcNsMap;
 
 					if (disassociatedSourceNs) {
-						continue; // no existing names can be found here, ns didn't exist before this pass
+						continue; // no existing entries' names can be found here, ns didn't exist before this pass
 					}
 				} else {
 					ns = dstNameMap[ns - 1];
 				}
-
-				if (ns == SRC_NAMESPACE_ID && cls.isSrcNameMissing()) {
-					continue;
-				}
 			}
 
-			String name = cls.getName(ns);
+			String name = ns == SRC_NAMESPACE_ID
+					? cls.getSrcNameUnchecked()
+					: cls.getDstName(ns);
 
 			if (name == null) {
 				continue;
@@ -678,7 +676,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		member.setOwner(owner);
 
 		boolean isField = member.getKind() == MappedElementKind.FIELD;
-		int startIdx = member.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
+		int startIdx = member.isSrcNameMissing() && member.getSrcDesc() == null ? 0 : SRC_NAMESPACE_ID;
 		Map.Entry<Integer, String> anyDesc = null;
 		int findDescPhase = 0;
 		int addToTreePhase = 1;
@@ -692,14 +690,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 						ns = srcNsMap;
 
 						if (disassociatedSourceNs && phase != findDescPhase) {
-							continue; // no existing names can be found here, ns didn't exist before this pass
+							continue; // no existing entries' names can be found here, ns didn't exist before this pass
 						}
 					} else {
 						ns = dstNameMap[ns - 1];
 					}
 
-					if (ns == SRC_NAMESPACE_ID && member.isSrcNameMissing()) {
-						continue;
+					if (ns == SRC_NAMESPACE_ID && startIdx == SRC_NAMESPACE_ID) {
+						continue; // already checked in the first iteration
 					}
 				}
 
@@ -716,7 +714,9 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					continue;
 				}
 
-				String name = member.getName(ns);
+				String name = ns == SRC_NAMESPACE_ID
+						? member.getSrcNameUnchecked()
+						: member.getDstName(ns);
 
 				if (name == null) {
 					continue;
