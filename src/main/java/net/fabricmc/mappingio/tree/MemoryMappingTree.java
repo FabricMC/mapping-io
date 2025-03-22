@@ -100,12 +100,73 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			classesByDstNames[i] = new HashMap<>(classesBySrcName.size());
 		}
 
+		Map<Integer, Map<String, Set<ClassEntry>>> duplicatesByNameByNs = null;
+
 		for (ClassEntry cls : classesBySrcName.values()) {
 			for (int i = 0; i < cls.dstNames.length; i++) {
 				String dstName = cls.dstNames[i];
-				if (dstName != null) classesByDstNames[i].put(dstName, cls);
+
+				if (dstName == null) {
+					continue;
+				}
+
+				ClassEntry prev = classesByDstNames[i].put(dstName, cls);
+
+				if (inDebugMode && prev != null) {
+					if (duplicatesByNameByNs == null) {
+						duplicatesByNameByNs = new LinkedHashMap<>();
+					}
+
+					Map<String, Set<ClassEntry>> duplicatesByName = duplicatesByNameByNs.computeIfAbsent(i, k -> new HashMap<>());
+					Set<ClassEntry> duplicates = duplicatesByName.computeIfAbsent(dstName, k -> new HashSet<>());
+					duplicates.add(prev);
+					duplicates.add(cls);
+				}
 			}
 		}
+
+		if (duplicatesByNameByNs != null) {
+			StringBuilder errorBuilder = new StringBuilder("Found destination names occurring multiple times per namespace:");
+
+			for (Map.Entry<Integer, Map<String, Set<ClassEntry>>> duplicateByNs : duplicatesByNameByNs.entrySet()) {
+				int ns = duplicateByNs.getKey();
+				Map<String, Set<ClassEntry>> duplicatesByName = duplicateByNs.getValue();
+
+				for (Map.Entry<String, Set<ClassEntry>> duplicate : duplicatesByName.entrySet()) {
+					String name = duplicate.getKey();
+					Set<ClassEntry> duplicates = duplicate.getValue();
+
+					errorBuilder.append("\n- \"")
+							.append(name)
+							.append("\" in namespace ")
+							.append(getNamespaceName(ns))
+							.append(" for classes ")
+							.append(duplicates.stream()
+									.map(ClassEntry::getSrcName)
+									.collect(Collectors.joining(", ")));
+				}
+			}
+
+			throw new IllegalStateException(errorBuilder.append("\nContinuing to use this tree may lead to unexpected behavior.").toString());
+		}
+	}
+
+	public boolean doesIndexByDstNames() {
+		return indexByDstNames;
+	}
+
+	/**
+	 * Whether additional assertions and safety checks should be enabled
+	 * at the expense of performance. Mostly useful for debugging.
+	 */
+	@ApiStatus.Internal
+	public void setInDebugMode(boolean inDebugMode) {
+		this.inDebugMode = inDebugMode;
+	}
+
+	@ApiStatus.Internal
+	public boolean isInDebugMode() {
+		return inDebugMode;
 	}
 
 	@ApiStatus.Experimental
@@ -301,7 +362,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		if (namespace < 0 || !indexByDstNames) {
 			return VisitableMappingTree.super.getClass(name, namespace);
 		} else {
-			return classesByDstNames[namespace].get(name);
+			ClassMapping ret = classesByDstNames[namespace].get(name);
+
+			if (inDebugMode && ret != VisitableMappingTree.super.getClass(name, namespace)) {
+				throw new IllegalStateException("Class name \"" + name + "\" in destination namespace " + getNamespaceName(namespace) + " is not unique");
+			}
+
+			return ret;
 		}
 	}
 
@@ -309,6 +376,52 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	public ClassMapping addClass(ClassMapping cls) {
 		assertNotInVisitPass();
 		ClassEntry entry = cls instanceof ClassEntry && cls.getTree() == this ? (ClassEntry) cls : new ClassEntry(this, cls, getSrcNsEquivalent(cls));
+
+		if (inDebugMode) {
+			ClassEntry[] duplicates = null;
+
+			for (int i = 0; i < entry.dstNames.length; i++) {
+				String dstName = entry.dstNames[i];
+
+				if (dstName == null) {
+					continue;
+				}
+
+				ClassEntry existing = (ClassEntry) getClass(dstName, i);
+
+				if (existing != null) {
+					if (duplicates == null) {
+						duplicates = new ClassEntry[entry.dstNames.length];
+					}
+
+					duplicates[i] = existing;
+				}
+			}
+
+			if (duplicates != null) {
+				StringBuilder errorBuilder = new StringBuilder("Can't add \"")
+						.append(entry.getSrcName())
+						.append("\", some of its destination names are already assigned to other classes:");
+
+				for (int ns = 0; ns < duplicates.length; ns++) {
+					ClassEntry prev = duplicates[ns];
+
+					if (prev == null) {
+						continue;
+					}
+
+					errorBuilder.append("\n- \"")
+							.append(entry.dstNames[ns])
+							.append("\" in namespace ")
+							.append(getNamespaceName(ns))
+							.append(" by ")
+							.append(prev.getSrcName());
+				}
+
+				throw new IllegalStateException(errorBuilder.toString());
+			}
+		}
+
 		ClassEntry ret = classesBySrcName.putIfAbsent(cls.getSrcName(), entry);
 
 		if (ret != null) {
@@ -984,6 +1097,17 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		protected Entry(MemoryMappingTree tree, ElementMapping src, int srcNsEquivalent) {
 			this(tree, src.getName(srcNsEquivalent));
 
+			if (!(this instanceof MemberEntry<?>)) {
+				constructorCopyFrom(src);
+			}
+		}
+
+		/**
+		 * Ideally we would just always do this in the constructor above,
+		 * but {@link MemberEntry#setDstNameInternal(String, int)} requires {@link MemberEntry#owner} to be set,
+		 * which is not possible due to the compiler forcing us to call the super constructor above first.
+		 */
+		protected final void constructorCopyFrom(ElementMapping src) {
 			for (int i = 0; i < dstNames.length; i++) {
 				int dstNsEquivalent = src.getTree().getNamespaceId(tree.dstNamespaces.get(i));
 
@@ -1116,6 +1240,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			}
 		}
 
+		protected abstract String toString(boolean withOwners);
+
+		@Override
+		public final String toString() {
+			return toString(false);
+		}
+
 		private final boolean missingSrcNameAllowed = getKind().level > MappedElementKind.METHOD.level; // args and vars
 		protected final MemoryMappingTree tree;
 		private String srcName;
@@ -1152,7 +1283,32 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		@Override
 		void setDstNameInternal(String name, int namespace) {
-			if (tree.indexByDstNames) {
+			if (tree.inDebugMode) {
+				ClassMapping existing = tree.getClass(name, namespace);
+
+				if (existing != null && existing != this) {
+					throw new IllegalArgumentException("Destination name \""
+							+ name + "\" in namespace " + tree.getNamespaceName(namespace)
+							+ " is already in use by " + existing.getSrcName());
+				}
+			}
+
+			updateIndexByDstNames(name, namespace);
+
+			super.setDstNameInternal(name, namespace);
+		}
+
+		private void updateIndexByDstNames() {
+			for (int ns = 0; ns < dstNames.length; ns++) {
+				updateIndexByDstNames(dstNames[ns], ns);
+			}
+		}
+
+		private void updateIndexByDstNames(String name, int namespace) {
+			if (!tree.indexByDstNames || tree.getClass(getSrcNameUnchecked()) != this /* pending */) {
+				return;
+			}
+
 				String oldName = dstNames[namespace];
 
 				if (!Objects.equals(name, oldName)) {
@@ -1165,9 +1321,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 						map.remove(oldName);
 					}
 				}
-			}
-
-			super.setDstNameInternal(name, namespace);
 		}
 
 		@Override
@@ -1324,6 +1477,53 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		private <T extends MemberEntry<T>> T addMember(T entry, Map<MemberKey, T> map, int flagHasAny, int flagMissesAny) {
+			if (tree.inDebugMode) {
+				MemberEntry<?>[] duplicates = null;
+
+				for (int ns = 0; ns < entry.dstNames.length; ns++) {
+					String dstName = entry.getDstName(ns);
+
+					if (dstName == null) {
+						continue;
+					}
+
+					MemberEntry<?> existing = entry.getKind() == MappedElementKind.FIELD
+							? getField(dstName, entry.getDstDesc(ns), ns)
+							: getMethod(dstName, entry.getDstDesc(ns), ns);
+
+					if (existing != null) {
+						if (duplicates == null) {
+							duplicates = new MemberEntry<?>[entry.dstNames.length];
+						}
+
+						duplicates[ns] = existing;
+					}
+				}
+
+				if (duplicates != null) {
+					StringBuilder errorBuilder = new StringBuilder("Can't add")
+							.append(entry.toString(true))
+							.append(", some of its destination names are already assigned to other entries:");
+
+					for (int ns = 0; ns < duplicates.length; ns++) {
+						MemberEntry<?> prev = duplicates[ns];
+
+						if (prev == null) {
+							continue;
+						}
+
+						errorBuilder.append("\n- \"")
+								.append(entry.dstNames[ns])
+								.append("\" in namespace ")
+								.append(tree.getNamespaceName(ns))
+								.append(" by ")
+								.append(prev.getSrcName());
+					}
+
+					throw new IllegalStateException(errorBuilder.toString());
+				}
+			}
+
 			T ret = map.putIfAbsent(entry.getKey(), entry);
 
 			if (ret != null) { // same desc
@@ -1436,7 +1636,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public String toString() {
+		protected String toString(boolean withOwners) {
 			return getSrcNameUnchecked();
 		}
 
@@ -1467,6 +1667,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.owner = owner;
 			this.srcDesc = src.getDesc(srcNsEquivalent);
 			this.key = new MemberKey(getSrcName(), srcDesc);
+
+			constructorCopyFrom(src);
 		}
 
 		@Override
@@ -1500,6 +1702,21 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		abstract void setSrcDescInternal(@Nullable String desc);
 
+		@Override
+		void setDstNameInternal(String name, int namespace) {
+			if (tree.inDebugMode) {
+				MemberEntry<?> existing = getKind() == MappedElementKind.FIELD
+						? owner.getField(name, getDesc(namespace), namespace)
+						: owner.getMethod(name, getDesc(namespace), namespace);
+
+				if (existing != null && existing != this) {
+					throw new IllegalArgumentException("Destination name \"" + name + "\" in namespace " + tree.getNamespaceName(namespace) + " is already in use by " + existing.toString(true));
+				}
+			}
+
+			super.setDstNameInternal(name, namespace);
+		}
+
 		MemberKey getKey() {
 			assertSrcNamePresent();
 			return key;
@@ -1524,6 +1741,19 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			}
 
 			return acceptElement(visitor, dstDescs);
+		}
+
+		protected String toString(boolean completeHierarchy) {
+			String toFormat = getKind() == MappedElementKind.FIELD
+					? "%s:%s"
+					: "%s%s";
+			String ret = String.format(toFormat, getSrcNameUnchecked(), srcDesc);
+
+			if (completeHierarchy) {
+				ret = String.format("%s.%s", owner.toString(true), ret);
+			}
+
+			return ret;
 		}
 
 		protected ClassEntry owner;
@@ -1558,7 +1788,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			MemberKey newKey = new MemberKey(getSrcName(), desc);
 
 			if (owner.fields != null) { // pending member
-				if (owner.fields.containsKey(newKey)) throw new IllegalArgumentException("conflicting name+desc after changing desc to "+desc+" for "+this);
+				if (owner.fields.containsKey(newKey)) {
+					throw new IllegalArgumentException("conflicting name+desc after changing desc to "+desc+" for "+toString(true)+", skipping");
+				}
+
 				owner.fields.remove(getKey());
 			}
 
@@ -1580,11 +1813,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (visitor.visitField(getSrcName(), srcDesc)) {
 				acceptMember(visitor, supplyDstDescs);
 			}
-		}
-
-		@Override
-		public String toString() {
-			return String.format("%s;;%s", getSrcNameUnchecked(), srcDesc);
 		}
 	}
 
@@ -1881,11 +2109,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			}
 		}
 
-		@Override
-		public String toString() {
-			return String.format("%s%s", getSrcNameUnchecked(), srcDesc);
-		}
-
 		private List<MethodArgEntry> args = null;
 		private List<MethodVarEntry> vars = null;
 		private List<MethodArgEntry> argsView = null;
@@ -1978,8 +2201,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public String toString() {
-			return String.format("%d/%d:%s", argPosition, lvIndex, getSrcName());
+		protected String toString(boolean withOwners) {
+			String ret = String.format("%s:%d/%d", getSrcName(), argPosition, lvIndex);
+
+			if (withOwners) {
+				ret = String.format("%s.%s", method.toString(true), ret);
+			}
+
+			return ret;
 		}
 
 		private final MethodEntry method;
@@ -2089,8 +2318,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public String toString() {
-			return String.format("%d/%d@%d-%d:%s", lvtRowIndex, lvIndex, startOpIdx, endOpIdx, getSrcName());
+		protected String toString(boolean withOwners) {
+			String ret = String.format("%s:%d/%d@%d-%d", getSrcName(), lvtRowIndex, lvIndex, startOpIdx, endOpIdx);
+
+			if (withOwners) {
+				ret = String.format("%s.%s", method.toString(true), ret);
+			}
+
+			return ret;
 		}
 
 		private final MethodEntry method;
@@ -2231,17 +2466,21 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		private final boolean isField;
 	}
 
-	private boolean inVisitPass;
+	// --- Configuration ---
 	private boolean indexByDstNames;
+	private boolean inDebugMode;
+
+	// --- Internal state ---
+	private boolean inVisitPass;
 	private String srcNamespace;
 	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<MetadataEntry> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
 	private final Collection<ClassEntry> classesView = Collections.unmodifiableCollection(classesBySrcName.values());
 	private Map<String, ClassEntry>[] classesByDstNames;
-
 	private HierarchyInfoProvider<?> hierarchyInfo;
 
+	// --- Current visit pass ---
 	/** The incoming source namespace's namespace index on the tree side. */
 	private int srcNsMap;
 	/** Incoming destination namespaces' namespace indices on the tree side. dstNameMap[incomingNsIdx] = treeSideNsIdx. */

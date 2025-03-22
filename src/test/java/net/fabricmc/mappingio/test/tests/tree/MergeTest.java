@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.tree;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,7 +61,7 @@ public class MergeTest {
 
 	@BeforeEach
 	public void setup() {
-		tree = new MemoryMappingTree();
+		tree = createTree();
 		delegate = new VisitOrderVerifyingVisitor(tree);
 	}
 
@@ -288,14 +289,14 @@ public class MergeTest {
 		MappingReader.read(dir.resolve("tree1.tiny"), delegate);
 		MappingReader.read(dir.resolve("tree2.tiny"), delegate);
 
-		MemoryMappingTree referenceTree = new MemoryMappingTree();
+		MemoryMappingTree referenceTree = createTree();
 		MappingReader.read(dir.resolve("tree1+2.tiny"), referenceTree);
 		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
 		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
 
 		MappingReader.read(dir.resolve("tree3.tiny"), delegate);
 
-		referenceTree = new MemoryMappingTree();
+		referenceTree = createTree();
 		MappingReader.read(dir.resolve("tree1+2+3.tiny"), referenceTree);
 		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
 		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));

@@ -18,6 +18,7 @@ package net.fabricmc.mappingio.extras;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 
 import java.io.IOException;
 
@@ -30,7 +31,6 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class MappingTreeRemapperTest {
 	private static final String cls1SrcName = "class_1";
@@ -50,7 +50,7 @@ public class MappingTreeRemapperTest {
 
 	@BeforeAll
 	public static void setup() throws IOException {
-		mappingTree = TestMappings.generateValid(new MemoryMappingTree());
+		mappingTree = TestMappings.generateValid(createTree());
 		srcNs = mappingTree.getSrcNamespace();
 		dstNs = mappingTree.getDstNamespaces().get(0);
 
