@@ -16,9 +16,9 @@
 
 package net.fabricmc.mappingio.extras;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static net.fabricmc.mappingio.test.TestUtil.createTree;
 
 import java.io.IOException;
 

@@ -157,7 +157,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	/**
 	 * Whether additional assertions and safety checks should be enabled
-	 * at the expense of performance. Mostly useful for debugging.
+	 * at the expense of performance. Useful for debugging or input
+	 * data validation.
 	 */
 	@ApiStatus.Internal
 	public void setInDebugMode(boolean inDebugMode) {
@@ -1309,18 +1310,18 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				return;
 			}
 
-				String oldName = dstNames[namespace];
+			String oldName = dstNames[namespace];
 
-				if (!Objects.equals(name, oldName)) {
-					Map<String, ClassEntry> map = tree.classesByDstNames[namespace];
-					if (oldName != null) map.remove(oldName);
+			if (!Objects.equals(name, oldName)) {
+				Map<String, ClassEntry> map = tree.classesByDstNames[namespace];
+				if (oldName != null) map.remove(oldName);
 
-					if (name != null) {
-						map.put(name, this);
-					} else {
-						map.remove(oldName);
-					}
+				if (name != null) {
+					map.put(name, this);
+				} else {
+					map.remove(oldName);
 				}
+			}
 		}
 
 		@Override

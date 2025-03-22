@@ -16,9 +16,9 @@
 
 package net.fabricmc.mappingio.test.tests.tree;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static net.fabricmc.mappingio.test.TestUtil.createTree;
 
 import java.util.Arrays;
 
@@ -75,7 +75,7 @@ public class DebugModeTest {
 			delegate.visitContent();
 			delegate.visitClass(cls1NsAName);
 			if (i != 1) delegate.visitDstName(MappedElementKind.CLASS, 0, cls1NsBName);
-			if (i != 0)	delegate.visitDstName(MappedElementKind.CLASS, 1, cls1NsCName);
+			if (i != 0) delegate.visitDstName(MappedElementKind.CLASS, 1, cls1NsCName);
 			delegate.visitElementContent(MappedElementKind.CLASS);
 			delegate.visitClass(cls2NsAName);
 			if (i != 1) delegate.visitDstName(MappedElementKind.CLASS, 0, cls1NsBName);
