@@ -28,7 +28,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingWriter;
 import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class TestUtil {
 	public static void setResourceRoot(Path path) {
@@ -51,6 +53,19 @@ public final class TestUtil {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static MemoryMappingTree createTree() {
+		return createTree(null);
+	}
+
+	public static MemoryMappingTree createTree(MappingTree src) {
+		MemoryMappingTree tree = src == null
+				? new MemoryMappingTree()
+				: new MemoryMappingTree(src);
+		tree.setInDebugMode(true);
+		tree.setIndexByDstNames(true);
+		return tree;
 	}
 
 	@Nullable

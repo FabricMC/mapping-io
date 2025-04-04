@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.visiting;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,7 +58,7 @@ public class VisitEndTest {
 		}
 
 		MappingTreeView supTree = dir.supportsGeneration()
-				? dir.generate(new MemoryMappingTree())
+				? dir.generate(createTree())
 				: null;
 
 		checkCompliance(dir, format, 1, true, supTree);
@@ -92,7 +93,7 @@ public class VisitEndTest {
 			this.supTree = supTree;
 			this.subFormat = subFormat;
 			this.dir = dir;
-			this.tree = new MemoryMappingTree();
+			this.tree = createTree();
 			this.oldTrees = new MappingTree[visitPassCountToFinish - 1];
 		}
 
@@ -200,8 +201,8 @@ public class VisitEndTest {
 				return true;
 			}
 
-			oldTrees[finishedVisitPassCount - 1] = new MemoryMappingTree(tree);
-			tree = new MemoryMappingTree();
+			oldTrees[finishedVisitPassCount - 1] = createTree(tree);
+			tree = createTree();
 			return false;
 		}
 

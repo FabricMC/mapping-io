@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.reading;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -36,14 +37,13 @@ import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class EmptyContentReadTest {
 	private MappingVisitor target;
 
 	@BeforeEach
 	public void instantiateTree() {
-		target = new VisitOrderVerifyingVisitor(new MemoryMappingTree());
+		target = new VisitOrderVerifyingVisitor(createTree());
 	}
 
 	@Test

@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.tree;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,7 +37,7 @@ public class SetNamespacesTest {
 
 	@BeforeEach
 	public void setup() throws IOException {
-		tree = TestMappings.generateValid(new MemoryMappingTree());
+		tree = TestMappings.generateValid(createTree());
 
 		srcNs = tree.getSrcNamespace();
 		dstNs0 = tree.getDstNamespaces().get(0);

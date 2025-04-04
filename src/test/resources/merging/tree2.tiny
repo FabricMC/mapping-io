@@ -1,7 +1,7 @@
-tiny	2	0	source	target	target2
-c	class_1	class1Ns0Rename	class1Ns1Rename
-	f	I	field_1		field1Ns1Rename
-	f	I	field_2	field2Ns0Rename	
-	m	()I	method_1	method1Ns0Rename	
-		p	1	param_1	param1Ns0Rename	
-		v	2	2	2	var_1		var1Ns1Rename
+tiny	2	0	nsA	nsB	nsC
+c	cls1NsAName	cls1NsBName	cls1NsCName
+	f	I	fld1NsAName		fld1NsCName
+	f	I	fld2NsAName	fld2NsBName	
+	m	()I	mth1NsAName	mth1NsBName	
+		p	1	arg1NsAName	arg1NsBName	
+		v	2	2	2	var1NsAName		var1NsCName

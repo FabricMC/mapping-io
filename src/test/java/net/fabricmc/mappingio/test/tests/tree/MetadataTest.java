@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.tree;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.Test;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class MetadataTest {
@@ -44,7 +44,7 @@ public class MetadataTest {
 
 	@BeforeAll
 	public static void setup() throws Exception {
-		tree = TestMappings.generateValid(new MemoryMappingTree());
+		tree = TestMappings.generateValid(createTree());
 		tree.getMetadata().clear();
 
 		for (int i = 0; i < 40; i++) {

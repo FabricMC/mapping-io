@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -39,7 +40,6 @@ import net.fabricmc.mappingio.test.TestMappings.MappingDir;
 import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
 import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.tree.MappingTreeView;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class OuterClassNamePropagationTest {
@@ -49,7 +49,7 @@ public class OuterClassNamePropagationTest {
 
 	@BeforeAll
 	public static void setup() throws IOException {
-		MappingTreeView tree = acceptMappings(new MemoryMappingTree());
+		MappingTreeView tree = acceptMappings(createTree());
 		srcNamespace = tree.getSrcNamespace();
 		dstNamespaces = tree.getDstNamespaces();
 
@@ -90,7 +90,7 @@ public class OuterClassNamePropagationTest {
 		for (int pass = 1; pass <= 2; pass++) {
 			boolean processRemappedDstNames = pass == 1;
 
-			VisitableMappingTree tree = new MemoryMappingTree();
+			VisitableMappingTree tree = createTree();
 			acceptMappings(new OuterClassNamePropagator(tree, dstNamespaces, processRemappedDstNames));
 			tree.accept(new OuterClassNameChecker(true, dstNamespaces, processRemappedDstNames));
 
@@ -103,14 +103,14 @@ public class OuterClassNamePropagationTest {
 		for (int pass = 1; pass <= 2; pass++) {
 			boolean processRemappedDstNames = pass == 1;
 
-			VisitableMappingTree tree = acceptMappings(new MemoryMappingTree());
+			VisitableMappingTree tree = acceptMappings(createTree());
 			tree.propagateOuterClassNames(processRemappedDstNames);
 			tree.accept(new OuterClassNameChecker(true, dstNamespaces, processRemappedDstNames));
 
 			checkDiskEquivalence(tree, processRemappedDstNames);
 		}
 
-		VisitableMappingTree tree = acceptMappings(new MemoryMappingTree());
+		VisitableMappingTree tree = acceptMappings(createTree());
 
 		assertThrows(UnsupportedOperationException.class, () -> tree.propagateOuterClassNames(
 				dstNamespaces.get(0),
@@ -132,7 +132,7 @@ public class OuterClassNamePropagationTest {
 					? TestMappings.PROPAGATION.PROPAGATED
 					: TestMappings.PROPAGATION.PROPAGATED_EXCEPT_REMAPPED_DST;
 
-			VisitableMappingTree diskTree = dir.read(format, new MemoryMappingTree());
+			VisitableMappingTree diskTree = dir.read(format, createTree());
 
 			tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(diskTree, format, null)));
 			diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, format)));

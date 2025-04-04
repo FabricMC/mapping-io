@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.test.tests.writing;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
+
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -37,7 +39,6 @@ import net.fabricmc.mappingio.test.TestMappings.MappingDir;
 import net.fabricmc.mappingio.test.TestUtil;
 import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.tree.MappingTreeView;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class WriteTest {
@@ -59,7 +60,7 @@ public class WriteTest {
 		}
 
 		Path path = targetDir.resolve(TestUtil.getFileName(format));
-		MappingTreeView tree = dir.generate(new MemoryMappingTree());
+		MappingTreeView tree = dir.generate(createTree());
 		MappingVisitor target = MappingWriter.create(path, format);
 
 		if (dir.isIn(TestMappings.PROPAGATION.BASE_DIR) && !format.features().hasNamespaces()) {
@@ -83,7 +84,7 @@ public class WriteTest {
 	}
 
 	private void readWithMio(MappingTreeView origTree, Path outputPath, MappingFormat outputFormat) throws Exception {
-		VisitableMappingTree writtenTree = new MemoryMappingTree();
+		VisitableMappingTree writtenTree = createTree();
 		MappingReader.read(outputPath, outputFormat, writtenTree);
 
 		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(origTree, null, outputFormat)));
@@ -104,7 +105,7 @@ public class WriteTest {
 		if (format == MappingFormat.PROGUARD_FILE) return;
 
 		// SrgUtils can't handle empty dst names
-		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
+		VisitableMappingTree dstNsCompTree = createTree();
 		tree.accept(
 				// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/9 is fixed
 				new MappingNsCompleter(

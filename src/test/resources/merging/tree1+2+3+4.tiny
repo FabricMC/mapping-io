@@ -1,0 +1,9 @@
+tiny	2	0	nsA	nsB	nsC	nsD
+c	cls1NsAName	cls1NsBName	cls1NsCName2	cls1NsDName
+	f	I	fld1NsAName		fld1NsCName	
+		c	fld1 comment
+	f	I	fld2NsAName	fld2NsBName	fld2NsCName	fld2NsDName
+	f	I	fld3NsAName	fld3NsBName	fld3NsCName	fld3NsDName
+	m	()I	mth1NsAName	mth1NsBName2	mth1NsCName	mth1NsDName
+		p	1	arg1NsAName	arg1NsBName	arg1NsCName	
+		v	2	2	2	var1NsAName	var1NsBName	var1NsCName	

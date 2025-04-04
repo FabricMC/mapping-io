@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.test.tests.reading;
 
+import static net.fabricmc.mappingio.test.TestUtil.createTree;
+
 import java.nio.file.Files;
 
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +33,6 @@ import net.fabricmc.mappingio.test.TestMappings.MappingDir;
 import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
 import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.tree.MappingTreeView;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
 public class ValidContentReadTest {
@@ -59,8 +60,8 @@ public class ValidContentReadTest {
 		// TODO: The Tiny v2 spec also disallows repeated elements, there should at least be warnings
 		boolean allowConsecutiveDuplicateElementVisits = dir == TestMappings.READING.REPEATED_ELEMENTS;
 
-		VisitableMappingTree referenceTree = dir.generate(new MemoryMappingTree());
-		VisitableMappingTree tree = new MemoryMappingTree();
+		VisitableMappingTree referenceTree = dir.generate(createTree());
+		VisitableMappingTree tree = createTree();
 
 		dir.read(format, new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits));
 		assertEqual(tree, format, referenceTree, allowConsecutiveDuplicateElementVisits);
@@ -69,7 +70,7 @@ public class ValidContentReadTest {
 			return;
 		}
 
-		tree = new MemoryMappingTree();
+		tree = createTree();
 		String newSrcNs = format.features().hasNamespaces()
 				? referenceTree.getDstNamespaces().get(0)
 				: MappingUtil.NS_TARGET_FALLBACK;
