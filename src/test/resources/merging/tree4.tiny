@@ -1,0 +1,6 @@
+tiny	2	0	nsD	nsC	nsB
+c	cls1NsDName		cls1NsBName
+	f	I	fld1NsDName		fld1NsBName
+	f	I	fld2NsDName		fld2NsBName
+	f	I	fld3NsDName	fld3NsCName	
+	m	()I	mth1NsDName	mth1NsCName	mth1NsBName2

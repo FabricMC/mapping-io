@@ -136,13 +136,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					String name = duplicate.getKey();
 					Set<ClassEntry> duplicates = duplicate.getValue();
 
-					errorBuilder.append("\n- \"")
+					errorBuilder.append("\n  - \"")
 							.append(name)
 							.append("\" in namespace ")
 							.append(getNamespaceName(ns))
 							.append(" for classes ")
 							.append(duplicates.stream()
-									.map(ClassEntry::getSrcName)
+									.map(ClassEntry::toString)
 									.collect(Collectors.joining(", ")));
 				}
 			}
@@ -153,6 +153,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	public boolean doesIndexByDstNames() {
 		return indexByDstNames;
+	}
+
+	public void setSrcNameDevoidEntryMergingStrategy(SrcNameDevoidEntryMergingStrategy strategy) {
+		this.srcNameDevoidEntryMergingStrategy = strategy;
+	}
+
+	public SrcNameDevoidEntryMergingStrategy getSrcNameDevoidEntryMergingStrategy() {
+		return srcNameDevoidEntryMergingStrategy;
 	}
 
 	/**
@@ -365,8 +373,14 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		} else {
 			ClassMapping ret = classesByDstNames[namespace].get(name);
 
-			if (inDebugMode && ret != VisitableMappingTree.super.getClass(name, namespace)) {
-				throw new IllegalStateException("Class name \"" + name + "\" in destination namespace " + getNamespaceName(namespace) + " is not unique");
+			if (inDebugMode) {
+				ClassMapping expected = VisitableMappingTree.super.getClass(name, namespace);
+
+				if (ret != expected) {
+					throw new IllegalStateException("Class name \"" + name
+							+ "\" in destination namespace " + getNamespaceName(namespace) + " is not unique: "
+							+ ret + " conflicts with at least " + expected);
+				}
 			}
 
 			return ret;
@@ -401,7 +415,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 			if (duplicates != null) {
 				StringBuilder errorBuilder = new StringBuilder("Can't add \"")
-						.append(entry.getSrcName())
+						.append(entry.toString(true))
 						.append("\", some of its destination names are already assigned to other classes:");
 
 				for (int ns = 0; ns < duplicates.length; ns++) {
@@ -411,12 +425,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 						continue;
 					}
 
-					errorBuilder.append("\n- \"")
+					errorBuilder.append("\n  - \"")
 							.append(entry.dstNames[ns])
-							.append("\" in namespace ")
+							.append("\" in namespace \"")
 							.append(getNamespaceName(ns))
-							.append(" by ")
-							.append(prev.getSrcName());
+							.append("\" by \"")
+							.append(prev.toString(false))
+							.append("\"");
 				}
 
 				throw new IllegalStateException(errorBuilder.toString());
@@ -738,6 +753,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	private void addPendingClass(ClassEntry cls) {
 		int startIdx = cls.isSrcNameMissing() ? 0 : SRC_NAMESPACE_ID;
+		Set<ClassEntry> matches = null;
 
 		for (int i = startIdx; i <= dstNameMap.length; i++) {
 			int ns = i;
@@ -765,18 +781,55 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			ClassEntry existing = (ClassEntry) getClass(name, ns);
 
 			if (existing != null) {
-				existing.copyFrom(cls, true);
+				if (srcNameDevoidEntryMergingStrategy == SrcNameDevoidEntryMergingStrategy.FIRST_MATCH) {
+					matches = Collections.singleton(existing);
+					break;
+				} else {
+					if (matches == null) {
+						matches = Collections.newSetFromMap(new LinkedHashMap<>());
+					}
 
-				if (cls.isSrcNameMissing()) {
-					// Copy source name so cls's pending members can be processed later on
-					cls.setSrcName(existing.getSrcName());
+					matches.add(existing);
 				}
-
-				break; // this ignores potential matches with other namespaces, but at that point it's the user's fault for being too ambiguous
 			} else if (ns == SRC_NAMESPACE_ID) {
 				classesBySrcName.put(name, cls);
-				break;
+				cls.updateIndexByDstNames();
+				return;
 			}
+		}
+
+		if (matches == null) {
+			return;
+		}
+
+		if (matches.size() > 1 && srcNameDevoidEntryMergingStrategy == SrcNameDevoidEntryMergingStrategy.REJECT_AMBIGUOUS) {
+			// TODO: Add a way to report this to the user (PR 94?)
+
+			if (inDebugMode) {
+				throw new IllegalStateException("Found multiple matches for " + cls.toString(true));
+			}
+
+			return;
+		}
+
+		ClassEntry latestSubmittedMatch = null;
+
+		for (ClassEntry treeCls : classesBySrcName.values()) {
+			if (matches.contains(treeCls)) {
+				latestSubmittedMatch = treeCls;
+			}
+		}
+
+		matches.remove(latestSubmittedMatch);
+		matches.add(cls);
+
+		for (ClassEntry match : matches) {
+			latestSubmittedMatch.copyFrom(match, true);
+		}
+
+		if (cls.isSrcNameMissing()) {
+			// Copy source name so cls's pending members can be processed later on
+			cls.setSrcName(latestSubmittedMatch.getSrcName());
 		}
 	}
 
@@ -792,8 +845,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		boolean isField = member.getKind() == MappedElementKind.FIELD;
 		int startIdx = member.isSrcNameMissing() && member.getSrcDesc() == null ? 0 : SRC_NAMESPACE_ID;
 		Map.Entry<Integer, String> anyDesc = null;
+		Set<MemberEntry<?>> matches = null;
 		int findDescPhase = 0;
 		int addToTreePhase = 1;
+		String srcDesc = null;
 
 		for (int phase = findDescPhase; phase <= addToTreePhase; phase++) {
 			for (int i = startIdx; i <= dstNameMap.length; i++) {
@@ -840,37 +895,85 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 					desc = mapDesc(anyDesc.getValue(), anyDesc.getKey(), ns);
 				}
 
+				if (ns == SRC_NAMESPACE_ID) {
+					assert srcDesc == null;
+					srcDesc = desc;
+				}
+
 				MemberEntry<?> existing = isField
 						? owner.getField(name, desc, ns)
 						: owner.getMethod(name, desc, ns);
 
-				if (ns != SRC_NAMESPACE_ID && existing == null) {
-					continue;
-				}
-
-				if (member.getSrcDesc() == null && desc != null && (existing == null || existing.getSrcDesc() == null)) {
-					member.setSrcDescInternal(mapDesc(desc, ns, SRC_NAMESPACE_ID));
-				}
-
 				if (existing != null) {
-					assert member.srcDesc == null || existing.srcDesc == null || member.srcDesc.equals(existing.srcDesc);
-
-					if (isField) {
-						((FieldEntry) existing).copyFrom((FieldEntry) member, true);
+					if (srcNameDevoidEntryMergingStrategy == SrcNameDevoidEntryMergingStrategy.FIRST_MATCH) {
+						matches = Collections.singleton(existing);
+						break;
 					} else {
-						((MethodEntry) existing).copyFrom((MethodEntry) member, true);
+						if (matches == null) {
+							matches = Collections.newSetFromMap(new LinkedHashMap<>());
+						}
+
+						matches.add(existing);
+					}
+				} else if (ns == SRC_NAMESPACE_ID) {
+					if (member.getSrcDesc() == null && srcDesc != null) {
+						member.setSrcDescInternal(srcDesc);
 					}
 
-					break; // this ignores potential matches with other namespaces, but at that point it's the user's fault for being too ambiguous
-				} else { // ns == SRC_NAMESPACE_ID
 					if (isField) {
 						owner.addFieldInternal((FieldEntry) member);
 					} else {
 						owner.addMethodInternal((MethodEntry) member);
 					}
 
-					break;
+					return;
 				}
+			}
+		}
+
+		if (matches == null) {
+			return;
+		}
+
+		if (matches.size() > 1 && srcNameDevoidEntryMergingStrategy == SrcNameDevoidEntryMergingStrategy.REJECT_AMBIGUOUS) {
+			// TODO: Add a way to report this to the user (PR 94?)
+
+			if (inDebugMode) {
+				throw new IllegalStateException("Found multiple matches for " + member.toString(true) + " in " + member.getOwner().toString(true));
+			}
+
+			return;
+		}
+
+		MemberEntry<?> latestSubmittedMatch = null;
+		Collection<? extends MemberEntry<?>> treeMembers = isField
+				? owner.getFields()
+				: owner.getMethods();
+
+		for (MemberEntry<?> treeMember : treeMembers) {
+			if (matches.contains(treeMember)) {
+				latestSubmittedMatch = treeMember;
+			}
+		}
+
+		matches.remove(latestSubmittedMatch);
+		matches.add(member);
+
+		for (MemberEntry<?> match : matches) {
+			if (isField) {
+				((FieldEntry) latestSubmittedMatch).copyFrom((FieldEntry) match, true);
+			} else {
+				((MethodEntry) latestSubmittedMatch).copyFrom((MethodEntry) match, true);
+			}
+		}
+
+		if (latestSubmittedMatch.getSrcDesc() == null) {
+			if (srcDesc == null && anyDesc != null) {
+				srcDesc = mapDesc(anyDesc.getValue(), anyDesc.getKey(), SRC_NAMESPACE_ID);
+			}
+
+			if (srcDesc != null) {
+				latestSubmittedMatch.setSrcDescInternal(srcDesc);
 			}
 		}
 	}
@@ -1088,6 +1191,32 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 	}
 
+	/**
+	 * Strategy for merging incoming entries which don't supply a name for the tree-side source namespace,
+	 * but do supply a name for a tree-side destination namespace,
+	 * which might already be in use by an existing entry (= match).
+	 */
+	public enum SrcNameDevoidEntryMergingStrategy {
+		/**
+		 * Pending data will be merged into the first matching entry,
+		 * there will be no checks if further matches might exist.
+		 */
+		FIRST_MATCH,
+
+		/**
+		 * Checks if multiple matches exist. If not, same as {@link #FIRST_MATCH},
+		 * otherwise merges all matching entries into the last submitted entry,
+		 * merges pending data into there and then deletes the other matches from the tree.
+		 */
+		ALL_MATCHES,
+
+		/**
+		 * Checks if multiple matches exist. If not, same as {@link #FIRST_MATCH},
+		 * otherwise ignores the pending data.
+		 */
+		REJECT_AMBIGUOUS
+	}
+
 	abstract static class Entry<T extends Entry<T>> implements ElementMapping {
 		protected Entry(MemoryMappingTree tree, String srcName) {
 			this.tree = tree;
@@ -1232,7 +1361,13 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		protected void copyFrom(T o, boolean replace) {
 			for (int i = 0; i < dstNames.length; i++) {
 				if (o.dstNames[i] != null && (replace || dstNames[i] == null)) {
-					dstNames[i] = o.dstNames[i];
+					String oDstName = o.dstNames[i];
+
+					if (this instanceof ClassEntry) {
+						((ClassEntry) this).updateIndexByDstNames(oDstName, i, false);
+					}
+
+					dstNames[i] = oDstName;
 				}
 			}
 
@@ -1287,32 +1422,34 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			if (tree.inDebugMode) {
 				ClassMapping existing = tree.getClass(name, namespace);
 
-				if (existing != null && existing != this) {
+				if (existing != null && existing != this && getSrcNameUnchecked() != null) {
 					throw new IllegalArgumentException("Destination name \""
 							+ name + "\" in namespace " + tree.getNamespaceName(namespace)
-							+ " is already in use by " + existing.getSrcName());
+							+ " in the process to be set for class " + toString()
+							+ " is already in use by " + existing.toString()
+							+ ", aborting");
 				}
 			}
 
-			updateIndexByDstNames(name, namespace);
+			updateIndexByDstNames(name, namespace, false);
 
 			super.setDstNameInternal(name, namespace);
 		}
 
 		private void updateIndexByDstNames() {
 			for (int ns = 0; ns < dstNames.length; ns++) {
-				updateIndexByDstNames(dstNames[ns], ns);
+				updateIndexByDstNames(dstNames[ns], ns, true);
 			}
 		}
 
-		private void updateIndexByDstNames(String name, int namespace) {
+		private void updateIndexByDstNames(String name, int namespace, boolean skipEqualityCheck) {
 			if (!tree.indexByDstNames || tree.getClass(getSrcNameUnchecked()) != this /* pending */) {
 				return;
 			}
 
 			String oldName = dstNames[namespace];
 
-			if (!Objects.equals(name, oldName)) {
+			if (skipEqualityCheck || !Objects.equals(name, oldName)) {
 				Map<String, ClassEntry> map = tree.classesByDstNames[namespace];
 				if (oldName != null) map.remove(oldName);
 
@@ -1478,6 +1615,32 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		private <T extends MemberEntry<T>> T addMember(T entry, Map<MemberKey, T> map, int flagHasAny, int flagMissesAny) {
+			T existing = map.get(entry.getKey());
+			T existingDescless = null;
+			T existingDescContaining = null;
+			boolean validDesc = false;
+			MemberKey existingDesclessKey = null;
+			byte flags = this.flags;
+
+			if (existing == null) {
+				if (isValidDescriptor(entry.srcDesc, true)) { // entry has desc, check for desc-less match
+					validDesc = true;
+					flags |= flagHasAny;
+
+					if ((flags & flagMissesAny) != 0) {
+						existingDesclessKey = new MemberKey(entry.getSrcName(), null);
+						existingDescless = map.get(existingDesclessKey);
+					}
+				} else if ((flags & flagHasAny) != 0) { // entry has no desc, check for desc-containing match
+					for (T mapEntry : map.values()) {
+						if (mapEntry != entry && mapEntry.getSrcName().equals(entry.getSrcName()) && (entry.srcDesc == null || mapEntry.srcDesc.startsWith(entry.srcDesc))) {
+							existingDescContaining = mapEntry;
+							break;
+						}
+					}
+				}
+			}
+
 			if (tree.inDebugMode) {
 				MemberEntry<?>[] duplicates = null;
 
@@ -1488,23 +1651,23 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 						continue;
 					}
 
-					MemberEntry<?> existing = entry.getKind() == MappedElementKind.FIELD
+					MemberEntry<?> match = entry.getKind() == MappedElementKind.FIELD
 							? getField(dstName, entry.getDstDesc(ns), ns)
 							: getMethod(dstName, entry.getDstDesc(ns), ns);
 
-					if (existing != null) {
+					if (match != existing && match != existingDescless && match != existingDescContaining) {
 						if (duplicates == null) {
 							duplicates = new MemberEntry<?>[entry.dstNames.length];
 						}
 
-						duplicates[ns] = existing;
+						duplicates[ns] = match;
 					}
 				}
 
 				if (duplicates != null) {
-					StringBuilder errorBuilder = new StringBuilder("Can't add")
+					StringBuilder errorBuilder = new StringBuilder("Can't add \"")
 							.append(entry.toString(true))
-							.append(", some of its destination names are already assigned to other entries:");
+							.append("\", some of its destination names are already assigned to other entries:");
 
 					for (int ns = 0; ns < duplicates.length; ns++) {
 						MemberEntry<?> prev = duplicates[ns];
@@ -1513,55 +1676,55 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 							continue;
 						}
 
-						errorBuilder.append("\n- \"")
+						errorBuilder.append("\n  - \"")
 								.append(entry.dstNames[ns])
-								.append("\" in namespace ")
+								.append("\" in namespace \"")
 								.append(tree.getNamespaceName(ns))
-								.append(" by ")
-								.append(prev.getSrcName());
+								.append("\" by \"")
+								.append(prev.toString(false))
+								.append("\"");
 					}
 
 					throw new IllegalStateException(errorBuilder.toString());
 				}
 			}
 
-			T ret = map.putIfAbsent(entry.getKey(), entry);
+			if (existing != null) { // same desc
+				existing.copyFrom(entry, true);
 
-			if (ret != null) { // same desc
-				ret.copyFrom(entry, true);
+				return existing;
+			} else {
+				T ret = entry;
 
+				if (validDesc) {
+					flags |= flagHasAny;
+
+					existing = map.put(entry.getKey(), entry);
+					assert existing == null;
+
+					if (existingDescless != null) { // compatible desc-less entry exists, copy desc + extra content
+						assert existingDesclessKey != null;
+
+						map.remove(existingDesclessKey);
+
+						existingDescless.copyFrom(entry, true);
+						ret = existingDescless;
+					}
+				} else {
+					if (existingDescContaining != null) {
+						existingDescContaining.copyFrom(entry, true);
+
+						ret = existingDescContaining;
+					} else {
+						existing = map.put(entry.getKey(), entry);
+						assert existing == null;
+					}
+
+					flags |= flagMissesAny;
+				}
+
+				this.flags = flags;
 				return ret;
-			} else if (isValidDescriptor(entry.srcDesc, true)) { // may have replaced desc-less
-				flags |= flagHasAny;
-
-				if ((flags & flagMissesAny) != 0) {
-					ret = map.remove(new MemberKey(entry.getSrcName(), null));
-
-					if (ret != null) { // compatible entry exists, copy desc + extra content
-						ret.setKey(entry.getKey());
-						ret.srcDesc = entry.srcDesc;
-						map.put(ret.getKey(), ret);
-						ret.copyFrom(entry, true);
-						entry = ret;
-					}
-				}
-
-				return entry;
-			} else { // entry.srcDesc == null, may have replaced desc-containing
-				if ((flags & flagHasAny) != 0) {
-					for (T prevEntry : map.values()) {
-						if (prevEntry != entry && prevEntry.getSrcName().equals(entry.getSrcName()) && (entry.srcDesc == null || prevEntry.srcDesc.startsWith(entry.srcDesc))) {
-							map.remove(entry.getKey());
-							prevEntry.copyFrom(entry, true);
-
-							return prevEntry;
-						}
-					}
-				}
-
-				flags |= flagMissesAny;
-
-				return entry;
 			}
 		}
 
@@ -2469,6 +2632,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	// --- Configuration ---
 	private boolean indexByDstNames;
+	private SrcNameDevoidEntryMergingStrategy srcNameDevoidEntryMergingStrategy = SrcNameDevoidEntryMergingStrategy.ALL_MATCHES;
 	private boolean inDebugMode;
 
 	// --- Internal state ---

@@ -1,9 +1,9 @@
-tiny	2	0	source	target	target2
-c	class_1	class1Ns0Rename	class1Ns1Rename2
-	f	I	field_1		field1Ns1Rename
-		c	field_1 comment
-	f	I	field_2	field2Ns0Rename	field2Ns1Rename
-	f	I	field_3	field3Ns0Rename	field3Ns1Rename
-	m	()I	method_1	method1Ns0Rename	method1Ns1Rename
-		p	1	param_1	param1Ns0Rename	param1Ns1Rename
-		v	2	2	2	var_1	var1Ns0Rename	var1Ns1Rename
+tiny	2	0	nsA	nsB	nsC
+c	cls1NsAName	cls1NsBName	cls1NsCName2
+	f	I	fld1NsAName		fld1NsCName
+		c	fld1 comment
+	f	I	fld2NsAName	fld2NsBName	fld2NsCName
+	f	I	fld3NsAName	fld3NsBName	fld3NsCName
+	m	()I	mth1NsAName	mth1NsBName	mth1NsCName
+		p	1	arg1NsAName	arg1NsBName	arg1NsCName
+		v	2	2	2	var1NsAName	var1NsBName	var1NsCName

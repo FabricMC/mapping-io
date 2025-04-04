@@ -40,6 +40,7 @@ import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
 import net.fabricmc.mappingio.tree.MappingTree.ClassMapping;
 import net.fabricmc.mappingio.tree.MappingTree.FieldMapping;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree.SrcNameDevoidEntryMergingStrategy;
 
 public class MergeTest {
 	private static final Path dir = TestMappings.MERGING;
@@ -286,6 +287,8 @@ public class MergeTest {
 
 	@Test
 	public void diskMappings() throws IOException {
+		tree.setSrcNameDevoidEntryMergingStrategy(SrcNameDevoidEntryMergingStrategy.REJECT_AMBIGUOUS);
+		// Same namespaces, same order
 		MappingReader.read(dir.resolve("tree1.tiny"), delegate);
 		MappingReader.read(dir.resolve("tree2.tiny"), delegate);
 
@@ -294,10 +297,19 @@ public class MergeTest {
 		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
 		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
 
+		// Same namespaces, different order
 		MappingReader.read(dir.resolve("tree3.tiny"), delegate);
 
 		referenceTree = createTree();
 		MappingReader.read(dir.resolve("tree1+2+3.tiny"), referenceTree);
+		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
+		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
+
+		// New namespace as source, some existing ones as destination
+		MappingReader.read(dir.resolve("tree4.tiny"), delegate);
+
+		referenceTree = createTree();
+		MappingReader.read(dir.resolve("tree1+2+3+4.tiny"), referenceTree);
 		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(referenceTree, null, null)));
 		referenceTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, null)));
 	}
