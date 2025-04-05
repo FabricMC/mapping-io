@@ -48,8 +48,8 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 public class SubsetAssertingVisitor implements FlatMappingVisitor {
 	/**
 	 * @param supTree The superset tree.
-	 * @param supFormat The superset format, or null if supTree has all the original data.
-	 * @param subFormat The subset format, or null if lossless (i.e. if the visits are coming from a tree).
+	 * @param supFormat The superset format, or {@code null} if supTree has all the original data.
+	 * @param subFormat The subset format, or {@code null} if lossless (i.e. if the visits are coming from a tree).
 	 */
 	public SubsetAssertingVisitor(MappingTreeView supTree, @Nullable MappingFormat supFormat, @Nullable MappingFormat subFormat) {
 		this.supTree = supTree;
