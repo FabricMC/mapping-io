@@ -64,8 +64,6 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	@Override
 	@Nullable
 	public String resolveMethod(String owner, String name, @Nullable String desc) {
-		if (desc == null) return null; // TODO: Tiny Remapper limitation
-
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
@@ -77,8 +75,6 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	@Override
 	@Nullable
 	public HierarchyData getMethodHierarchy(String owner, String name, @Nullable String desc) {
-		if (desc == null) return null; // TODO: Tiny Remapper limitation
-
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
