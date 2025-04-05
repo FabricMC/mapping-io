@@ -34,8 +34,22 @@ import net.fabricmc.mappingio.MappingVisitor;
  * @implNote This visitor requires one pre-pass in which it determines which elements contain data worth forwarding.
  */
 public final class EmptyEntryFilter extends ForwardingMappingVisitor {
+	/**
+	 * Creates a new {@link EmptyEntryFilter} that treats destination names and descriptors which are equal to their source counterparts as empty.
+	 *
+	 * @param next The next visitor to forward the data to.
+	 */
 	public EmptyEntryFilter(MappingVisitor next) {
+		this(next, true);
+	}
+
+	/**
+	 * @param next The next visitor to forward the data to.
+	 * @param treatSrcOnDstAsEmpty Whether destination names and descriptors that are equal to their source counterparts should be treated as empty.
+	 */
+	public EmptyEntryFilter(MappingVisitor next, boolean treatSrcOnDstAsEmpty) {
 		super(next);
+		this.treatSrcOnDstAsEmpty = treatSrcOnDstAsEmpty;
 	}
 
 	@Override
@@ -167,7 +181,7 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 			return;
 		}
 
-		if (name == null || name.equals(srcName)) {
+		if (name == null || (treatSrcOnDstAsEmpty && name.equals(srcName))) {
 			return;
 		}
 
@@ -196,7 +210,7 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 			return;
 		}
 
-		if (desc == null || desc.equals(srcDesc)) {
+		if (desc == null || (treatSrcOnDstAsEmpty && desc.equals(srcDesc))) {
 			return;
 		}
 
@@ -255,6 +269,7 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 	private final Set<Integer> classesToForward = new HashSet<>();
 	private final Set<Integer> membersToForward = new HashSet<>();
 	private final Set<Integer> localsToForward = new HashSet<>();
+	private final boolean treatSrcOnDstAsEmpty;
 	private int pass;
 	private String srcName;
 	private String srcDesc;
