@@ -40,6 +40,16 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+import net.fabricmc.mappingio.tree.MappingCollection.ClassMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.FieldMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodArgMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodVarMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollectionImpl.ClassMappingCollectionImpl;
+import net.fabricmc.mappingio.tree.MappingCollectionImpl.FieldMappingCollectionImpl;
+import net.fabricmc.mappingio.tree.MappingCollectionImpl.MethodArgMappingCollectionImpl;
+import net.fabricmc.mappingio.tree.MappingCollectionImpl.MethodMappingCollectionImpl;
+import net.fabricmc.mappingio.tree.MappingCollectionImpl.MethodVarMappingCollectionImpl;
 
 /**
  * {@link VisitableMappingTree} implementation that stores all data in memory.
@@ -284,7 +294,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
-	public Collection<? extends ClassMapping> getClasses() {
+	public ClassMappingCollection<? extends ClassMapping> getClasses() {
 		return classesView;
 	}
 
@@ -305,7 +315,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	}
 
 	@Override
-	public ClassMapping addClass(ClassMapping cls) {
+	public ClassMapping addClass(ClassMappingView cls) {
 		assertNotInVisitPass();
 		ClassEntry entry = cls instanceof ClassEntry && cls.getTree() == this ? (ClassEntry) cls : new ClassEntry(this, cls, getSrcNsEquivalent(cls));
 		ClassEntry ret = classesBySrcName.putIfAbsent(cls.getSrcName(), entry);
@@ -325,7 +335,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		return entry;
 	}
 
-	private int getSrcNsEquivalent(ElementMapping mapping) {
+	private int getSrcNsEquivalent(ElementMappingView mapping) {
 		int ret = mapping.getTree().getNamespaceId(srcNamespace);
 		if (ret == NULL_NAMESPACE_ID) throw new UnsupportedOperationException("can't find source namespace in referenced mapping tree");
 
@@ -848,7 +858,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.dstNames = new String[tree.dstNamespaces.size()];
 		}
 
-		protected Entry(MemoryMappingTree tree, ElementMapping src, int srcNsEquivalent) {
+		protected Entry(MemoryMappingTree tree, ElementMappingView src, int srcNsEquivalent) {
 			this(tree, src.getName(srcNsEquivalent));
 
 			for (int i = 0; i < dstNames.length; i++) {
@@ -862,7 +872,10 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			setCommentInternal(src.getComment());
 		}
 
-		public abstract MappedElementKind getKind();
+		@Override
+		public MemoryMappingTree getTree() {
+			return tree;
+		}
 
 		final boolean isSrcNameMissing() {
 			return srcName == null;
@@ -995,26 +1008,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			super(tree, srcName);
 		}
 
-		ClassEntry(MemoryMappingTree tree, ClassMapping src, int srcNsEquivalent) {
+		ClassEntry(MemoryMappingTree tree, ClassMappingView src, int srcNsEquivalent) {
 			super(tree, src, srcNsEquivalent);
 
-			for (FieldMapping field : src.getFields()) {
+			for (FieldMappingView field : src.getFields()) {
 				addFieldInternal(field);
 			}
 
-			for (MethodMapping method : src.getMethods()) {
+			for (MethodMappingView method : src.getMethods()) {
 				addMethodInternal(method);
 			}
-		}
-
-		@Override
-		public MappedElementKind getKind() {
-			return MappedElementKind.CLASS;
-		}
-
-		@Override
-		public MemoryMappingTree getTree() {
-			return tree;
 		}
 
 		@Override
@@ -1038,10 +1041,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public Collection<FieldEntry> getFields() {
-			if (fields == null) return Collections.emptyList();
-
+		public FieldMappingCollection<FieldEntry> getFields() {
+			initFieldCollectionsIfRequired();
 			return fieldsView;
+		}
+
+		private void initFieldCollectionsIfRequired() {
+			if (fields == null) {
+				fields = new LinkedHashMap<>();
+				fieldsView = new FieldMappingCollectionImpl<>(tree, this, fields.values());
+			}
 		}
 
 		@Override
@@ -1057,18 +1066,15 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public FieldEntry addField(FieldMapping field) {
+		public FieldEntry addField(FieldMappingView field) {
 			tree.assertNotInVisitPass();
 			return addFieldInternal(field);
 		}
 
-		FieldEntry addFieldInternal(FieldMapping field) {
+		FieldEntry addFieldInternal(FieldMappingView field) {
 			FieldEntry entry = field instanceof FieldEntry && field.getOwner() == this ? (FieldEntry) field : new FieldEntry(this, field, tree.getSrcNsEquivalent(field));
 
-			if (fields == null) {
-				fields = new LinkedHashMap<>();
-				fieldsView = Collections.unmodifiableCollection(fields.values());
-			}
+			initFieldCollectionsIfRequired();
 
 			return addMember(entry, fields, FLAG_HAS_ANY_FIELD_DESC, FLAG_MISSES_ANY_FIELD_DESC);
 		}
@@ -1085,10 +1091,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public Collection<MethodEntry> getMethods() {
-			if (methods == null) return Collections.emptyList();
-
+		public MethodMappingCollection<MethodEntry> getMethods() {
+			initMethodCollectionsIfRequired();
 			return methodsView;
+		}
+
+		private void initMethodCollectionsIfRequired() {
+			if (methods == null) {
+				methods = new LinkedHashMap<>();
+				methodsView = new MethodMappingCollectionImpl<>(tree, this, methods.values());
+			}
 		}
 
 		@Override
@@ -1104,18 +1116,15 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public MethodEntry addMethod(MethodMapping method) {
+		public MethodEntry addMethod(MethodMappingView method) {
 			tree.assertNotInVisitPass();
 			return addMethodInternal(method);
 		}
 
-		MethodEntry addMethodInternal(MethodMapping method) {
+		MethodEntry addMethodInternal(MethodMappingView method) {
 			MethodEntry entry = method instanceof MethodEntry && method.getOwner() == this ? (MethodEntry) method : new MethodEntry(this, method, tree.getSrcNsEquivalent(method));
 
-			if (methods == null) {
-				methods = new LinkedHashMap<>();
-				methodsView = Collections.unmodifiableCollection(methods.values());
-			}
+			initMethodCollectionsIfRequired();
 
 			return addMember(entry, methods, FLAG_HAS_ANY_METHOD_DESC, FLAG_MISSES_ANY_METHOD_DESC);
 		}
@@ -1314,8 +1323,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		private Map<MemberKey, FieldEntry> fields = null;
 		private Map<MemberKey, MethodEntry> methods = null;
-		private Collection<FieldEntry> fieldsView = null;
-		private Collection<MethodEntry> methodsView = null;
+		private FieldMappingCollection<FieldEntry> fieldsView = null;
+		private MethodMappingCollection<MethodEntry> methodsView = null;
 		private byte flags;
 	}
 
@@ -1328,17 +1337,12 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.key = new MemberKey(srcName, srcDesc);
 		}
 
-		protected MemberEntry(ClassEntry owner, MemberMapping src, int srcNsEquivalent) {
+		protected MemberEntry(ClassEntry owner, MemberMappingView src, int srcNsEquivalent) {
 			super(owner.tree, src, srcNsEquivalent);
 
 			this.owner = owner;
 			this.srcDesc = src.getDesc(srcNsEquivalent);
 			this.key = new MemberKey(getSrcName(), srcDesc);
-		}
-
-		@Override
-		public MappingTree getTree() {
-			return owner.tree;
 		}
 
 		@Override
@@ -1403,13 +1407,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			super(owner, srcName, srcDesc);
 		}
 
-		FieldEntry(ClassEntry owner, FieldMapping src, int srcNsEquivalent) {
+		FieldEntry(ClassEntry owner, FieldMappingView src, int srcNsEquivalent) {
 			super(owner, src, srcNsEquivalent);
-		}
-
-		@Override
-		public MappedElementKind getKind() {
-			return MappedElementKind.FIELD;
 		}
 
 		@Override
@@ -1460,21 +1459,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			super(owner, srcName, srcDesc);
 		}
 
-		MethodEntry(ClassEntry owner, MethodMapping src, int srcNsEquivalent) {
+		MethodEntry(ClassEntry owner, MethodMappingView src, int srcNsEquivalent) {
 			super(owner, src, srcNsEquivalent);
 
-			for (MethodArgMapping arg : src.getArgs()) {
+			for (MethodArgMappingView arg : src.getArgs()) {
 				addArgInternal(arg);
 			}
 
-			for (MethodVarMapping var : src.getVars()) {
+			for (MethodVarMappingView var : src.getVars()) {
 				addVarInternal(var);
 			}
-		}
-
-		@Override
-		public MappedElementKind getKind() {
-			return MappedElementKind.METHOD;
 		}
 
 		@Override
@@ -1509,10 +1503,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public Collection<MethodArgEntry> getArgs() {
-			if (args == null) return Collections.emptyList();
-
+		public MethodArgMappingCollection<MethodArgEntry> getArgs() {
+			initArgCollectionsIfRequired();
 			return argsView;
+		}
+
+		private void initArgCollectionsIfRequired() {
+			if (args == null) {
+				args = new ArrayList<>();
+				argsView = new MethodArgMappingCollectionImpl<>(tree, this, args);
+			}
 		}
 
 		@Override
@@ -1544,21 +1544,17 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public MethodArgEntry addArg(MethodArgMapping arg) {
+		public MethodArgEntry addArg(MethodArgMappingView arg) {
 			tree.assertNotInVisitPass();
 			return addArgInternal(arg);
 		}
 
-		MethodArgEntry addArgInternal(MethodArgMapping arg) {
+		MethodArgEntry addArgInternal(MethodArgMappingView arg) {
 			MethodArgEntry entry = arg instanceof MethodArgEntry && arg.getMethod() == this ? (MethodArgEntry) arg : new MethodArgEntry(this, arg, owner.tree.getSrcNsEquivalent(arg));
 			MethodArgEntry prev = getArg(arg.getArgPosition(), arg.getLvIndex(), arg.getSrcName());
 
 			if (prev == null) {
-				if (args == null) {
-					args = new ArrayList<>();
-					argsView = Collections.unmodifiableList(args);
-				}
-
+				initArgCollectionsIfRequired();
 				args.add(entry);
 			} else {
 				prev.copyFrom(entry, true);
@@ -1579,10 +1575,16 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public Collection<MethodVarEntry> getVars() {
-			if (vars == null) return Collections.emptyList();
-
+		public MethodVarMappingCollection<MethodVarEntry> getVars() {
+			initVarCollectionsIfRequired();
 			return varsView;
+		}
+
+		private void initVarCollectionsIfRequired() {
+			if (vars == null) {
+				vars = new ArrayList<>();
+				varsView = new MethodVarMappingCollectionImpl<>(tree, this, vars);
+			}
 		}
 
 		@Override
@@ -1661,21 +1663,17 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		@Override
-		public MethodVarEntry addVar(MethodVarMapping var) {
+		public MethodVarEntry addVar(MethodVarMappingView var) {
 			tree.assertNotInVisitPass();
 			return addVarInternal(var);
 		}
 
-		MethodVarEntry addVarInternal(MethodVarMapping var) {
+		MethodVarEntry addVarInternal(MethodVarMappingView var) {
 			MethodVarEntry entry = var instanceof MethodVarEntry && var.getMethod() == this ? (MethodVarEntry) var : new MethodVarEntry(this, var, owner.tree.getSrcNsEquivalent(var));
 			MethodVarEntry prev = getVar(var.getLvtRowIndex(), var.getLvIndex(), var.getStartOpIdx(), var.getEndOpIdx(), var.getSrcName());
 
 			if (prev == null) {
-				if (vars == null) {
-					vars = new ArrayList<>();
-					varsView = Collections.unmodifiableList(vars);
-				}
-
+				initVarCollectionsIfRequired();
 				vars.add(entry);
 			} else {
 				prev.copyFrom(entry, true);
@@ -1755,8 +1753,8 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		private List<MethodArgEntry> args = null;
 		private List<MethodVarEntry> vars = null;
-		private List<MethodArgEntry> argsView = null;
-		private List<MethodVarEntry> varsView = null;
+		private MethodArgMappingCollection<MethodArgEntry> argsView = null;
+		private MethodVarMappingCollection<MethodVarEntry> varsView = null;
 	}
 
 	static final class MethodArgEntry extends Entry<MethodArgEntry> implements MethodArgMapping {
@@ -1768,22 +1766,12 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.lvIndex = lvIndex;
 		}
 
-		MethodArgEntry(MethodEntry method, MethodArgMapping src, int srcNsEquivalent) {
+		MethodArgEntry(MethodEntry method, MethodArgMappingView src, int srcNsEquivalent) {
 			super(method.owner.tree, src, srcNsEquivalent);
 
 			this.method = method;
 			this.argPosition = src.getArgPosition();
 			this.lvIndex = src.getLvIndex();
-		}
-
-		@Override
-		public MappingTree getTree() {
-			return method.owner.tree;
-		}
-
-		@Override
-		public MappedElementKind getKind() {
-			return MappedElementKind.METHOD_ARG;
 		}
 
 		@Override
@@ -1865,7 +1853,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.endOpIdx = endOpIdx;
 		}
 
-		MethodVarEntry(MethodEntry method, MethodVarMapping src, int srcNs) {
+		MethodVarEntry(MethodEntry method, MethodVarMappingView src, int srcNs) {
 			super(method.owner.tree, src, srcNs);
 
 			this.method = method;
@@ -1873,16 +1861,6 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.lvIndex = src.getLvIndex();
 			this.startOpIdx = src.getStartOpIdx();
 			this.endOpIdx = src.getEndOpIdx();
-		}
-
-		@Override
-		public MappingTree getTree() {
-			return method.owner.tree;
-		}
-
-		@Override
-		public MappedElementKind getKind() {
-			return MappedElementKind.METHOD_VAR;
 		}
 
 		@Override
@@ -2104,7 +2082,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 	private List<String> dstNamespaces = Collections.emptyList();
 	private final List<MetadataEntry> metadata = new ArrayList<>();
 	private final Map<String, ClassEntry> classesBySrcName = new LinkedHashMap<>();
-	private final Collection<ClassEntry> classesView = Collections.unmodifiableCollection(classesBySrcName.values());
+	private final ClassMappingCollection<ClassEntry> classesView = new ClassMappingCollectionImpl<>(this, classesBySrcName.values());
 	private Map<String, ClassEntry>[] classesByDstNames;
 
 	private HierarchyInfoProvider<?> hierarchyInfo;
