@@ -318,7 +318,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		}
 
 		@Override
-		public MappingCollectionView<E, ClassMappingView> toUnmodifiableView() {
+		public ClassMappingCollectionView<E> toUnmodifiableView() {
 			if (view == null) {
 				view = new ClassMappingCollectionImpl<>(tree, backing, true);
 			}
@@ -355,7 +355,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		}
 
 		@Override
-		public MappingCollectionView<E, FieldMappingView> toUnmodifiableView() {
+		public FieldMappingCollectionView<E> toUnmodifiableView() {
 			if (view == null) {
 				view = new FieldMappingCollectionImpl<>(tree, owner, backing, true);
 			}
@@ -392,7 +392,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		}
 
 		@Override
-		public MappingCollectionView<E, MethodMappingView> toUnmodifiableView() {
+		public MethodMappingCollectionView<E> toUnmodifiableView() {
 			if (view == null) {
 				view = new MethodMappingCollectionImpl<>(tree, owner, backing, true);
 			}
@@ -429,7 +429,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		}
 
 		@Override
-		public MappingCollectionView<E, MethodArgMappingView> toUnmodifiableView() {
+		public MethodArgMappingCollectionView<E> toUnmodifiableView() {
 			if (view == null) {
 				view = new MethodArgMappingCollectionImpl<>(tree, owner, backing, true);
 			}
@@ -466,7 +466,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		}
 
 		@Override
-		public MappingCollectionView<E, MethodVarMappingView> toUnmodifiableView() {
+		public MethodVarMappingCollectionView<E> toUnmodifiableView() {
 			if (view == null) {
 				view = new MethodVarMappingCollectionImpl<>(tree, owner, Collections.unmodifiableCollection(backing));
 			}

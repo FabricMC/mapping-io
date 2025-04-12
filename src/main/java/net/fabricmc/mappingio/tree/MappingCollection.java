@@ -62,13 +62,28 @@ public interface MappingCollection<E extends ElementMappingView, V extends Eleme
 	boolean retainAllCompatible(Collection<? extends V> c);
 	MappingCollectionView<E, V> toUnmodifiableView();
 
-	interface ClassMappingCollection<E extends ClassMappingView> extends ClassMappingCollectionView<E> { }
+	interface ClassMappingCollection<E extends ClassMappingView> extends ClassMappingCollectionView<E> {
+		@Override
+		ClassMappingCollectionView<E> toUnmodifiableView();
+	}
 
-	interface FieldMappingCollection<E extends FieldMappingView> extends FieldMappingCollectionView<E> { }
+	interface FieldMappingCollection<E extends FieldMappingView> extends FieldMappingCollectionView<E> {
+		@Override
+		FieldMappingCollectionView<E> toUnmodifiableView();
+	}
 
-	interface MethodMappingCollection<E extends MethodMappingView> extends MethodMappingCollectionView<E> { }
+	interface MethodMappingCollection<E extends MethodMappingView> extends MethodMappingCollectionView<E> {
+		@Override
+		MethodMappingCollectionView<E> toUnmodifiableView();
+	}
 
-	interface MethodArgMappingCollection<E extends MethodArgMappingView> extends MethodArgMappingCollectionView<E> { }
+	interface MethodArgMappingCollection<E extends MethodArgMappingView> extends MethodArgMappingCollectionView<E> {
+		@Override
+		MethodArgMappingCollectionView<E> toUnmodifiableView();
+	}
 
-	interface MethodVarMappingCollection<E extends MethodVarMappingView> extends MethodVarMappingCollectionView<E> { }
+	interface MethodVarMappingCollection<E extends MethodVarMappingView> extends MethodVarMappingCollectionView<E> {
+		@Override
+		MethodVarMappingCollectionView<E> toUnmodifiableView();
+	}
 }
