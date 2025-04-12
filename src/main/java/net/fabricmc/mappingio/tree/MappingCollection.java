@@ -60,6 +60,7 @@ public interface MappingCollection<E extends ElementMappingView, V extends Eleme
 	boolean removeCompatible(V e);
 	boolean removeAllCompatible(Collection<? extends V> c);
 	boolean retainAllCompatible(Collection<? extends V> c);
+	MappingCollectionView<E, V> toUnmodifiableView();
 
 	interface ClassMappingCollection<E extends ClassMappingView> extends ClassMappingCollectionView<E> { }
 

@@ -18,6 +18,7 @@ package net.fabricmc.mappingio.tree;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -41,11 +42,17 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  * @param <O> The stored elements' Owner type, or any if this is a root collection.
  */
 abstract class MappingCollectionImpl<E extends ElementMappingView, V extends ElementMappingView, O extends ElementMapping> implements MappingCollection<E, V> {
-	private MappingCollectionImpl(MemoryMappingTree tree, @Nullable O owner, Collection<E> backing, MappedElementKind elementKind) {
+	private MappingCollectionImpl(MemoryMappingTree tree, @Nullable O owner, Collection<E> backing, MappedElementKind elementKind, boolean readOnly) {
 		this.tree = tree;
 		this.owner = owner;
-		this.backing = backing;
 		this.elementKind = elementKind;
+		this.readOnly = readOnly;
+
+		if (readOnly) {
+			this.backing = Collections.unmodifiableCollection(backing);
+		} else {
+			this.backing = backing;
+		}
 	}
 
 	@Override
@@ -103,7 +110,10 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public Iterator<E> iterator() {
-		return new IteratorWrapper(new ArrayList<>(backing).iterator(), this);
+		Collection<E> backing = readOnly
+				? this.backing
+				: new ArrayList<>(this.backing);
+		return new IteratorWrapper(backing.iterator(), this);
 	}
 
 	@Override
@@ -119,11 +129,17 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 	// Mutating methods
 
 	@Override
-	public abstract boolean add(V e);
+	public boolean add(V e) {
+		assertModifiable();
+		addInternal(e);
+		return true;
+	}
+
+	public abstract void addInternal(V e);
 
 	@Override
 	public boolean addAllViews(Collection<? extends V> c) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		boolean addedAny = false;
 
 		for (V e : c) {
@@ -141,14 +157,14 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public boolean remove(Object o) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		return backing.remove(o);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean removeCompatible(V o) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 
 		if (o instanceof ElementMappingView) {
 			ElementMappingView oElem = (ElementMappingView) o;
@@ -165,7 +181,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		boolean removedAny = false;
 
 		for (Object o : c) {
@@ -177,7 +193,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public boolean removeAllCompatible(Collection<? extends V> c) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		boolean removedAny = false;
 
 		for (V o : c) {
@@ -189,7 +205,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		boolean removedAny = false;
 
 		for (Iterator<E> it = iterator(); it.hasNext();) {
@@ -206,7 +222,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public boolean retainAllCompatible(Collection<? extends V> c) {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 		Set<E> toRemove = new HashSet<>(this);
 		boolean removedAny = false;
 
@@ -232,12 +248,20 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	@Override
 	public void clear() {
-		tree.assertNotInVisitPass();
+		assertModifiable();
 
 		for (Iterator<E> it = iterator(); it.hasNext();) {
 			it.next();
 			it.remove();
 		}
+	}
+
+	protected void assertModifiable() {
+		if (readOnly) {
+			throw new UnsupportedOperationException("Attempted modification of read-only collection");
+		}
+
+		tree.assertNotInVisitPass();
 	}
 
 	private final class IteratorWrapper implements Iterator<E> {
@@ -259,6 +283,7 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 		@Override
 		public void remove() {
+			assertModifiable();
 			owner.remove(lastReturned);
 		}
 
@@ -269,13 +294,16 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 
 	static class ClassMappingCollectionImpl<E extends ClassMappingView> extends MappingCollectionImpl<E, ClassMappingView, ClassMapping> implements ClassMappingCollection<E> {
 		ClassMappingCollectionImpl(MemoryMappingTree tree, Collection<E> backing) {
-			super(tree, null, backing, MappedElementKind.CLASS);
+			this(tree, backing, false);
+		}
+
+		private ClassMappingCollectionImpl(MemoryMappingTree tree, Collection<E> backing, boolean readOnly) {
+			super(tree, null, backing, MappedElementKind.CLASS, readOnly);
 		}
 
 		@Override
-		public boolean add(ClassMappingView e) {
+		public void addInternal(ClassMappingView e) {
 			tree.addClass(e);
-			return true;
 		}
 
 		@Override
@@ -288,17 +316,31 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		protected boolean removeCompatibleInternal(ClassMappingView o) {
 			return tree.removeClass(o.getSrcName()) != null;
 		}
+
+		@Override
+		public MappingCollectionView<E, ClassMappingView> toUnmodifiableView() {
+			if (view == null) {
+				view = new ClassMappingCollectionImpl<>(tree, backing, true);
+			}
+
+			return view;
+		}
+
+		protected ClassMappingCollectionView<E> view;
 	}
 
 	static class FieldMappingCollectionImpl<E extends FieldMappingView, O extends ClassMapping> extends MappingCollectionImpl<E, FieldMappingView, O> implements FieldMappingCollection<E> {
 		FieldMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing) {
-			super(tree, owner, backing, MappedElementKind.FIELD);
+			this(tree, owner, backing, false);
+		}
+
+		private FieldMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing, boolean readOnly) {
+			super(tree, owner, backing, MappedElementKind.FIELD, readOnly);
 		}
 
 		@Override
-		public boolean add(FieldMappingView e) {
+		public void addInternal(FieldMappingView e) {
 			owner.addField(e);
-			return true;
 		}
 
 		@Override
@@ -311,17 +353,31 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		protected boolean removeCompatibleInternal(FieldMappingView o) {
 			return owner.removeField(o.getSrcName(), o.getSrcDesc()) != null;
 		}
+
+		@Override
+		public MappingCollectionView<E, FieldMappingView> toUnmodifiableView() {
+			if (view == null) {
+				view = new FieldMappingCollectionImpl<>(tree, owner, backing, true);
+			}
+
+			return view;
+		}
+
+		protected FieldMappingCollectionView<E> view;
 	}
 
 	static class MethodMappingCollectionImpl<E extends MethodMappingView, O extends ClassMapping> extends MappingCollectionImpl<E, MethodMappingView, O> implements MethodMappingCollection<E> {
 		MethodMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing) {
-			super(tree, owner, backing, MappedElementKind.METHOD);
+			this(tree, owner, backing, false);
+		}
+
+		private MethodMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing, boolean readOnly) {
+			super(tree, owner, backing, MappedElementKind.METHOD, readOnly);
 		}
 
 		@Override
-		public boolean add(MethodMappingView e) {
+		public void addInternal(MethodMappingView e) {
 			owner.addMethod(e);
-			return true;
 		}
 
 		@Override
@@ -334,17 +390,31 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		protected boolean removeCompatibleInternal(MethodMappingView o) {
 			return owner.removeMethod(o.getSrcName(), o.getSrcDesc()) != null;
 		}
+
+		@Override
+		public MappingCollectionView<E, MethodMappingView> toUnmodifiableView() {
+			if (view == null) {
+				view = new MethodMappingCollectionImpl<>(tree, owner, backing, true);
+			}
+
+			return view;
+		}
+
+		protected MethodMappingCollectionView<E> view;
 	}
 
 	static class MethodArgMappingCollectionImpl<E extends MethodArgMappingView, O extends MethodMapping> extends MappingCollectionImpl<E, MethodArgMappingView, O> implements MethodArgMappingCollection<E> {
 		MethodArgMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing) {
-			super(tree, owner, backing, MappedElementKind.METHOD_ARG);
+			this(tree, owner, backing, false);
+		}
+
+		private MethodArgMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing, boolean readOnly) {
+			super(tree, owner, backing, MappedElementKind.METHOD_ARG, readOnly);
 		}
 
 		@Override
-		public boolean add(MethodArgMappingView e) {
+		public void addInternal(MethodArgMappingView e) {
 			owner.addArg(e);
-			return true;
 		}
 
 		@Override
@@ -357,17 +427,31 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		protected boolean removeCompatibleInternal(MethodArgMappingView o) {
 			return owner.removeArg(o.getArgPosition(), o.getLvIndex(), o.getSrcName()) != null;
 		}
+
+		@Override
+		public MappingCollectionView<E, MethodArgMappingView> toUnmodifiableView() {
+			if (view == null) {
+				view = new MethodArgMappingCollectionImpl<>(tree, owner, backing, true);
+			}
+
+			return view;
+		}
+
+		protected MethodArgMappingCollectionView<E> view;
 	}
 
 	static class MethodVarMappingCollectionImpl<E extends MethodVarMappingView, O extends MethodMapping> extends MappingCollectionImpl<E, MethodVarMappingView, O> implements MethodVarMappingCollection<E> {
 		MethodVarMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing) {
-			super(tree, owner, backing, MappedElementKind.METHOD_VAR);
+			this(tree, owner, backing, false);
+		}
+
+		private MethodVarMappingCollectionImpl(MemoryMappingTree tree, O owner, Collection<E> backing, boolean readOnly) {
+			super(tree, owner, backing, MappedElementKind.METHOD_VAR, readOnly);
 		}
 
 		@Override
-		public boolean add(MethodVarMappingView e) {
+		public void addInternal(MethodVarMappingView e) {
 			owner.addVar(e);
-			return true;
 		}
 
 		@Override
@@ -380,10 +464,22 @@ abstract class MappingCollectionImpl<E extends ElementMappingView, V extends Ele
 		protected boolean removeCompatibleInternal(MethodVarMappingView o) {
 			return owner.removeVar(o.getLvtRowIndex(), o.getLvIndex(), o.getStartOpIdx(), o.getEndOpIdx(), o.getSrcName()) != null;
 		}
+
+		@Override
+		public MappingCollectionView<E, MethodVarMappingView> toUnmodifiableView() {
+			if (view == null) {
+				view = new MethodVarMappingCollectionImpl<>(tree, owner, Collections.unmodifiableCollection(backing));
+			}
+
+			return view;
+		}
+
+		protected MethodVarMappingCollectionView<E> view;
 	}
 
 	protected final MemoryMappingTree tree;
 	protected final @Nullable O owner;
 	protected final MappedElementKind elementKind;
 	protected final Collection<E> backing;
+	protected final boolean readOnly;
 }
