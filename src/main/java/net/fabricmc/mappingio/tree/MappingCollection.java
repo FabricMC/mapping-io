@@ -28,7 +28,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 
 /**
- * A {@link Collection}-based view of element mappings present in a mapping tree.
+ * A {@link Collection}-based modifiable view of element mappings present in a mapping tree.
  *
  * <p>Contrary to what's defined in {@link Collection}'s Javadocs, the {@code add}
  * methods here do not guarantee adding a passed element into the collection,
@@ -44,6 +44,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  * <li>{@link Collection#removeAll(Collection)} and
  * <li>{@link Collection#retainAll(Collection)}.
  * </ul>
+ * Compatibility is determined via the backing mapping tree's mapping element getters.
  *
  * <p>Additionally, the {@link Collection#add(Object)} and {@link Collection#addAll(Collection)}
  * methods have overloaded variants that accept read-only views of the held mapping element type,

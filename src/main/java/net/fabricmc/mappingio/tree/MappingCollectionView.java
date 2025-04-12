@@ -28,28 +28,14 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 
 /**
- * A {@link Collection}-based view of element mappings present in a mapping tree.
+ * A {@link Collection}-based read-only view of element mappings present in a mapping tree.
  *
- * <p>Contrary to what's defined in {@link Collection}'s Javadocs, the {@code add}
- * methods here do not guarantee adding a passed element into the collection,
- * instead its data may be merged into a compatible existing entry in case and such that
- * {@link #containsCompatible(Object)} returns {@code true} for the passed element.
+ * <p>The meaning of "compatibility" as used in {@link #containsCompatible(Object)}
+ * and {@link #containsAllCompatible(Collection)} is determined by the backing
+ * mapping tree's mapping element getters.
  *
- * <p>The following methods also have alternative versions that operate on
- * compatible elements rather than equal ones:
- * <ul>
- * <li>{@link Collection#contains(Object)},
- * <li>{@link Collection#containsAll(Collection)},
- * <li>{@link Collection#remove(Object)},
- * <li>{@link Collection#removeAll(Collection)} and
- * <li>{@link Collection#retainAll(Collection)}.
- * </ul>
- *
- * <p>Additionally, the {@link Collection#add(Object)} and {@link Collection#addAll(Collection)}
- * methods have overloaded variants that accept read-only views of the held mapping element type,
- * which are converted to the tree's internal representation if necessary and then added to the tree.
- *
- * @param <E> The type of element mapping.
+ * @param <E> The stored Elements' type.
+ * @param <V> The View type correlating to the stored mapping type.
  */
 @ApiStatus.NonExtendable
 public interface MappingCollectionView<E extends ElementMappingView, V extends ElementMappingView> extends Collection<E> {
