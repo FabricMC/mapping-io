@@ -50,8 +50,8 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 public class SubsetChecker implements FlatMappingVisitor {
 	/**
 	 * @param supTree The superset tree.
-	 * @param supFormat The superset format, or {@code null] if supTree has all the original data.
-	 * @param subFormat The subset format, or {@code null] if lossless (e.g. if the visit calls are coming from a tree).
+	 * @param supFormat The superset format, or {@code null} if supTree has all the original data.
+	 * @param subFormat The subset format, or {@code null} if lossless (e.g. if the visit calls are coming from a tree).
 	 * @param errorHandler The error handler, which will be called with the error message if a non-subset element is found.
 	 * Currently expected to throw an exception, otherwise the checker will continue to run in an invalid state.
 	 */
