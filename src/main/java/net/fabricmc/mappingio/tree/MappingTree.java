@@ -25,11 +25,17 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+import net.fabricmc.mappingio.tree.MappingCollection.ClassMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.FieldMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodArgMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodMappingCollection;
+import net.fabricmc.mappingio.tree.MappingCollection.MethodVarMappingCollection;
 
 /**
  * Mutable mapping tree.
  *
  * <p>All returned collections are to be assumed unmodifiable, unless explicitly stated otherwise.
+ * {@linkplain MappingCollection}s are an exception.
  */
 public interface MappingTree extends MappingTreeView {
 	/**
@@ -85,7 +91,7 @@ public interface MappingTree extends MappingTreeView {
 	boolean removeMetadata(String key);
 
 	@Override
-	Collection<? extends ClassMapping> getClasses();
+	ClassMappingCollection<? extends ClassMapping> getClasses();
 	@Override
 	@Nullable
 	ClassMapping getClass(String srcName);
@@ -102,7 +108,7 @@ public interface MappingTree extends MappingTreeView {
 	 * @return The {@link ClassMapping} instance present in the tree after the merge has occurred.
 	 * May or may not be the passed instance.
 	 */
-	ClassMapping addClass(ClassMapping cls);
+	ClassMapping addClass(ClassMappingView cls);
 
 	/**
 	 * Removes a class mapping from the tree.
@@ -229,7 +235,7 @@ public interface MappingTree extends MappingTreeView {
 
 	interface ClassMapping extends ElementMapping, ClassMappingView {
 		@Override
-		Collection<? extends FieldMapping> getFields();
+		FieldMappingCollection<? extends FieldMapping> getFields();
 		@Override
 		@Nullable
 		FieldMapping getField(String srcName, @Nullable String srcDesc);
@@ -246,7 +252,7 @@ public interface MappingTree extends MappingTreeView {
 		 * @return The {@link FieldMapping} instance present in the parent {@link ClassMapping} after the merge has occurred.
 		 * May or may not be the passed instance.
 		 */
-		FieldMapping addField(FieldMapping field);
+		FieldMapping addField(FieldMappingView field);
 
 		/**
 		 * Removes a field mapping from the class.
@@ -257,7 +263,7 @@ public interface MappingTree extends MappingTreeView {
 		FieldMapping removeField(String srcName, @Nullable String srcDesc);
 
 		@Override
-		Collection<? extends MethodMapping> getMethods();
+		MethodMappingCollection<? extends MethodMapping> getMethods();
 		@Override
 		@Nullable
 		MethodMapping getMethod(String srcName, @Nullable String srcDesc);
@@ -274,7 +280,7 @@ public interface MappingTree extends MappingTreeView {
 		 * @return The {@link MethodMapping} instance present in the parent {@link ClassMapping} after the merge has occurred.
 		 * May or may not be the passed instance.
 		 */
-		MethodMapping addMethod(MethodMapping method);
+		MethodMapping addMethod(MethodMappingView method);
 
 		/**
 		 * Removes a method mapping from the class.
@@ -295,11 +301,18 @@ public interface MappingTree extends MappingTreeView {
 
 	interface MethodMapping extends MemberMapping, MethodMappingView {
 		@Override
-		Collection<? extends MethodArgMapping> getArgs();
+		MethodArgMappingCollection<? extends MethodArgMapping> getArgs();
 		@Override
 		@Nullable
 		MethodArgMapping getArg(int argPosition, int lvIndex, @Nullable String srcName);
-		MethodArgMapping addArg(MethodArgMapping arg);
+
+		/**
+		 * Merges an argument mapping into the method.
+		 *
+		 * @return The {@link MethodArgMapping} instance present in the parent {@link MethodMapping} after the merge has occurred.
+		 * May or may not be the passed instance.
+		 */
+		MethodArgMapping addArg(MethodArgMappingView arg);
 
 		/**
 		 * Removes an argument mapping from the method.
@@ -310,7 +323,7 @@ public interface MappingTree extends MappingTreeView {
 		MethodArgMapping removeArg(int argPosition, int lvIndex, @Nullable String srcName);
 
 		@Override
-		Collection<? extends MethodVarMapping> getVars();
+		MethodVarMappingCollection<? extends MethodVarMapping> getVars();
 		@Override
 		@Nullable
 		MethodVarMapping getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
@@ -321,7 +334,7 @@ public interface MappingTree extends MappingTreeView {
 		 * @return The {@link MethodVarMapping} instance present in the parent {@link MethodMapping} after the merge has occurred.
 		 * May or may not be the passed instance.
 		 */
-		MethodVarMapping addVar(MethodVarMapping var);
+		MethodVarMapping addVar(MethodVarMappingView var);
 
 		/**
 		 * Removes a variable mapping from the method.

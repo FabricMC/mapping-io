@@ -17,12 +17,17 @@
 package net.fabricmc.mappingio.tree;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.tree.MappingCollectionView.ClassMappingCollectionView;
+import net.fabricmc.mappingio.tree.MappingCollectionView.FieldMappingCollectionView;
+import net.fabricmc.mappingio.tree.MappingCollectionView.MethodArgMappingCollectionView;
+import net.fabricmc.mappingio.tree.MappingCollectionView.MethodMappingCollectionView;
+import net.fabricmc.mappingio.tree.MappingCollectionView.MethodVarMappingCollectionView;
 
 /**
  * Read-only mapping tree.
@@ -85,7 +90,7 @@ public interface MappingTreeView {
 	 */
 	List<? extends MetadataEntryView> getMetadata(String key);
 
-	Collection<? extends ClassMappingView> getClasses();
+	ClassMappingCollectionView<? extends ClassMappingView> getClasses();
 	@Nullable
 	ClassMappingView getClass(String srcName);
 	@Nullable
@@ -217,6 +222,7 @@ public interface MappingTreeView {
 	}
 
 	interface ElementMappingView {
+		MappedElementKind getKind();
 		MappingTreeView getTree();
 
 		String getSrcName();
@@ -248,7 +254,12 @@ public interface MappingTreeView {
 	}
 
 	interface ClassMappingView extends ElementMappingView {
-		Collection<? extends FieldMappingView> getFields();
+		@Override
+		default MappedElementKind getKind() {
+			return MappedElementKind.CLASS;
+		}
+
+		FieldMappingCollectionView<? extends FieldMappingView> getFields();
 
 		/**
 		 * @see MappingTreeView#getField(String, String, String, int)
@@ -274,7 +285,7 @@ public interface MappingTreeView {
 			return null;
 		}
 
-		Collection<? extends MethodMappingView> getMethods();
+		MethodMappingCollectionView<? extends MethodMappingView> getMethods();
 
 		/**
 		 * @see MappingTreeView#getMethod(String, String, String, int)
@@ -337,25 +348,45 @@ public interface MappingTreeView {
 		}
 	}
 
-	interface FieldMappingView extends MemberMappingView { }
+	interface FieldMappingView extends MemberMappingView {
+		@Override
+		default MappedElementKind getKind() {
+			return MappedElementKind.FIELD;
+		}
+	}
 
 	interface MethodMappingView extends MemberMappingView {
-		Collection<? extends MethodArgMappingView> getArgs();
+		@Override
+		default MappedElementKind getKind() {
+			return MappedElementKind.METHOD;
+		}
+
+		MethodArgMappingCollectionView<? extends MethodArgMappingView> getArgs();
 		@Nullable
 		MethodArgMappingView getArg(int argPosition, int lvIndex, @Nullable String srcName);
 
-		Collection<? extends MethodVarMappingView> getVars();
+		MethodVarMappingCollectionView<? extends MethodVarMappingView> getVars();
 		@Nullable
 		MethodVarMappingView getVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName);
 	}
 
 	interface MethodArgMappingView extends ElementMappingView {
+		@Override
+		default MappedElementKind getKind() {
+			return MappedElementKind.METHOD_ARG;
+		}
+
 		MethodMappingView getMethod();
 		int getArgPosition();
 		int getLvIndex();
 	}
 
 	interface MethodVarMappingView extends ElementMappingView {
+		@Override
+		default MappedElementKind getKind() {
+			return MappedElementKind.METHOD_VAR;
+		}
+
 		MethodMappingView getMethod();
 		int getLvtRowIndex();
 		int getLvIndex();
