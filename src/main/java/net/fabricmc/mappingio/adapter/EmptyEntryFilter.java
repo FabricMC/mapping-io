@@ -30,6 +30,13 @@ import net.fabricmc.mappingio.MappingVisitor;
 
 /**
  * A mapping visitor that filters out elements which effectively don't contain any data.
+ * Elements are only forwarded if they have:
+ * <ul>
+ * <li>a non-{@code null} comment,
+ * <li>a non-{@code null} or non-equal destination name,
+ * <li>a non-{@code null} or non-equal destination descriptor,
+ * <li>or a child element to which one of these points applies.
+ * </ul>
  *
  * @implNote This visitor requires one pre-pass in which it determines which elements contain data worth forwarding.
  */
