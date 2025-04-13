@@ -32,7 +32,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  *
  * <p>The meaning of "compatibility" as used in {@link #containsCompatible(Object)}
  * and {@link #containsAllCompatible(Collection)} is determined by the backing
- * mapping tree's mapping element getters.
+ * mapping tree's element mapping getters.
  *
  * @param <E> The stored Elements' type.
  * @param <V> The View type correlating to the stored mapping type.

@@ -44,10 +44,10 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  * <li>{@link Collection#removeAll(Collection)} and
  * <li>{@link Collection#retainAll(Collection)}.
  * </ul>
- * Compatibility is determined via the backing mapping tree's mapping element getters.
+ * Compatibility is determined via the backing mapping tree's element mapping getters.
  *
  * <p>Additionally, the {@link Collection#add(Object)} and {@link Collection#addAll(Collection)}
- * methods have overloaded variants that accept read-only views of the held mapping element type,
+ * methods have overloaded variants that accept read-only views of the held element mapping type,
  * which are converted to the tree's internal representation if necessary and then added to the tree.
  *
  * @param <E> The stored Elements' type.
