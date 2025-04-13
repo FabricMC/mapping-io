@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.FlatMappingVisitor;
@@ -45,6 +46,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
  *
  * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
+@ApiStatus.Experimental
 public class SubsetChecker implements FlatMappingVisitor {
 	/**
 	 * @param supTree The superset tree.
