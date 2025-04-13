@@ -24,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
 @ApiStatus.Experimental
 public interface HierarchyInfoProvider<T> {
 	String getNamespace();
