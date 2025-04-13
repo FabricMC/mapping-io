@@ -38,17 +38,17 @@ public class EmptyElementFilterTest {
 	}
 
 	@Test
-	public void visitorThroughTree() throws IOException {
+	public void run() throws IOException {
 		for (int pass = 1; pass <= 2; pass++) {
 			boolean treatSrcOnDstAsEmpty = pass == 1;
 			VisitableMappingTree tree = new MemoryMappingTree();
 
 			acceptMappings(new EmptyEntryFilter(tree, treatSrcOnDstAsEmpty));
-			checkDiskEquivalence(tree, treatSrcOnDstAsEmpty);
+			check(tree, treatSrcOnDstAsEmpty);
 		}
 	}
 
-	private void checkDiskEquivalence(VisitableMappingTree tree, boolean treatSrcOnDstAsEmpty) throws IOException {
+	private void check(VisitableMappingTree tree, boolean treatSrcOnDstAsEmpty) throws IOException {
 		MappingDir dir = treatSrcOnDstAsEmpty
 				? TestMappings.FILTERING.FILTERED
 				: TestMappings.FILTERING.FILTERED_EXCEPT_SRC_ON_DST;
