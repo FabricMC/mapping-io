@@ -42,7 +42,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
 
 /**
- * A visitor which asserts that the visited mappings are a subset of a superset tree.
+ * A visitor which checks whether the visited mappings are a subset of a superset tree.
  *
  * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
@@ -51,8 +51,8 @@ public class SubsetChecker implements FlatMappingVisitor {
 	/**
 	 * @param supTree The superset tree.
 	 * @param supFormat The superset format, or null if supTree has all the original data.
-	 * @param subFormat The subset format, or null if lossless (i.e. if the visits are coming from a tree).
-	 * @param errorHandler The error handler, which will be called with the error message if an assertion fails.
+	 * @param subFormat The subset format, or null if lossless (e.g. if the visit calls are coming from a tree).
+	 * @param errorHandler The error handler, which will be called with the error message if a non-subset element is found.
 	 * Currently expected to throw an exception, otherwise the checker will continue to run in an invalid state.
 	 */
 	public SubsetChecker(MappingTreeView supTree, @Nullable MappingFormat supFormat, @Nullable MappingFormat subFormat, Consumer<String> errorHandler) {
