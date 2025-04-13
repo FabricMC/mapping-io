@@ -23,7 +23,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.adapter.EmptyEntryFilter;
+import net.fabricmc.mappingio.adapter.EmptyElementFilter;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
@@ -43,7 +43,7 @@ public class EmptyElementFilterTest {
 			boolean treatSrcOnDstAsEmpty = pass == 1;
 			VisitableMappingTree tree = new MemoryMappingTree();
 
-			acceptMappings(new EmptyEntryFilter(tree, treatSrcOnDstAsEmpty));
+			acceptMappings(new EmptyElementFilter(tree, treatSrcOnDstAsEmpty));
 			check(tree, treatSrcOnDstAsEmpty);
 		}
 	}

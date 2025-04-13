@@ -34,7 +34,7 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.adapter.EmptyEntryFilter;
+import net.fabricmc.mappingio.adapter.EmptyElementFilter;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
@@ -826,14 +826,14 @@ public class TestMappings {
 
 		public static final MappingDir FILTERED = register(new MappingDir(BASE_DIR.resolve("filtered/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateEmptyElementFiltering(new EmptyEntryFilter(target));
+				generateEmptyElementFiltering(new EmptyElementFilter(target));
 				return target;
 			};
 		});
 
 		public static final MappingDir FILTERED_EXCEPT_SRC_ON_DST = register(new MappingDir(BASE_DIR.resolve("filtered-except-src-on-dst/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateEmptyElementFiltering(new EmptyEntryFilter(target, false));
+				generateEmptyElementFiltering(new EmptyElementFilter(target, false));
 				return target;
 			};
 		});

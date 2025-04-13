@@ -40,13 +40,13 @@ import net.fabricmc.mappingio.MappingVisitor;
  *
  * @implNote This visitor requires one pre-pass in which it determines which elements contain data worth forwarding.
  */
-public final class EmptyEntryFilter extends ForwardingMappingVisitor {
+public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	/**
-	 * Creates a new {@link EmptyEntryFilter} that treats destination names and descriptors which are equal to their source counterparts as empty.
+	 * Creates a new {@link EmptyElementFilter} that treats destination names and descriptors which are equal to their source counterparts as empty.
 	 *
 	 * @param next The next visitor to forward the data to.
 	 */
-	public EmptyEntryFilter(MappingVisitor next) {
+	public EmptyElementFilter(MappingVisitor next) {
 		this(next, true);
 	}
 
@@ -54,7 +54,7 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 	 * @param next The next visitor to forward the data to.
 	 * @param treatSrcOnDstAsEmpty Whether destination names and descriptors that are equal to their source counterparts should be treated as empty.
 	 */
-	public EmptyEntryFilter(MappingVisitor next, boolean treatSrcOnDstAsEmpty) {
+	public EmptyElementFilter(MappingVisitor next, boolean treatSrcOnDstAsEmpty) {
 		super(next);
 		this.treatSrcOnDstAsEmpty = treatSrcOnDstAsEmpty;
 	}
