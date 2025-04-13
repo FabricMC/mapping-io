@@ -25,11 +25,11 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
-import net.fabricmc.mappingio.adapter.SubsetEnforcer;
 import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
+import net.fabricmc.mappingio.test.visitors.SubsetAsserter;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
@@ -93,7 +93,7 @@ public class ValidContentReadTest {
 	private void assertSubset(MappingTreeView subTree, @Nullable MappingFormat subFormat, MappingTreeView supTree, @Nullable MappingFormat supFormat, boolean allowConsecutiveDuplicateElementVisits) throws Exception {
 		subTree.accept(new VisitOrderVerifier(
 				new FlatAsRegularMappingVisitor(
-						new SubsetEnforcer(supTree, supFormat, subFormat)),
+						new SubsetAsserter(supTree, supFormat, subFormat)),
 				allowConsecutiveDuplicateElementVisits));
 	}
 }

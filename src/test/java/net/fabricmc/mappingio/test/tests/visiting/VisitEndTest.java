@@ -32,11 +32,11 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
-import net.fabricmc.mappingio.adapter.SubsetEnforcer;
 import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
+import net.fabricmc.mappingio.test.visitors.SubsetAsserter;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
@@ -229,8 +229,8 @@ public class VisitEndTest {
 			}
 
 			subTree = tree;
-			subTree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(supTree, supFormat, subFormat)));
-			supTree.accept(new FlatAsRegularMappingVisitor(new SubsetEnforcer(subTree, subFormat, supFormat)));
+			subTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(supTree, supFormat, subFormat)));
+			supTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(subTree, subFormat, supFormat)));
 		}
 
 		private final int visitPassCountToFinish;
