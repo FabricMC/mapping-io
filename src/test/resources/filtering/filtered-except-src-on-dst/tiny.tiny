@@ -1,0 +1,27 @@
+v1	nsA	nsB	nsC
+CLASS	cls0NsAName	cls0NsBName	cls0NsCName
+CLASS	cls1NsAName	cls1NsBName	
+CLASS	cls2NsAName		cls2NsCName
+CLASS	cls3NsAName	cls3NsAName	cls3NsCName
+CLASS	cls4NsAName	cls4NsBName	cls4NsAName
+CLASS	cls5NsAName	cls5NsAName	cls5NsAName
+CLASS	cls6NsAName	cls6NsAName	
+CLASS	cls7NsAName		cls7NsAName
+FIELD	cls14NsAName	I	fld1NsAName	fld1NsAName	
+METHOD	cls15NsAName	()I	mth3NsAName	mth3NsAName	
+FIELD	cls18NsAName	I	fld2NsAName	fld2NsBName	fld2NsCName
+FIELD	cls18NsAName	I	fld3NsAName	fld3NsBName	
+FIELD	cls18NsAName	I	fld4NsAName		fld4NsCName
+FIELD	cls18NsAName	I	fld5NsAName	fld5NsAName	fld5NsCName
+FIELD	cls18NsAName	I	fld6NsAName	fld6NsBName	fld6NsAName
+FIELD	cls18NsAName	I	fld7NsAName	fld7NsAName	fld7NsAName
+FIELD	cls18NsAName	I	fld8NsAName	fld8NsAName	
+FIELD	cls18NsAName	I	fld9NsAName		fld9NsAName
+METHOD	cls19NsAName	()I	mth6NsAName	mth6NsBName	mth6NsCName
+METHOD	cls19NsAName	()I	mth7NsAName	mth7NsBName	
+METHOD	cls19NsAName	()I	mth8NsAName		mth8NsCName
+METHOD	cls19NsAName	()I	mth9NsAName	mth9NsAName	mth9NsCName
+METHOD	cls19NsAName	()I	mth10NsAName	mth10NsBName	mth10NsAName
+METHOD	cls19NsAName	()I	mth11NsAName	mth11NsAName	mth11NsAName
+METHOD	cls19NsAName	()I	mth12NsAName	mth12NsAName	
+METHOD	cls19NsAName	()I	mth13NsAName		mth13NsAName

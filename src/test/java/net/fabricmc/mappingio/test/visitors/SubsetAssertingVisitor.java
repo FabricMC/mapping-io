@@ -22,9 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +63,9 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		String expectedSrcNs = subFeatures.hasNamespaces() ? supTree.getSrcNamespace() : MappingUtil.NS_SOURCE_FALLBACK;
+		String expectedSrcNs = subFeatures.hasNamespaces() && supFeatures.hasNamespaces()
+				? supTree.getSrcNamespace()
+				: srcNamespace;
 		assertEquals(expectedSrcNs, srcNamespace, "Incoming mappings have different source namespace than supTree");
 		subDstNamespaces = new ArrayList<>(dstNamespaces);
 
@@ -108,6 +112,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsClasses()) return true; // sub-elements might still be supported
 
 		ClassMappingView supCls = supTree.getClass(srcName);
+		visitedIncomingParentElements.add(srcName);
+
 		boolean supHasDstNames = supFeatures.classes().dstNames() != FeaturePresence.ABSENT;
 		boolean subHasDstNames = subFeatures.classes().dstNames() != FeaturePresence.ABSENT;
 		boolean supHasRepackaging = supFeatures.classes().hasRepackaging();
@@ -200,8 +206,8 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsFields()) return true;
 
 		String subFldId = srcClsName + "#" + srcName + ":" + srcDesc;
-		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming field's parent class not contained in supTree: " + subFldId);
-		FieldMappingView supFld = supCls.getField(srcName, srcDesc);
+		ClassMappingView supCls = getVisitedSupCls(srcClsName, "Incoming field's parent class not contained in supTree: " + subFldId);
+		FieldMappingView supFld = supCls == null ? null : supCls.getField(srcName, srcDesc);
 
 		boolean supHasSrcDescs = supFeatures.fields().srcDescs() != FeaturePresence.ABSENT;
 		boolean subHasSrcDescs = subFeatures.fields().srcDescs() != FeaturePresence.ABSENT;
@@ -210,6 +216,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstDescs = supFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
 		boolean supRequiresSrcDescs = supFeatures.fields().srcDescs() == FeaturePresence.REQUIRED;
+		boolean supRequiresDstDescs = supFeatures.fields().dstDescs() == FeaturePresence.REQUIRED;
 
 		if (supFld == null) { // supTree doesn't have this field, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
@@ -220,9 +227,20 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 			boolean noData = isEmpty(subDstNames) && isEmpty(subDstDescs);
 			boolean missingRequiredSrcDesc = supRequiresSrcDescs && srcDesc == null;
+			boolean missingRequiredDstDesc = supRequiresDstDescs;
 
-			assertTrue(noData || missingRequiredSrcDesc, "Incoming field not contained in supTree: " + subFldId);
-			return !missingRequiredSrcDesc;
+			for (int subNs = 0; supRequiresDstDescs && subNs < subDstNames.length; subNs++) {
+				String subDstName = subDstNames == null ? null : subDstNames[subNs];
+				String subDstDesc = subDstDescs == null ? null : subDstDescs[subNs];
+
+				if (subDstDesc != null && (subDstName != null || supFeatures.fields().dstNames() != FeaturePresence.REQUIRED)) {
+					missingRequiredDstDesc = false;
+					break;
+				}
+			}
+
+			assertTrue(noData || missingRequiredSrcDesc || missingRequiredDstDesc, "Incoming field not contained in supTree: " + subFldId);
+			return !missingRequiredSrcDesc && !missingRequiredDstDesc;
 		}
 
 		String supFldId = srcClsName + "#" + srcName + ":" + supFld.getSrcDesc();
@@ -284,8 +302,9 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsMethods()) return true;
 
 		String subMthId = srcClsName + "#" + srcName + srcDesc;
-		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming method's parent class not contained in supTree: " + subMthId);
-		MethodMappingView supMth = supCls.getMethod(srcName, srcDesc);
+		ClassMappingView supCls = getVisitedSupCls(srcClsName, "Incoming method's parent class not contained in supTree: " + subMthId);
+		MethodMappingView supMth = supCls == null ? null : supCls.getMethod(srcName, srcDesc);
+		visitedIncomingParentElements.add(subMthId);
 
 		boolean supHasSrcDescs = supFeatures.methods().srcDescs() != FeaturePresence.ABSENT;
 		boolean subHasSrcDescs = subFeatures.methods().srcDescs() != FeaturePresence.ABSENT;
@@ -294,6 +313,7 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		boolean supHasDstDescs = supFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
 		boolean supRequiresSrcDescs = supFeatures.methods().srcDescs() == FeaturePresence.REQUIRED;
+		boolean supRequiresDstDescs = supFeatures.methods().dstDescs() == FeaturePresence.REQUIRED;
 
 		if (supMth == null) { // supTree doesn't have this method, ensure the incoming mappings don't have any data for it
 			String[] subDstNames = null;
@@ -304,9 +324,20 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 
 			boolean noData = isEmpty(subDstNames) && isEmpty(subDstDescs);
 			boolean missingRequiredSrcDesc = supRequiresSrcDescs && srcDesc == null;
+			boolean missingRequiredDstDesc = supRequiresDstDescs;
 
-			assertTrue(noData || missingRequiredSrcDesc, "Incoming method not contained in supTree: " + subMthId);
-			return !missingRequiredSrcDesc;
+			for (int subNs = 0; supRequiresDstDescs && subNs < subDstNames.length; subNs++) {
+				String subDstName = subDstNames == null ? null : subDstNames[subNs];
+				String subDstDesc = subDstDescs == null ? null : subDstDescs[subNs];
+
+				if (subDstDesc != null && (subDstName != null || supFeatures.methods().dstNames() != FeaturePresence.REQUIRED)) {
+					missingRequiredDstDesc = false;
+					break;
+				}
+			}
+
+			assertTrue(noData || missingRequiredSrcDesc || missingRequiredDstDesc, "Incoming method not contained in supTree: " + subMthId);
+			return !missingRequiredSrcDesc && !missingRequiredDstDesc;
 		}
 
 		String supMthId = srcClsName + "#" + srcName + supMth.getSrcDesc();
@@ -369,9 +400,10 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsArgs()) return true;
 
 		String subArgId = srcClsName + "#" + srcMethodName + srcMethodDesc + ":" + argPosition + ":" + lvIndex + ":" + srcName;
-		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming arg's parent class not contained in supTree: " + subArgId);
-		MethodMappingView supMth = Objects.requireNonNull(supCls.getMethod(srcMethodName, srcMethodDesc), "Incoming arg's parent method not contained in supTree: " + subArgId);
-		MethodArgMappingView supArg = supMth.getArg(argPosition, lvIndex, srcName);
+
+		ClassMappingView supCls = getVisitedSupCls(srcClsName, "Incoming arg's parent class not contained in supTree: " + subArgId);
+		MethodMappingView supMth = supCls == null ? null : getVisitedSupMth(supCls, srcMethodName, srcMethodDesc, "Incoming arg's parent method not contained in supTree: " + subArgId);
+		MethodArgMappingView supArg = supMth == null ? null : supMth.getArg(argPosition, lvIndex, srcName);
 
 		boolean supHasPositions = supFeatures.args().positions() != FeaturePresence.ABSENT;
 		boolean subHasPositions = subFeatures.args().positions() != FeaturePresence.ABSENT;
@@ -445,9 +477,9 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		if (!supFeatures.supportsVars()) return true;
 
 		String subVarId = srcClsName + "#" + srcMethodName + srcMethodDesc + ":" + lvtRowIndex + ":" + lvIndex + ":" + startOpIdx + ":" + endOpIdx + ":" + srcName;
-		ClassMappingView supCls = Objects.requireNonNull(supTree.getClass(srcClsName), "Incoming var's parent class not contained in supTree: " + subVarId);
-		MethodMappingView supMth = Objects.requireNonNull(supCls.getMethod(srcMethodName, srcMethodDesc), "Incoming var's parent method not contained in supTree: " + subVarId);
-		MethodVarMappingView supVar = supMth.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
+		ClassMappingView supCls = getVisitedSupCls(srcClsName, "Incoming var's parent class not contained in supTree: " + subVarId);
+		MethodMappingView supMth = supCls == null ? null : getVisitedSupMth(supCls, srcMethodName, srcMethodDesc, "Incoming var's parent method not contained in supTree: " + subVarId);
+		MethodVarMappingView supVar = supMth == null ? null : supMth.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName);
 
 		boolean supHasLvIndices = supFeatures.vars().lvIndices() != FeaturePresence.ABSENT;
 		boolean subHasLvIndices = subFeatures.vars().lvIndices() != FeaturePresence.ABSENT;
@@ -543,11 +575,26 @@ public class SubsetAssertingVisitor implements FlatMappingVisitor {
 		return lastSlash == -1 ? null : name.substring(0, lastSlash);
 	}
 
+	@Nullable
+	private ClassMappingView getVisitedSupCls(String clsSrcName, String notFoundMessage) {
+		ClassMappingView supCls = supTree.getClass(clsSrcName);
+		assertTrue(supCls != null || visitedIncomingParentElements.contains(clsSrcName), notFoundMessage);
+		return supCls;
+	}
+
+	@Nullable
+	private MethodMappingView getVisitedSupMth(ClassMappingView supCls, String mthSrcName, String mthSrcDesc, String notFoundMessage) {
+		MethodMappingView supMth = supCls.getMethod(mthSrcName, mthSrcDesc);
+		assertTrue(supMth != null || visitedIncomingParentElements.contains(mthSrcName), notFoundMessage);
+		return supMth;
+	}
+
 	private final MappingTreeView supTree;
 	private final int supDstNsCount;
 	private final MappingFormat subFormat;
 	private final FeatureSet supFeatures;
 	private final FeatureSet subFeatures;
+	private final Set<String> visitedIncomingParentElements = new HashSet<>();
 	private int subNsIfSupNotNamespaced;
 	private List<String> subDstNamespaces;
 }

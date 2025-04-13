@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migrationMap>
+	<entry oldName="cls0NsAName" newName="cls0NsBName" type="class"/>
+	<entry oldName="cls1NsAName" newName="cls1NsBName" type="class"/>
+	<entry oldName="cls3NsAName" newName="cls3NsAName" type="class"/>
+	<entry oldName="cls4NsAName" newName="cls4NsBName" type="class"/>
+	<entry oldName="cls5NsAName" newName="cls5NsAName" type="class"/>
+	<entry oldName="cls6NsAName" newName="cls6NsAName" type="class"/>
+	<name value="Unnamed migration map"/>
+	<order value="0"/>
+</migrationMap>

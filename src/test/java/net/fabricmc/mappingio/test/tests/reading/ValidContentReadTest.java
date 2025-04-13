@@ -70,6 +70,9 @@ public class ValidContentReadTest {
 		}
 
 		tree = new MemoryMappingTree();
+		String oldSrcNs = format.features().hasNamespaces()
+				? referenceTree.getSrcNamespace()
+				: MappingUtil.NS_SOURCE_FALLBACK;
 		String newSrcNs = format.features().hasNamespaces()
 				? referenceTree.getDstNamespaces().get(0)
 				: MappingUtil.NS_TARGET_FALLBACK;
@@ -77,7 +80,7 @@ public class ValidContentReadTest {
 				new VisitOrderVerifyingVisitor(
 						new MappingSourceNsSwitch(
 								new VisitOrderVerifyingVisitor(tree, allowConsecutiveDuplicateElementVisits),
-								referenceTree.getSrcNamespace()),
+								oldSrcNs),
 						allowConsecutiveDuplicateElementVisits),
 				newSrcNs);
 

@@ -63,6 +63,8 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 
 	@Override
 	public boolean visitHeader() throws IOException {
+		clsCounter = memberCounter = localCounter = -129; // lowest cached Integer by HotSpot - 1
+
 		if (pass == COLLECT_PASS) {
 			return true;
 		}
@@ -72,8 +74,6 @@ public final class EmptyEntryFilter extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		clsCounter = memberCounter = localCounter = -129; // lowest cached Integer by HotSpot - 1
-
 		if (pass == COLLECT_PASS) {
 			return;
 		}

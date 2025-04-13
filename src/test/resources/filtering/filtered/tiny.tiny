@@ -1,0 +1,16 @@
+v1	nsA	nsB	nsC
+CLASS	cls0NsAName	cls0NsBName	cls0NsCName
+CLASS	cls1NsAName	cls1NsBName	
+CLASS	cls2NsAName		cls2NsCName
+CLASS	cls3NsAName	cls3NsAName	cls3NsCName
+CLASS	cls4NsAName	cls4NsBName	cls4NsAName
+FIELD	cls18NsAName	I	fld2NsAName	fld2NsBName	fld2NsCName
+FIELD	cls18NsAName	I	fld3NsAName	fld3NsBName	
+FIELD	cls18NsAName	I	fld4NsAName		fld4NsCName
+FIELD	cls18NsAName	I	fld5NsAName	fld5NsAName	fld5NsCName
+FIELD	cls18NsAName	I	fld6NsAName	fld6NsBName	fld6NsAName
+METHOD	cls19NsAName	()I	mth6NsAName	mth6NsBName	mth6NsCName
+METHOD	cls19NsAName	()I	mth7NsAName	mth7NsBName	
+METHOD	cls19NsAName	()I	mth8NsAName		mth8NsCName
+METHOD	cls19NsAName	()I	mth9NsAName	mth9NsAName	mth9NsCName
+METHOD	cls19NsAName	()I	mth10NsAName	mth10NsBName	mth10NsAName

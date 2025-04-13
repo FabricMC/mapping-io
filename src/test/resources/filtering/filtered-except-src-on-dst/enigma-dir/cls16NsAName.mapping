@@ -1,0 +1,3 @@
+CLASS cls16NsAName
+	METHOD mth4NsAName ()I
+		ARG 1 arg1NsAName
