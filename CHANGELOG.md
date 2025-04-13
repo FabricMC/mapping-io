@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Added a simplified `MappingNsCompleter` constructor for completing all destination names with the source names
 - Added `MappingTree#propagateOuterClassNames` as a more efficient tree-API alternative to `OuterClassNamePropagator`
+- Promoted previously internal `NopMappingVisitor`, `VisitOrderVerifier` and `SubsetChecker` to experimental API
 - Made `OuterClassNamePropagator` configurable
 - Made Enigma writer always output destination names if visited explicitly, establishing consistency across all writers
 - Adjusted format detection to only return ENIGMA_DIR for non-empty directories with at least one `.mapping` file
