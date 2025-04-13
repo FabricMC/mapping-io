@@ -34,6 +34,9 @@ import net.fabricmc.mappingio.format.FeatureSetImpl.LocalSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.MemberSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.NameSupportImpl;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
 @ApiStatus.Experimental
 public class FeatureSetBuilder {
 	public static FeatureSetBuilder create() {
@@ -55,7 +58,8 @@ public class FeatureSetBuilder {
 				featureSet.hasFileComments());
 	}
 
-	FeatureSetBuilder(boolean initWithFullSupport) {
+	@ApiStatus.Internal
+	public FeatureSetBuilder(boolean initWithFullSupport) {
 		this(initWithFullSupport,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,

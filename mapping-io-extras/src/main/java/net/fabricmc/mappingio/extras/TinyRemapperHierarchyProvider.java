@@ -38,6 +38,9 @@ import net.fabricmc.tinyremapper.api.TrEnvironment;
 import net.fabricmc.tinyremapper.api.TrField;
 import net.fabricmc.tinyremapper.api.TrMethod;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
 @ApiStatus.Experimental
 public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvider<HierarchyData> {
 	public TinyRemapperHierarchyProvider(TrEnvironment env, String namespace) {

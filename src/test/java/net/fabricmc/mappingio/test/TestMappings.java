@@ -35,12 +35,12 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 import net.fabricmc.mappingio.test.lib.jool.Unchecked;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
-import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
 
 /*
  * After any changes to the "generate" methods, run the "generateTestMappings" Gradle task
@@ -50,7 +50,7 @@ import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
  */
 public class TestMappings {
 	public static <T extends MappingVisitor> T generateValid(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -89,7 +89,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateRepeatedElements(T target, boolean repeatComments, boolean repeatClasses) throws IOException {
-		generateValid(new ForwardingMappingVisitor(new VisitOrderVerifyingVisitor(target, true)) {
+		generateValid(new ForwardingMappingVisitor(new VisitOrderVerifier(target, true)) {
 			private final List<Runnable> replayQueue = new ArrayList<>();
 
 			@Override
@@ -179,7 +179,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateHoles(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -291,7 +291,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateOuterClassNamePropagation(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
 		String srcNs = MappingUtil.NS_SOURCE_FALLBACK;
 		List<String> dstNamespaces = Arrays.asList("dstNs0", "dstNs1", "dstNs2", "dstNs3", "dstNs4", "dstNs5", "dstNs6");
 

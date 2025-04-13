@@ -30,10 +30,10 @@ import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
 
 public class DetectionTest {
 	@Test
