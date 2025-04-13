@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.test.visitors;
+package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,22 +22,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 
 /**
  * Visitor which verifies on each visit call that the invoked visits were in accordance
  * with the expected order of visitation, as defined in {@link MappingVisitor}'s Javadocs.
+ *
+ * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
-public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
-	public VisitOrderVerifyingVisitor(MappingVisitor next) {
+@ApiStatus.Experimental
+public class VisitOrderVerifier extends ForwardingMappingVisitor {
+	public VisitOrderVerifier(MappingVisitor next) {
 		this(next, false);
 	}
 
-	public VisitOrderVerifyingVisitor(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
+	public VisitOrderVerifier(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
 		super(next);
 		this.allowConsecutiveDuplicateElementVisits = allowConsecutiveDuplicateElementVisits;
 		init();

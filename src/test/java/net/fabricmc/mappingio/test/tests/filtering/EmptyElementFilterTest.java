@@ -28,7 +28,7 @@ import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
-import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
+import net.fabricmc.mappingio.test.visitors.SubsetAsserter;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 
@@ -61,7 +61,7 @@ public class EmptyElementFilterTest {
 	private void checkDiskEquivalence(VisitableMappingTree tree, MappingDir dir, MappingFormat format) throws IOException {
 		VisitableMappingTree diskTree = dir.read(format, new MemoryMappingTree());
 
-		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(diskTree, format, null)));
-		diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, format)));
+		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(diskTree, format, null)));
+		diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(tree, null, format)));
 	}
 }

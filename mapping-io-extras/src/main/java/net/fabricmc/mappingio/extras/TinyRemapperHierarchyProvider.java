@@ -38,6 +38,9 @@ import net.fabricmc.tinyremapper.api.TrEnvironment;
 import net.fabricmc.tinyremapper.api.TrField;
 import net.fabricmc.tinyremapper.api.TrMethod;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
 @ApiStatus.Experimental
 public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvider<HierarchyData> {
 	public TinyRemapperHierarchyProvider(TrEnvironment env, String namespace) {
@@ -64,8 +67,6 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	@Override
 	@Nullable
 	public String resolveMethod(String owner, String name, @Nullable String desc) {
-		if (desc == null) return null; // TODO: Tiny Remapper limitation
-
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 
@@ -77,8 +78,6 @@ public final class TinyRemapperHierarchyProvider implements HierarchyInfoProvide
 	@Override
 	@Nullable
 	public HierarchyData getMethodHierarchy(String owner, String name, @Nullable String desc) {
-		if (desc == null) return null; // TODO: Tiny Remapper limitation
-
 		TrClass cls = env.getClass(owner);
 		if (cls == null) return null;
 

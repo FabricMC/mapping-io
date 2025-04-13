@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.test.visitors;
+package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.List;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
+@ApiStatus.Experimental
 public class NopMappingVisitor implements MappingVisitor {
 	public NopMappingVisitor(boolean visitSubVisitors) {
 		this.visitSubVisitors = visitSubVisitors;
