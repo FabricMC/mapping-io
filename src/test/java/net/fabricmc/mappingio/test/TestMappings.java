@@ -885,5 +885,10 @@ public class TestMappings {
 		}
 
 		public abstract <T extends MappingVisitor> T generate(T target) throws IOException;
+
+		@Override
+		public String toString() {
+			return TestUtil.getResource("/").relativize(path).toString();
+		}
 	}
 }

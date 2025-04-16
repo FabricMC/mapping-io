@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.test.tests.reading;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import java.nio.file.Files;
 
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +41,7 @@ public class ValidContentReadTest {
 	public void run() throws Exception {
 		for (MappingDir dir : TestMappings.values()) {
 			for (MappingFormat format : MappingFormat.values()) {
-				check(dir, format);
+				assertDoesNotThrow(() -> check(dir, format), "Failed for " + dir + " with " + format);
 			}
 		}
 	}
