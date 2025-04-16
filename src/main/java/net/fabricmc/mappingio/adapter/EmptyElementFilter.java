@@ -17,15 +17,12 @@
 package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
-import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
@@ -37,8 +34,6 @@ import net.fabricmc.mappingio.MappingVisitor;
  * <li>a non-{@code null} or non-equal destination descriptor,
  * <li>or a child element to which one of these points applies.
  * </ul>
- *
- * @implNote This visitor requires one pre-pass in which it determines which elements contain data worth forwarding.
  */
 public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	/**
@@ -57,151 +52,165 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	public EmptyElementFilter(MappingVisitor next, boolean treatSrcOnDstAsEmpty) {
 		super(next);
 		this.treatSrcOnDstAsEmpty = treatSrcOnDstAsEmpty;
+		init();
+	}
+
+	private void init() {
+		dstNsCount = -1;
+		memberKind = null;
+		localKind = null;
+		classSrcName = null;
+		memberSrcName = null;
+		memberSrcDesc = null;
+		localSrcName = null;
+		localLvIndex = -1;
+		argPosition = -1;
+		varLvtRowIndex = -1;
+		varStartOpIdx = -1;
+		varEndOpIdx = -1;
+		classDstNames = null;
+		memberDstNames = null;
+		memberDstDescs = null;
+		localDstNames = null;
+		classComment = null;
+		memberComment = null;
+		localComment = null;
+		forwardClass = false;
+		forwardMember = false;
+		forwardLocal = false;
+		forwardedClass = false;
+		forwardedMember = false;
+		forwardedLocal = false;
+		visitClass = true;
+		visitMember = true;
+		visitLocal = true;
 	}
 
 	@Override
-	public Set<MappingFlag> getFlags() {
-		Set<MappingFlag> ret = EnumSet.noneOf(MappingFlag.class);
-		ret.addAll(next.getFlags());
-		ret.add(MappingFlag.NEEDS_MULTIPLE_PASSES);
-
-		return ret;
+	public void reset() {
+		init();
+		super.reset();
 	}
 
 	@Override
 	public boolean visitHeader() throws IOException {
-		clsCounter = memberCounter = localCounter = -129; // lowest cached Integer by HotSpot - 1
-
-		if (pass == COLLECT_PASS) {
-			return true;
-		}
-
-		return super.visitHeader();
+		super.visitHeader();
+		return true;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		if (pass == COLLECT_PASS) {
-			return;
-		}
-
 		super.visitNamespaces(srcNamespace, dstNamespaces);
-	}
 
-	@Override
-	public void visitMetadata(String key, @Nullable String value) throws IOException {
-		if (pass == COLLECT_PASS) {
-			return;
-		}
-
-		super.visitMetadata(key, value);
-	}
-
-	@Override
-	public boolean visitContent() throws IOException {
-		if (pass == COLLECT_PASS) {
-			return true;
-		}
-
-		return super.visitContent();
+		dstNsCount = dstNamespaces.size();
+		classDstNames = new String[dstNsCount];
+		memberDstNames = new String[dstNsCount];
+		memberDstDescs = new String[dstNsCount];
+		localDstNames = new String[dstNsCount];
 	}
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		this.srcName = srcName;
-		clsCounter++;
-
-		if (pass > COLLECT_PASS) {
-			if (forward = classesToForward.contains(clsCounter)) {
-				super.visitClass(srcName);
-			}
-		}
-
-		return true; // need to increment potential child elements' counters
+		forwardClass = false;
+		forwardMember = false;
+		forwardLocal = false;
+		forwardedClass = false;
+		visitClass = true;
+		classSrcName = srcName;
+		Arrays.fill(classDstNames, null);
+		classComment = null;
+		return true;
 	}
 
 	@Override
 	public boolean visitField(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
-		memberCounter++;
-
-		if (pass > COLLECT_PASS) {
-			if (forward = membersToForward.contains(memberCounter)) {
-				super.visitField(srcName, srcDesc);
-			}
-		}
-
-		return true; // need to increment potential child elements' counters
+		memberKind = MappedElementKind.FIELD;
+		return visitMember(srcName, srcDesc);
 	}
 
 	@Override
 	public boolean visitMethod(String srcName, @Nullable String srcDesc) throws IOException {
-		this.srcName = srcName;
-		this.srcDesc = srcDesc;
-		memberCounter++;
+		memberKind = MappedElementKind.METHOD;
+		return visitMember(srcName, srcDesc);
+	}
 
-		if (pass > COLLECT_PASS) {
-			if (forward = membersToForward.contains(memberCounter)) {
-				super.visitMethod(srcName, srcDesc);
-			}
-		}
-
-		return true; // need to increment potential child elements' counters
+	private boolean visitMember(String srcName, @Nullable String srcDesc) throws IOException {
+		forwardMember = false;
+		forwardLocal = false;
+		forwardedMember = false;
+		visitMember = true;
+		memberSrcName = srcName;
+		memberSrcDesc = srcDesc;
+		Arrays.fill(memberDstNames, null);
+		Arrays.fill(memberDstDescs, null);
+		memberComment = null;
+		return true;
 	}
 
 	@Override
 	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		this.srcName = srcName;
-		localCounter++;
-
-		if (pass == COLLECT_PASS) {
-			return true;
-		}
-
-		return localsToForward.contains(localCounter)
-				? super.visitMethodArg(argPosition, lvIndex, srcName)
-				: false; // no child counters to increment, abort directly
+		localKind = MappedElementKind.METHOD_ARG;
+		this.argPosition = argPosition;
+		return visitLocal(lvIndex, srcName);
 	}
 
 	@Override
 	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
-		this.srcName = srcName;
-		localCounter++;
+		localKind = MappedElementKind.METHOD_VAR;
+		this.varLvtRowIndex = lvtRowIndex;
+		this.varStartOpIdx = startOpIdx;
+		this.varEndOpIdx = endOpIdx;
+		return visitLocal(lvIndex, srcName);
+	}
 
-		if (pass == COLLECT_PASS) {
-			return true;
-		}
-
-		return localsToForward.contains(localCounter)
-				? super.visitMethodVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName)
-				: false; // no child counters to increment, abort directly
+	private boolean visitLocal(int lvIndex, @Nullable String srcName) throws IOException {
+		forwardLocal = false;
+		forwardedLocal = false;
+		visitLocal = true;
+		localSrcName = srcName;
+		localLvIndex = lvIndex;
+		Arrays.fill(localDstNames, null);
+		localComment = null;
+		return true;
 	}
 
 	@Override
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
-		if (pass > COLLECT_PASS) {
-			if (forward) {
-				super.visitDstName(targetKind, namespace, name);
-			}
-
-			return;
-		}
-
-		if (name == null || (treatSrcOnDstAsEmpty && name.equals(srcName))) {
-			return;
-		}
+		boolean forward = name != null && !(treatSrcOnDstAsEmpty && name.equals(getSrcName(targetKind)));
 
 		switch (targetKind) {
-		case METHOD_ARG:
-		case METHOD_VAR:
-			localsToForward.add(localCounter);
+		case CLASS:
+			forwardClass |= forward;
+			classDstNames[namespace] = name;
+			break;
 		case FIELD:
 		case METHOD:
-			membersToForward.add(memberCounter);
-		case CLASS:
-			classesToForward.add(clsCounter);
+			forwardClass |= forward;
+			forwardMember |= forward;
+			memberDstNames[namespace] = name;
 			break;
+		case METHOD_ARG:
+		case METHOD_VAR:
+			forwardClass |= forward;
+			forwardMember |= forward;
+			forwardLocal |= forward;
+			localDstNames[namespace] = name;
+			break;
+		default:
+			throw new IllegalArgumentException("Unknown target kind: " + targetKind);
+		}
+	}
+
+	private String getSrcName(MappedElementKind targetKind) {
+		switch (targetKind) {
+		case CLASS:
+			return classSrcName;
+		case FIELD:
+		case METHOD:
+			return memberSrcName;
+		case METHOD_ARG:
+		case METHOD_VAR:
+			return localSrcName;
 		default:
 			throw new IllegalArgumentException("Unknown target kind: " + targetKind);
 		}
@@ -209,79 +218,153 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 
 	@Override
 	public void visitDstDesc(MappedElementKind targetKind, int namespace, String desc) throws IOException {
-		if (pass > COLLECT_PASS) {
-			if (forward) {
-				super.visitDstDesc(targetKind, namespace, desc);
-			}
+		assert targetKind == memberKind;
+		boolean forward = desc != null && !(treatSrcOnDstAsEmpty && desc.equals(memberSrcDesc));
 
-			return;
-		}
-
-		if (desc == null || (treatSrcOnDstAsEmpty && desc.equals(srcDesc))) {
-			return;
-		}
-
-		assert targetKind == MappedElementKind.FIELD || targetKind == MappedElementKind.METHOD;
-		membersToForward.add(memberCounter);
+		forwardClass |= forward;
+		forwardMember |= forward;
+		memberDstDescs[namespace] = desc;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
-		if (pass == COLLECT_PASS) {
-			return true;
-		}
-
-		if (forward) {
-			return super.visitElementContent(targetKind);
-		}
-
+		forward(targetKind);
 		return true;
 	}
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
-		if (pass == COLLECT_PASS && comment != null) {
-			switch (targetKind) {
-			case METHOD_ARG:
-			case METHOD_VAR:
-				localsToForward.add(localCounter);
-			case FIELD:
-			case METHOD:
-				membersToForward.add(memberCounter);
-			case CLASS:
-				classesToForward.add(clsCounter);
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown target kind: " + targetKind);
-			}
-
+		if (comment == null) {
 			return;
 		}
 
-		if (forward) {
-			super.visitComment(targetKind, comment);
+		switch (targetKind) {
+		case CLASS:
+			forwardClass = true;
+			classComment = comment;
+			break;
+		case FIELD:
+		case METHOD:
+			forwardClass = true;
+			forwardMember = true;
+			memberComment = comment;
+			break;
+		case METHOD_ARG:
+		case METHOD_VAR:
+			forwardClass = true;
+			forwardMember = true;
+			forwardLocal = true;
+			localComment = comment;
+			break;
+		default:
+			throw new IllegalArgumentException("Unknown target kind: " + targetKind);
+		}
+
+		forward(targetKind);
+	}
+
+	private void forward(MappedElementKind targetKind) throws IOException {
+		if (forwardClass && !forwardedClass && visitClass) {
+			if (visitClass = super.visitClass(classSrcName)) {
+				for (int i = 0; i < dstNsCount; i++) {
+					if (classDstNames[i] != null) {
+						super.visitDstName(MappedElementKind.CLASS, i, classDstNames[i]);
+					}
+				}
+
+				visitClass = super.visitElementContent(MappedElementKind.CLASS);
+				forwardedClass = true;
+
+				if (visitClass && classComment != null) {
+					super.visitComment(MappedElementKind.CLASS, classComment);
+				}
+			}
+		}
+
+		if (forwardMember && !forwardedMember && visitClass && visitMember) {
+			if (memberKind == MappedElementKind.FIELD) {
+				visitMember = super.visitField(memberSrcName, memberSrcDesc);
+			} else {
+				visitMember = super.visitMethod(memberSrcName, memberSrcDesc);
+			}
+
+			if (visitMember) {
+				for (int i = 0; i < dstNsCount; i++) {
+					if (memberDstNames[i] != null) {
+						super.visitDstName(memberKind, i, memberDstNames[i]);
+					}
+
+					if (memberDstDescs[i] != null) {
+						super.visitDstDesc(memberKind, i, memberDstDescs[i]);
+					}
+				}
+
+				visitMember = super.visitElementContent(memberKind);
+				forwardedMember = true;
+
+				if (visitMember && memberComment != null) {
+					super.visitComment(memberKind, memberComment);
+				}
+			}
+		}
+
+		if (forwardLocal && !forwardedLocal && visitClass && visitMember && visitLocal) {
+			if (localKind == MappedElementKind.METHOD_ARG) {
+				visitLocal = super.visitMethodArg(argPosition, localLvIndex, localSrcName);
+			} else {
+				visitLocal = super.visitMethodVar(varLvtRowIndex, localLvIndex, varStartOpIdx, varEndOpIdx, localSrcName);
+			}
+
+			if (visitLocal) {
+				for (int i = 0; i < dstNsCount; i++) {
+					if (localDstNames[i] != null) {
+						super.visitDstName(localKind, i, localDstNames[i]);
+					}
+				}
+
+				visitLocal = super.visitElementContent(localKind);
+				forwardedLocal = true;
+
+				if (visitLocal && localComment != null) {
+					super.visitComment(localKind, localComment);
+				}
+			}
 		}
 	}
 
 	@Override
 	public boolean visitEnd() throws IOException {
-		if (pass++ == COLLECT_PASS) {
-			return false;
-		}
-
+		init();
 		return super.visitEnd();
 	}
 
-	private static final int COLLECT_PASS = 0;
-	private final Set<Integer> classesToForward = new HashSet<>();
-	private final Set<Integer> membersToForward = new HashSet<>();
-	private final Set<Integer> localsToForward = new HashSet<>();
 	private final boolean treatSrcOnDstAsEmpty;
-	private int pass;
-	private String srcName;
-	private String srcDesc;
-	private int clsCounter;
-	private int memberCounter;
-	private int localCounter;
-	private boolean forward;
+	private int dstNsCount;
+	private MappedElementKind memberKind;
+	private MappedElementKind localKind;
+	private String classSrcName;
+	private String memberSrcName;
+	private String memberSrcDesc;
+	private String localSrcName;
+	private int localLvIndex;
+	private int argPosition;
+	private int varLvtRowIndex;
+	private int varStartOpIdx;
+	private int varEndOpIdx;
+	private String[] classDstNames;
+	private String[] memberDstNames;
+	private String[] memberDstDescs;
+	private String[] localDstNames;
+	private String classComment;
+	private String memberComment;
+	private String localComment;
+	private boolean forwardClass;
+	private boolean forwardMember;
+	private boolean forwardLocal;
+	private boolean forwardedClass;
+	private boolean forwardedMember;
+	private boolean forwardedLocal;
+	private boolean visitClass;
+	private boolean visitMember;
+	private boolean visitLocal;
 }
