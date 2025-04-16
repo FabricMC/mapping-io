@@ -51,7 +51,7 @@ import net.fabricmc.mappingio.test.lib.jool.Unchecked;
  */
 public class TestMappings {
 	public static <T extends MappingVisitor> T generateValid(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -180,7 +180,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateHoles(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -292,7 +292,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateOuterClassNamePropagation(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 		String srcNs = MappingUtil.NS_SOURCE_FALLBACK;
 		List<String> dstNamespaces = Arrays.asList("dstNs0", "dstNs1", "dstNs2", "dstNs3", "dstNs4", "dstNs5", "dstNs6");
 
@@ -359,7 +359,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateEmptyElementFiltering(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifier ? target : new VisitOrderVerifier(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces("nsA", Arrays.asList("nsB", "nsC"));
@@ -753,6 +753,10 @@ public class TestMappings {
 		return target;
 	}
 
+	private static VisitOrderVerifier visitOrderVerifierWrapped(MappingVisitor target) {
+		return target instanceof VisitOrderVerifier ? (VisitOrderVerifier) target : new VisitOrderVerifier(target);
+	}
+
 	private static MappingDir register(MappingDir dir) {
 		dirs.add(dir);
 		dirsByPath.put(dir.path, dir);
@@ -803,13 +807,17 @@ public class TestMappings {
 		});
 		public static final MappingDir PROPAGATED = register(new MappingDir(BASE_DIR.resolve("propagated/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateOuterClassNamePropagation(new OuterClassNamePropagator(target));
+				generateOuterClassNamePropagation(new OuterClassNamePropagator(visitOrderVerifierWrapped(target)));
 				return target;
 			};
 		});
 		public static final MappingDir PROPAGATED_EXCEPT_REMAPPED_DST = register(new MappingDir(BASE_DIR.resolve("propagated-except-remapped-dst/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateOuterClassNamePropagation(new OuterClassNamePropagator(target, null, false));
+				generateOuterClassNamePropagation(
+						new OuterClassNamePropagator(
+								visitOrderVerifierWrapped(target),
+								null,
+								false));
 				return target;
 			};
 		});
@@ -826,14 +834,17 @@ public class TestMappings {
 
 		public static final MappingDir FILTERED = register(new MappingDir(BASE_DIR.resolve("filtered/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateEmptyElementFiltering(new EmptyElementFilter(target));
+				generateEmptyElementFiltering(new EmptyElementFilter(visitOrderVerifierWrapped(target)));
 				return target;
 			};
 		});
 
 		public static final MappingDir FILTERED_EXCEPT_SRC_ON_DST = register(new MappingDir(BASE_DIR.resolve("filtered-except-src-on-dst/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateEmptyElementFiltering(new EmptyElementFilter(target, false));
+				generateEmptyElementFiltering(
+						new EmptyElementFilter(
+								visitOrderVerifierWrapped(target),
+								false));
 				return target;
 			};
 		});
