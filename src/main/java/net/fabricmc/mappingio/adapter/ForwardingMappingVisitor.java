@@ -119,5 +119,12 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 		next.visitComment(targetKind, comment);
 	}
 
+	/**
+	 * @return the {@link MappingVisitor} this visitor forwards
+	 */
+	public MappingVisitor getNext() {
+		return next;
+	}
+
 	protected final MappingVisitor next;
 }
