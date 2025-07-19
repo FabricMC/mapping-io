@@ -7,3 +7,8 @@
 /.project
 /.idea/
 /.gradle
+mapping-io-extras/.classpath
+mapping-io-extras/.project
+mapping-io-extras/.settings/org.eclipse.buildship.core.prefs
+mapping-io-extras/.settings/org.eclipse.jdt.core.prefs
+mapping-io-extras/bin/
