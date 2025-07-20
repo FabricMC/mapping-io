@@ -1237,6 +1237,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		void accept(MappingVisitor visitor, VisitOrder order, boolean supplyFieldDstDescs, boolean supplyMethodDstDescs) throws IOException {
 			if (visitor.visitClass(getSrcName()) && acceptElement(visitor, null)) {
 				boolean methodsFirst = order.isMethodsFirst() && fields != null && methods != null;
+
 				if (!methodsFirst && fields != null) {
 					for (FieldEntry field : order.sortFields(fields.values())) {
 						field.accept(visitor, supplyFieldDstDescs);

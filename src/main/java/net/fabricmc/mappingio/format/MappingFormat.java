@@ -254,8 +254,8 @@ public enum MappingFormat {
 			.withFileComments(true)),
 
 	/**
-	 * The {@code Paragraph Delimited Mapping Extended} mapping format, as specified <a href="https://pagure.io/FeatureCreep/MappingExFormat">here</a>. 
-	 * @implNote This implementation does not support the Include/Incluir or AccessFlag/BanderaDeAcceso types. Param is also not supported at this time.
+	 * The {@code Paragraph Delimited Mapping Extended} mapping format, as specified <a href="https://pagure.io/FeatureCreep/MappingExFormat">here</a>.
+	 * @implNote This implementation does not support the Include/Incluir or AccessFlag/BanderaDeAcceso types.
 	 */
 	PDME_FILE("Paragraph Delimited Mapping Extended", "pdme", true,
 			FeatureSetBuilder.create()
@@ -273,7 +273,16 @@ public enum MappingFormat {
 							.withSrcNames(FeaturePresence.REQUIRED)
 							.withDstNames(FeaturePresence.REQUIRED)
 							.withSrcDescs(FeaturePresence.REQUIRED))
-					.withElementComments(ElementCommentSupport.SHARED)
+					.withArgs(a -> a
+							.withLvIndices(FeaturePresence.REQUIRED)
+							.withSrcNames(FeaturePresence.OPTIONAL)
+							.withDstNames(FeaturePresence.REQUIRED))
+					.withVars(v -> v
+							.withLvIndices(FeaturePresence.OPTIONAL)
+							.withLvtRowIndices(FeaturePresence.OPTIONAL)
+							.withStartOpIndices(FeaturePresence.OPTIONAL)
+							.withSrcNames(FeaturePresence.OPTIONAL)
+							.withDstNames(FeaturePresence.REQUIRED))
 					.withFileComments(true)),
 
 	/**

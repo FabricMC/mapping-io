@@ -172,7 +172,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 				if (error && subDstName == null && !subHasRepackaging && supHasRepackaging) {
 					String srcPkg = getPackage(srcName);
 					String dstPkg = getPackage(supDstName);
-					System.out.println("sin paquete "+srcPkg+" "+dstPkg);
+
 					if (srcPkg != null && srcPkg.equals(dstPkg)) {
 						// The incoming class has been repackaged in supTree, which subFormat doesn't support
 						error = false;

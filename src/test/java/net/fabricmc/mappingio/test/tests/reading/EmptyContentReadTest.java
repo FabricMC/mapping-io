@@ -143,7 +143,7 @@ public class EmptyContentReadTest {
 	public void emptyPDMEFile() throws Exception {
 		PDMEFileReader.read(new StringReader("tipo¶original¶nuevo¶def¶pos¶desc"), target);
 	}
-	
+
 	@Test
 	public void emptyJobfFile() throws Exception {
 		JobfFileReader.read(new StringReader(""), target);
