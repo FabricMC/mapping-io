@@ -94,6 +94,11 @@ public final class PDMEFileWriter implements MappingWriter {
 	@Override
 	public boolean visitField(String srcName, String srcDesc) throws IOException {
 		flushStaged();
+
+		if (srcDesc == null) {
+			return false;
+		}
+
 		fieldSrcName = srcName;
 		fieldSrcDesc = srcDesc;
 		dstMemberName = null;
