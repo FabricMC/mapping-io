@@ -128,7 +128,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 
-				if (!isEmpty(subDstNames)) {
+				if (!isNullOrEmpty(subDstNames)) {
 					boolean error = true;
 
 					if (!supHasRepackaging) {
@@ -218,32 +218,43 @@ public class SubsetChecker implements FlatMappingVisitor {
 		boolean subHasDstNames = subFeatures.fields().dstNames() != FeaturePresence.ABSENT;
 		boolean supHasDstDescs = supFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.fields().dstDescs() != FeaturePresence.ABSENT;
+		boolean supRequiresDstNames = supFeatures.fields().dstNames() == FeaturePresence.REQUIRED;
 		boolean supRequiresSrcDescs = supFeatures.fields().srcDescs() == FeaturePresence.REQUIRED;
 		boolean supRequiresDstDescs = supFeatures.fields().dstDescs() == FeaturePresence.REQUIRED;
 
 		if (supFld == null) { // supTree doesn't have this field, ensure the incoming mappings don't have any data for it
-			String[] subDstNames = null;
-			String[] subDstDescs = null;
+			String[] subDstNames = EMPTY_STRING_ARRAY;
+			String[] subDstDescs = EMPTY_STRING_ARRAY;
 
-			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
-			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? dstDescs : new String[]{dstDescs[subNsIfSupNotNamespaced]};
+			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? nullToEmpty(dstNames) : new String[]{dstNames[subNsIfSupNotNamespaced]};
+			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? nullToEmpty(dstDescs) : new String[]{dstDescs[subNsIfSupNotNamespaced]};
 
-			boolean noData = isEmpty(subDstNames) && isEmpty(subDstDescs);
+			boolean hasDstData = !isEmpty(subDstNames) || !isEmpty(subDstDescs);
 			boolean missingRequiredSrcDesc = supRequiresSrcDescs && srcDesc == null;
-			boolean missingRequiredDstDesc = supRequiresDstDescs;
+			boolean missingRequiredDstName = false;
+			boolean missingRequiredDstDesc = false;
 
-			for (int subNs = 0; supRequiresDstDescs && subNs < subDstNames.length; subNs++) {
-				String subDstName = subDstNames == null ? null : subDstNames[subNs];
-				String subDstDesc = subDstDescs == null ? null : subDstDescs[subNs];
+			if (hasDstData && (supRequiresDstNames || supRequiresDstDescs)) {
+				int subDstNsCount = subDstNames != null ? subDstNames.length : subDstDescs.length;
 
-				if (subDstDesc != null && (subDstName != null || supFeatures.fields().dstNames() != FeaturePresence.REQUIRED)) {
-					missingRequiredDstDesc = false;
-					break;
+				for (int subDstNs = 0; subDstNs < subDstNsCount; subDstNs++) {
+					String subDstName = subDstNames == EMPTY_STRING_ARRAY ? null : subDstNames[subDstNs];
+					String subDstDesc = subDstDescs == EMPTY_STRING_ARRAY ? null : subDstDescs[subDstNs];
+
+					if (supRequiresDstNames && !missingRequiredDstName && subDstName == null) {
+						missingRequiredDstName = true;
+						if (missingRequiredDstDesc) break;
+					}
+
+					if (supRequiresDstDescs && !missingRequiredDstDesc && subDstDesc == null) {
+						missingRequiredDstDesc = true;
+						if (missingRequiredDstName) break;
+					}
 				}
 			}
 
-			assertTrue(noData || missingRequiredSrcDesc || missingRequiredDstDesc, "Incoming field not contained in supTree: " + subFldId);
-			return !missingRequiredSrcDesc && !missingRequiredDstDesc;
+			assertTrue(!hasDstData || missingRequiredSrcDesc || missingRequiredDstName || missingRequiredDstDesc, "Incoming field not contained in supTree: " + subFldId);
+			return !missingRequiredSrcDesc && !missingRequiredDstName && !missingRequiredDstDesc;
 		}
 
 		String supFldId = srcClsName + "#" + srcName + ":" + supFld.getSrcDesc();
@@ -315,32 +326,43 @@ public class SubsetChecker implements FlatMappingVisitor {
 		boolean subHasDstNames = subFeatures.methods().dstNames() != FeaturePresence.ABSENT;
 		boolean supHasDstDescs = supFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
 		boolean subHasDstDescs = subFeatures.methods().dstDescs() != FeaturePresence.ABSENT;
+		boolean supRequiresDstNames = supFeatures.methods().dstNames() == FeaturePresence.REQUIRED;
 		boolean supRequiresSrcDescs = supFeatures.methods().srcDescs() == FeaturePresence.REQUIRED;
 		boolean supRequiresDstDescs = supFeatures.methods().dstDescs() == FeaturePresence.REQUIRED;
 
 		if (supMth == null) { // supTree doesn't have this method, ensure the incoming mappings don't have any data for it
-			String[] subDstNames = null;
-			String[] subDstDescs = null;
+			String[] subDstNames = EMPTY_STRING_ARRAY;
+			String[] subDstDescs = EMPTY_STRING_ARRAY;
 
-			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
-			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? dstDescs : new String[]{dstDescs[subNsIfSupNotNamespaced]};
+			if (supHasDstNames && subHasDstNames) subDstNames = supFeatures.hasNamespaces() || dstNames == null ? nullToEmpty(dstNames) : new String[]{dstNames[subNsIfSupNotNamespaced]};
+			if (supHasDstDescs && subHasDstDescs) subDstDescs = supFeatures.hasNamespaces() || dstDescs == null ? nullToEmpty(dstDescs) : new String[]{dstDescs[subNsIfSupNotNamespaced]};
 
-			boolean noData = isEmpty(subDstNames) && isEmpty(subDstDescs);
+			boolean hasDstData = !isEmpty(subDstNames) || !isEmpty(subDstDescs);
 			boolean missingRequiredSrcDesc = supRequiresSrcDescs && srcDesc == null;
-			boolean missingRequiredDstDesc = supRequiresDstDescs;
+			boolean missingRequiredDstName = false;
+			boolean missingRequiredDstDesc = false;
 
-			for (int subNs = 0; supRequiresDstDescs && subNs < subDstNames.length; subNs++) {
-				String subDstName = subDstNames == null ? null : subDstNames[subNs];
-				String subDstDesc = subDstDescs == null ? null : subDstDescs[subNs];
+			if (hasDstData && (supRequiresDstNames || supRequiresDstDescs)) {
+				int subDstNsCount = subDstNames != null ? subDstNames.length : subDstDescs.length;
 
-				if (subDstDesc != null && (subDstName != null || supFeatures.methods().dstNames() != FeaturePresence.REQUIRED)) {
-					missingRequiredDstDesc = false;
-					break;
+				for (int subDstNs = 0; subDstNs < subDstNsCount; subDstNs++) {
+					String subDstName = subDstNames == EMPTY_STRING_ARRAY ? null : subDstNames[subDstNs];
+					String subDstDesc = subDstDescs == EMPTY_STRING_ARRAY ? null : subDstDescs[subDstNs];
+
+					if (supRequiresDstNames && !missingRequiredDstName && subDstName == null) {
+						missingRequiredDstName = true;
+						if (missingRequiredDstDesc) break;
+					}
+
+					if (supRequiresDstDescs && !missingRequiredDstDesc && subDstDesc == null) {
+						missingRequiredDstDesc = true;
+						if (missingRequiredDstName) break;
+					}
 				}
 			}
 
-			assertTrue(noData || missingRequiredSrcDesc || missingRequiredDstDesc, "Incoming method not contained in supTree: " + subMthId);
-			return !missingRequiredSrcDesc && !missingRequiredDstDesc;
+			assertTrue(!hasDstData || missingRequiredSrcDesc || missingRequiredDstName || missingRequiredDstDesc, "Incoming method not contained in supTree: " + subMthId);
+			return !missingRequiredSrcDesc && !missingRequiredDstName && !missingRequiredDstDesc;
 		}
 
 		String supMthId = srcClsName + "#" + srcName + supMth.getSrcDesc();
@@ -421,7 +443,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 
-				assertTrue(isEmpty(subDstNames), "Incoming arg not contained in supTree: " + subArgId);
+				assertTrue(isNullOrEmpty(subDstNames), "Incoming arg not contained in supTree: " + subArgId);
 			}
 
 			return true;
@@ -501,7 +523,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 			if (supHasDstNames && subHasDstNames) {
 				String[] subDstNames = supFeatures.hasNamespaces() || dstNames == null ? dstNames : new String[]{dstNames[subNsIfSupNotNamespaced]};
 
-				assertTrue(isEmpty(subDstNames), "Incoming var not contained in supTree: " + subVarId);
+				assertTrue(isNullOrEmpty(subDstNames), "Incoming var not contained in supTree: " + subVarId);
 			}
 
 			return true;
@@ -591,9 +613,15 @@ public class SubsetChecker implements FlatMappingVisitor {
 		return obj;
 	}
 
-	private boolean isEmpty(String[] arr) {
-		if (arr == null) return true;
+	private String[] nullToEmpty(String[] arr) {
+		return arr != null ? arr : EMPTY_STRING_ARRAY;
+	}
 
+	private boolean isNullOrEmpty(String[] arr) {
+		return arr == null || isEmpty(arr);
+	}
+
+	private boolean isEmpty(String[] arr) {
 		for (String s : arr) {
 			if (s != null) return false;
 		}
@@ -621,6 +649,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 		return supMth;
 	}
 
+	private static final String[] EMPTY_STRING_ARRAY = new String[0];
 	private final MappingTreeView supTree;
 	private final int supDstNsCount;
 	private final MappingFormat subFormat;
