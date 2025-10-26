@@ -56,6 +56,7 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	private void init() {
+		forwardHeaderElements = false;
 		dstNsCount = -1;
 		memberKind = null;
 		localKind = null;
@@ -94,13 +95,15 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 
 	@Override
 	public boolean visitHeader() throws IOException {
-		super.visitHeader();
+		forwardHeaderElements = super.visitHeader();
 		return true;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		super.visitNamespaces(srcNamespace, dstNamespaces);
+		if (forwardHeaderElements) {
+			super.visitNamespaces(srcNamespace, dstNamespaces);
+		}
 
 		dstNsCount = dstNamespaces.size();
 		classDstNames = new String[dstNsCount];
@@ -339,6 +342,7 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	private final boolean treatSrcOnDstAsEmpty;
+	private boolean forwardHeaderElements;
 	private int dstNsCount;
 	private MappedElementKind memberKind;
 	private MappedElementKind localKind;
