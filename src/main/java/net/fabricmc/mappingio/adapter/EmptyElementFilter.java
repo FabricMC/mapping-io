@@ -56,7 +56,8 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	private void init() {
-		forwardHeaderElements = false;
+		relayHeaderElements = false;
+		relayMetadata = false;
 		dstNsCount = -1;
 		memberKind = null;
 		localKind = null;
@@ -95,13 +96,13 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 
 	@Override
 	public boolean visitHeader() throws IOException {
-		forwardHeaderElements = super.visitHeader();
+		relayMetadata = relayHeaderElements = super.visitHeader();
 		return true;
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
-		if (forwardHeaderElements) {
+		if (relayHeaderElements) {
 			super.visitNamespaces(srcNamespace, dstNamespaces);
 		}
 
@@ -110,6 +111,18 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 		memberDstNames = new String[dstNsCount];
 		memberDstDescs = new String[dstNsCount];
 		localDstNames = new String[dstNsCount];
+	}
+
+	@Override
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
+		if (relayMetadata) {
+			super.visitMetadata(key, value);
+		}
+	}
+
+	@Override
+	public boolean visitContent() throws IOException {
+		return relayMetadata = super.visitContent(); // for in-content metadata
 	}
 
 	@Override
@@ -342,7 +355,8 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	private final boolean treatSrcOnDstAsEmpty;
-	private boolean forwardHeaderElements;
+	private boolean relayHeaderElements;
+	private boolean relayMetadata;
 	private int dstNsCount;
 	private MappedElementKind memberKind;
 	private MappedElementKind localKind;
