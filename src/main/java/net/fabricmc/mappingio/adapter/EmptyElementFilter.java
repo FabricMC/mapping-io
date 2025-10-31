@@ -34,6 +34,8 @@ import net.fabricmc.mappingio.MappingVisitor;
  * <li>a non-{@code null} or non-equal destination descriptor,
  * <li>or a child element to which one of these points applies.
  * </ul>
+ *
+ * @apiNote Extending this class is allowed, but no guarantees are made regarding the stability of its protected members.
  */
 public class EmptyElementFilter extends ForwardingMappingVisitor {
 	/**
@@ -150,7 +152,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		return visitMember(srcName, srcDesc);
 	}
 
-	private boolean visitMember(String srcName, @Nullable String srcDesc) throws IOException {
+	protected boolean visitMember(String srcName, @Nullable String srcDesc) throws IOException {
 		forwardMember = false;
 		forwardLocal = false;
 		forwardedMember = false;
@@ -179,7 +181,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		return visitLocal(lvIndex, srcName);
 	}
 
-	private boolean visitLocal(int lvIndex, @Nullable String srcName) throws IOException {
+	protected boolean visitLocal(int lvIndex, @Nullable String srcName) throws IOException {
 		forwardLocal = false;
 		forwardedLocal = false;
 		visitLocal = true;
@@ -217,7 +219,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		}
 	}
 
-	private String getSrcName(MappedElementKind targetKind) {
+	protected String getSrcName(MappedElementKind targetKind) {
 		switch (targetKind) {
 		case CLASS:
 			return classSrcName;
