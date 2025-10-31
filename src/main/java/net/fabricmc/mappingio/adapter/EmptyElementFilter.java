@@ -35,7 +35,7 @@ import net.fabricmc.mappingio.MappingVisitor;
  * <li>or a child element to which one of these points applies.
  * </ul>
  */
-public final class EmptyElementFilter extends ForwardingMappingVisitor {
+public class EmptyElementFilter extends ForwardingMappingVisitor {
 	/**
 	 * Creates a new {@link EmptyElementFilter} that treats destination names and descriptors which are equal to their source counterparts as empty.
 	 *
@@ -279,7 +279,7 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 		forward(targetKind);
 	}
 
-	private void forward(MappedElementKind targetKind) throws IOException {
+	protected void forward(MappedElementKind targetKind) throws IOException {
 		if (forwardClass && !forwardedClass && visitClass) {
 			if (visitClass = super.visitClass(classSrcName)) {
 				for (int i = 0; i < dstNsCount; i++) {
@@ -354,35 +354,35 @@ public final class EmptyElementFilter extends ForwardingMappingVisitor {
 		return super.visitEnd();
 	}
 
-	private final boolean treatSrcOnDstAsEmpty;
-	private boolean relayHeaderElements;
-	private boolean relayMetadata;
-	private int dstNsCount;
-	private MappedElementKind memberKind;
-	private MappedElementKind localKind;
-	private String classSrcName;
-	private String memberSrcName;
-	private String memberSrcDesc;
-	private String localSrcName;
-	private int localLvIndex;
-	private int argPosition;
-	private int varLvtRowIndex;
-	private int varStartOpIdx;
-	private int varEndOpIdx;
-	private String[] classDstNames;
-	private String[] memberDstNames;
-	private String[] memberDstDescs;
-	private String[] localDstNames;
-	private String classComment;
-	private String memberComment;
-	private String localComment;
-	private boolean forwardClass;
-	private boolean forwardMember;
-	private boolean forwardLocal;
-	private boolean forwardedClass;
-	private boolean forwardedMember;
-	private boolean forwardedLocal;
-	private boolean visitClass;
-	private boolean visitMember;
-	private boolean visitLocal;
+	protected final boolean treatSrcOnDstAsEmpty;
+	protected boolean relayHeaderElements;
+	protected boolean relayMetadata;
+	protected int dstNsCount;
+	protected MappedElementKind memberKind;
+	protected MappedElementKind localKind;
+	protected String classSrcName;
+	protected String memberSrcName;
+	protected String memberSrcDesc;
+	protected String localSrcName;
+	protected int localLvIndex;
+	protected int argPosition;
+	protected int varLvtRowIndex;
+	protected int varStartOpIdx;
+	protected int varEndOpIdx;
+	protected String[] classDstNames;
+	protected String[] memberDstNames;
+	protected String[] memberDstDescs;
+	protected String[] localDstNames;
+	protected String classComment;
+	protected String memberComment;
+	protected String localComment;
+	protected boolean forwardClass;
+	protected boolean forwardMember;
+	protected boolean forwardLocal;
+	protected boolean forwardedClass;
+	protected boolean forwardedMember;
+	protected boolean forwardedLocal;
+	protected boolean visitClass;
+	protected boolean visitMember;
+	protected boolean visitLocal;
 }
