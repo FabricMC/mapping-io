@@ -57,7 +57,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		init();
 	}
 
-	private void init() {
+	protected void init() {
 		relayHeaderElements = false;
 		relayMetadata = false;
 		dstNsCount = -1;
