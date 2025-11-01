@@ -1,0 +1,34 @@
+CLASS cls0NsAName cls0NsBName
+CLASS cls1NsAName cls1NsBName
+CLASS cls2NsAName
+CLASS cls3NsAName cls3NsAName
+CLASS cls4NsAName cls4NsBName
+CLASS cls9NsAName
+	COMMENT cls9Comment
+CLASS cls18NsAName
+	FIELD fld2NsAName fld2NsBName I
+	FIELD fld3NsAName fld3NsBName I
+	FIELD fld4NsAName I
+	FIELD fld5NsAName fld5NsAName I
+	FIELD fld6NsAName fld6NsBName I
+	FIELD fld11NsAName I
+		COMMENT fld11Comment
+CLASS cls19NsAName
+	METHOD mth6NsAName mth6NsBName ()I
+	METHOD mth7NsAName mth7NsBName ()I
+	METHOD mth8NsAName ()I
+	METHOD mth9NsAName mth9NsAName ()I
+	METHOD mth10NsAName mth10NsBName ()I
+	METHOD mth15NsAName ()I
+		COMMENT mth15Comment
+CLASS cls20NsAName
+	METHOD mth16NsAName ()I
+		ARG 2 arg2NsBName
+		ARG 3 arg3NsBName
+		ARG 4
+		ARG 5 arg5NsAName
+		ARG 6 arg6NsBName
+		ARG 11
+			COMMENT arg11Comment
+CLASS cls21NsAName
+	METHOD mth17NsAName ()I

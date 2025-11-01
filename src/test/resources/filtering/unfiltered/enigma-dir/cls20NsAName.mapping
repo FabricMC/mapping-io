@@ -1,0 +1,13 @@
+CLASS cls20NsAName
+	METHOD mth16NsAName ()I
+		ARG 2 arg2NsBName
+		ARG 3 arg3NsBName
+		ARG 4
+		ARG 5 arg5NsAName
+		ARG 6 arg6NsBName
+		ARG 7 arg7NsAName
+		ARG 8 arg8NsAName
+		ARG 9
+		ARG 10
+		ARG 11
+			COMMENT arg11Comment

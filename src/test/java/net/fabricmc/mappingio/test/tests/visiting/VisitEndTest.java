@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests.visiting;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,7 +47,7 @@ public class VisitEndTest {
 	public void run() throws Exception {
 		for (MappingDir dir : TestMappings.values()) {
 			for (MappingFormat format : MappingFormat.values()) {
-				check(dir, format);
+				assertDoesNotThrow(() -> check(dir, format), "Failed for " + dir + " with " + format);
 			}
 		}
 	}

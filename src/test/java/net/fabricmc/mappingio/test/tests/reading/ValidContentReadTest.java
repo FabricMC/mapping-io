@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.test.tests.reading;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import java.nio.file.Files;
 
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +41,7 @@ public class ValidContentReadTest {
 	public void run() throws Exception {
 		for (MappingDir dir : TestMappings.values()) {
 			for (MappingFormat format : MappingFormat.values()) {
-				check(dir, format);
+				assertDoesNotThrow(() -> check(dir, format), "Failed for " + dir + " with " + format);
 			}
 		}
 	}
@@ -70,6 +72,9 @@ public class ValidContentReadTest {
 		}
 
 		tree = new MemoryMappingTree();
+		String oldSrcNs = format.features().hasNamespaces()
+				? referenceTree.getSrcNamespace()
+				: MappingUtil.NS_SOURCE_FALLBACK;
 		String newSrcNs = format.features().hasNamespaces()
 				? referenceTree.getDstNamespaces().get(0)
 				: MappingUtil.NS_TARGET_FALLBACK;
@@ -77,7 +82,7 @@ public class ValidContentReadTest {
 				new VisitOrderVerifier(
 						new MappingSourceNsSwitch(
 								new VisitOrderVerifier(tree, allowConsecutiveDuplicateElementVisits),
-								referenceTree.getSrcNamespace()),
+								oldSrcNs),
 						allowConsecutiveDuplicateElementVisits),
 				newSrcNs);
 

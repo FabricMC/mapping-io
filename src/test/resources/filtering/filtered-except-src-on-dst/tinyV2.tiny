@@ -1,0 +1,67 @@
+tiny	2	0	nsA	nsB	nsC
+c	cls0NsAName	cls0NsBName	cls0NsCName
+c	cls1NsAName	cls1NsBName	
+c	cls2NsAName		cls2NsCName
+c	cls3NsAName	cls3NsAName	cls3NsCName
+c	cls4NsAName	cls4NsBName	cls4NsAName
+c	cls5NsAName	cls5NsAName	cls5NsAName
+c	cls6NsAName	cls6NsAName	
+c	cls7NsAName		cls7NsAName
+c	cls9NsAName		
+	c	cls9Comment
+c	cls14NsAName		
+	f	I	fld1NsAName	fld1NsAName	
+c	cls15NsAName		
+	m	()I	mth3NsAName	mth3NsAName	
+c	cls16NsAName		
+	m	()I	mth4NsAName		
+		p	1	arg1NsAName	arg1NsAName	
+c	cls17NsAName		
+	m	()I	mth5NsAName		
+		v	1	1	1	var1NsAName	var1NsAName	
+c	cls18NsAName		
+	f	I	fld2NsAName	fld2NsBName	fld2NsCName
+	f	I	fld3NsAName	fld3NsBName	
+	f	I	fld4NsAName		fld4NsCName
+	f	I	fld5NsAName	fld5NsAName	fld5NsCName
+	f	I	fld6NsAName	fld6NsBName	fld6NsAName
+	f	I	fld7NsAName	fld7NsAName	fld7NsAName
+	f	I	fld8NsAName	fld8NsAName	
+	f	I	fld9NsAName		fld9NsAName
+	f	I	fld11NsAName		
+		c	fld11Comment
+c	cls19NsAName		
+	m	()I	mth6NsAName	mth6NsBName	mth6NsCName
+	m	()I	mth7NsAName	mth7NsBName	
+	m	()I	mth8NsAName		mth8NsCName
+	m	()I	mth9NsAName	mth9NsAName	mth9NsCName
+	m	()I	mth10NsAName	mth10NsBName	mth10NsAName
+	m	()I	mth11NsAName	mth11NsAName	mth11NsAName
+	m	()I	mth12NsAName	mth12NsAName	
+	m	()I	mth13NsAName		mth13NsAName
+	m	()I	mth15NsAName		
+		c	mth15Comment
+c	cls20NsAName		
+	m	()I	mth16NsAName		
+		p	2	arg2NsAName	arg2NsBName	arg2NsCName
+		p	3	arg3NsAName	arg3NsBName	
+		p	4	arg4NsAName		arg4NsCName
+		p	5	arg5NsAName	arg5NsAName	arg5NsCName
+		p	6	arg6NsAName	arg6NsBName	arg6NsAName
+		p	7	arg7NsAName	arg7NsAName	arg7NsAName
+		p	8	arg8NsAName	arg8NsAName	
+		p	9	arg9NsAName		arg9NsAName
+		p	11	arg11NsAName		
+			c	arg11Comment
+c	cls21NsAName		
+	m	()I	mth17NsAName		
+		v	2	2	2	var2NsAName	var2NsBName	var2NsCName
+		v	3	3	3	var3NsAName	var3NsBName	
+		v	4	4	4	var4NsAName		var4NsCName
+		v	5	5	5	var5NsAName	var5NsAName	var5NsCName
+		v	6	6	6	var6NsAName	var6NsBName	var6NsAName
+		v	7	7	7	var7NsAName	var7NsAName	var7NsAName
+		v	8	8	8	var8NsAName	var8NsAName	
+		v	9	9	9	var9NsAName		var9NsAName
+		v	11	11	11	var11NsAName		
+			c	var11Comment

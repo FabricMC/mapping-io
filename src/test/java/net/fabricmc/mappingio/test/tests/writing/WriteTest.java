@@ -16,6 +16,8 @@
 
 package net.fabricmc.mappingio.test.tests.writing;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -48,7 +50,7 @@ public class WriteTest {
 	public void run() throws Exception {
 		for (MappingDir dir : TestMappings.values()) {
 			for (MappingFormat format : MappingFormat.values()) {
-				check(dir, format);
+				assertDoesNotThrow(() -> check(dir, format), "Failed for " + dir + " with " + format);
 			}
 		}
 	}

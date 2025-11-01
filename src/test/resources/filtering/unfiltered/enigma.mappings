@@ -1,0 +1,68 @@
+CLASS cls0NsAName cls0NsBName
+CLASS cls1NsAName cls1NsBName
+CLASS cls2NsAName
+CLASS cls3NsAName cls3NsAName
+CLASS cls4NsAName cls4NsBName
+CLASS cls5NsAName cls5NsAName
+CLASS cls6NsAName cls6NsAName
+CLASS cls7NsAName
+CLASS cls8NsAName
+CLASS cls9NsAName
+	COMMENT cls9Comment
+CLASS cls10NsAName
+	FIELD fld0NsAName I
+CLASS cls11NsAName
+	METHOD mth0NsAName ()I
+CLASS cls12NsAName
+	METHOD mth1NsAName ()I
+		ARG 0
+CLASS cls13NsAName
+	METHOD mth2NsAName ()I
+CLASS cls14NsAName
+	FIELD fld1NsAName fld1NsAName I
+CLASS cls15NsAName
+	METHOD mth3NsAName mth3NsAName ()I
+CLASS cls16NsAName
+	METHOD mth4NsAName ()I
+		ARG 1 arg1NsAName
+CLASS cls17NsAName
+	METHOD mth5NsAName ()I
+CLASS cls18NsAName
+	FIELD fld2NsAName fld2NsBName I
+	FIELD fld3NsAName fld3NsBName I
+	FIELD fld4NsAName I
+	FIELD fld5NsAName fld5NsAName I
+	FIELD fld6NsAName fld6NsBName I
+	FIELD fld7NsAName fld7NsAName I
+	FIELD fld8NsAName fld8NsAName I
+	FIELD fld9NsAName I
+	FIELD fld10NsAName I
+	FIELD fld11NsAName I
+		COMMENT fld11Comment
+CLASS cls19NsAName
+	METHOD mth6NsAName mth6NsBName ()I
+	METHOD mth7NsAName mth7NsBName ()I
+	METHOD mth8NsAName ()I
+	METHOD mth9NsAName mth9NsAName ()I
+	METHOD mth10NsAName mth10NsBName ()I
+	METHOD mth11NsAName mth11NsAName ()I
+	METHOD mth12NsAName mth12NsAName ()I
+	METHOD mth13NsAName ()I
+	METHOD mth14NsAName ()I
+	METHOD mth15NsAName ()I
+		COMMENT mth15Comment
+CLASS cls20NsAName
+	METHOD mth16NsAName ()I
+		ARG 2 arg2NsBName
+		ARG 3 arg3NsBName
+		ARG 4
+		ARG 5 arg5NsAName
+		ARG 6 arg6NsBName
+		ARG 7 arg7NsAName
+		ARG 8 arg8NsAName
+		ARG 9
+		ARG 10
+		ARG 11
+			COMMENT arg11Comment
+CLASS cls21NsAName
+	METHOD mth17NsAName ()I
