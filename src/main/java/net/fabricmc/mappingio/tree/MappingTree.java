@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
 
 /**
  * Mutable mapping tree.
@@ -121,7 +122,7 @@ public interface MappingTree extends MappingTreeView {
 	 * tries to find {@code class_1}, which let's say has the mapping {@code SomeClass},
 	 * and changes the former's destination name to {@code SomeClass$class_2}.
 	 *
-	 * <p>Equivalent of {@link OuterClassNameInheritingVisitor}, but more efficient
+	 * <p>Equivalent of {@link OuterClassNamePropagator}, but more efficient
 	 * since the tree's existing class map can be reused.
 	 *
 	 * @param processRemappedDstNames Whether already remapped destination names should also get their unmapped outer classes replaced.
@@ -139,7 +140,7 @@ public interface MappingTree extends MappingTreeView {
 	 * tries to find {@code class_1}, which let's say has the mapping {@code SomeClass},
 	 * and changes the former's destination name to {@code SomeClass$class_2}.
 	 *
-	 * <p>Equivalent of {@link OuterClassNameInheritingVisitor}, but more efficient
+	 * <p>Equivalent of {@link OuterClassNamePropagator}, but more efficient
 	 * since the tree's existing class map can be reused.
 	 *
 	 * @param srcNamespace The namespace where the original/unmapped outer class names originate from.
