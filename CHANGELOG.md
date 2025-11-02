@@ -4,7 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Added `EmptyElementFilter`, an adapter which filters out out elements that effectively don't contain any data
+- Added `EmptyElementFilter`, an adapter which filters out elements that effectively don't contain any data
+- Added `RedundantDstDataFilter`, an adapter which nulls out destination names and descriptors that are equal to their source counterparts
 - Added a simplified `MappingNsCompleter` constructor for completing all destination names with the source names
 - Added `MappingTree#propagateOuterClassNames` as a more efficient tree-API alternative to `OuterClassNamePropagator`
 - Promoted previously internal `NopMappingVisitor`, `VisitOrderVerifier` and `SubsetChecker` to experimental API
