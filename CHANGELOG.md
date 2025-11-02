@@ -4,6 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.0] - 2025-11-02
 - Added `EmptyElementFilter`, an adapter which filters out elements that effectively don't contain any data
 - Added `RedundantDstDataFilter`, an adapter which nulls out destination names and descriptors that are equal to their source counterparts
 - Added a simplified `MappingNsCompleter` constructor for completing all destination names with the source names
@@ -11,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Promoted previously internal `NopMappingVisitor`, `VisitOrderVerifier` and `SubsetChecker` to experimental API
 - Made `OuterClassNamePropagator` configurable
 - Made Enigma writer always output destination names if visited explicitly, establishing consistency across all writers
-- Adjusted format detection to only return ENIGMA_DIR for non-empty directories with at least one `.mapping` file
+- Adjusted format detection to only return `ENIGMA_DIR` for non-empty directories with at least one `.mapping` file
 - Fixed writer NPEs when metadata or member source descriptors are null
 - Fixed SRG writer omitting fields with missing source descriptors
 - Fixed Enigma directory reader never closing the individual files' readers
