@@ -65,6 +65,14 @@ public class TestMappings {
 			int[] dstNs = new int[] { 0, 1 };
 			NameGen nameGen = new NameGen();
 
+			if (nameGen.visitPackage(delegate, 0, dstNs)) {
+				nameGen.visitComment(delegate);
+			}
+
+			if (nameGen.visitPackage(delegate, 1, dstNs)) {
+				nameGen.visitComment(delegate);
+			}
+
 			if (nameGen.visitClass(delegate, dstNs)) {
 				nameGen.visitField(delegate, dstNs);
 
@@ -96,6 +104,13 @@ public class TestMappings {
 			@Override
 			public void visitMetadata(String key, @Nullable String value) throws IOException {
 				super.visitMetadata(key, key.equals("name") ? "repeated-elements" : value);
+			}
+
+			@Override
+			public boolean visitPackage(String srcName) throws IOException {
+				replayQueue.clear();
+				replayQueue.add(Unchecked.runnable(() -> super.visitPackage(srcName)));
+				return super.visitPackage(srcName);
 			}
 
 			@Override
@@ -188,6 +203,20 @@ public class TestMappings {
 
 		if (delegate.visitContent()) {
 			NameGen nameGen = new NameGen();
+
+			// Packages
+			nameGen.visitPackage(delegate, 0, 0);
+			nameGen.visitPackage(delegate, 0, 0);
+			nameGen.visitPackage(delegate, 0, 0);
+
+			nameGen.visitPackage(delegate, 0, 1);
+			nameGen.visitPackage(delegate, 0, 1);
+			nameGen.visitPackage(delegate, 0, 1);
+
+			nameGen.visitPackage(delegate, 1, 0);
+			nameGen.visitPackage(delegate, 1, 0);
+			nameGen.visitPackage(delegate, 1, 0);
+			nameGen.visitPackage(delegate, 1, 0);
 
 			// (Inner) Classes
 			for (int nestLevel = 0; nestLevel <= 2; nestLevel++) {
@@ -366,6 +395,7 @@ public class TestMappings {
 		}
 
 		if (delegate.visitContent()) {
+			String pkgPrefix = "pkg";
 			String clsPrefix = "cls";
 			String fieldPrefix = "fld";
 			String methodPrefix = "mth";
@@ -375,6 +405,7 @@ public class TestMappings {
 			String nsASuffix = "NsAName";
 			String nsBSuffix = "NsBName";
 			String nsCSuffix = "NsCName";
+			String pkgName, pkgNsAName;
 			String clsName, clsNsAName;
 			String fldName, fldNsAName;
 			String mthName, mthNsAName;
@@ -382,11 +413,67 @@ public class TestMappings {
 			String varName, varNsAName;
 			String fldDesc = "I";
 			String mthDesc = "()I";
+			int pkgNum = 0;
 			int clsNum = 0;
 			int fieldNum = 0;
 			int methodNum = 0;
 			int argNum = 0;
 			int varNum = 0;
+
+			// Packages
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.PACKAGE)) {
+					delegate.visitComment(MappedElementKind.PACKAGE, pkgName + commentSuffix);
+				}
+			}
 
 			// Classes
 			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {

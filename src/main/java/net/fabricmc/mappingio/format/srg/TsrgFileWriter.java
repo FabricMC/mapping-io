@@ -73,6 +73,14 @@ public final class TsrgFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		pkgSrcName = srcName += "/";
+		hasAnyDstNames = false;
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		clsSrcName = srcName;
 		hasAnyDstNames = false;
@@ -124,6 +132,10 @@ public final class TsrgFileWriter implements MappingWriter {
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
 		if (!tsrg2 && namespace != 0) return;
 
+		if (targetKind == MappedElementKind.PACKAGE && name != null) {
+			name += "/";
+		}
+
 		dstNames[namespace] = name;
 		hasAnyDstNames |= name != null;
 	}
@@ -131,11 +143,11 @@ public final class TsrgFileWriter implements MappingWriter {
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		if (classContentVisitPending && targetKind != MappedElementKind.CLASS && hasAnyDstNames) {
-			String[] memberOrArgDstNames = dstNames.clone();
+			String[] packageOrMemberOrArgDstNames = dstNames.clone();
 			Arrays.fill(dstNames, clsSrcName);
 			visitElementContent(MappedElementKind.CLASS);
 			classContentVisitPending = false;
-			dstNames = memberOrArgDstNames;
+			dstNames = packageOrMemberOrArgDstNames;
 		}
 
 		if (methodContentVisitPending && targetKind == MappedElementKind.METHOD_ARG && hasAnyDstNames) {
@@ -149,6 +161,10 @@ public final class TsrgFileWriter implements MappingWriter {
 		String srcName = null;
 
 		switch (targetKind) {
+		case PACKAGE:
+			if (!hasAnyDstNames) return false;
+			srcName = pkgSrcName;
+			break;
 		case CLASS:
 			if (!hasAnyDstNames) {
 				classContentVisitPending = true;
@@ -204,8 +220,7 @@ public final class TsrgFileWriter implements MappingWriter {
 
 		Arrays.fill(dstNames, null);
 
-		return targetKind == MappedElementKind.CLASS
-				|| (tsrg2 && targetKind == MappedElementKind.METHOD);
+		return targetKind == MappedElementKind.CLASS || (tsrg2 && targetKind == MappedElementKind.METHOD);
 	}
 
 	@Override
@@ -239,6 +254,7 @@ public final class TsrgFileWriter implements MappingWriter {
 
 	private final Writer writer;
 	private final boolean tsrg2;
+	private String pkgSrcName;
 	private String clsSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;

@@ -1,3 +1,7 @@
+p pkg0NsAName = pkg0NsBName
+p pkg1NsAName = pkg1NsBName
+p pkg3NsAName = pkg3NsAName
+p pkg4NsAName = pkg4NsBName
 c cls0NsAName = cls0NsBName
 c cls1NsAName = cls1NsBName
 c cls3NsAName = cls3NsAName

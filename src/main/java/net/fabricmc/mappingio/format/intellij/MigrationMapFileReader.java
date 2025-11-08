@@ -122,14 +122,17 @@ public final class MigrationMapFileReader {
 							break;
 						case "entry":
 							String type = xmlReader.getAttributeValue(null, "type");
+							boolean isPackage;
 
 							if (type == null || type.isEmpty()) throw new IOException("missing/empty type attribute at line "+xmlReader.getLocation().getLineNumber());
-							if (type.equals("package")) continue; // TODO: support packages
-							if (!type.equals("class")) throw new IOException("unexpected entry type "+type+" at line "+xmlReader.getLocation().getLineNumber());
+
+							if (!(isPackage = type.equals("package")) && !type.equals("class")) {
+								throw new IOException("unexpected entry type "+type+" at line "+xmlReader.getLocation().getLineNumber());
+							}
 
 							String srcName = xmlReader.getAttributeValue(null, "oldName");
 							String dstName = xmlReader.getAttributeValue(null, "newName");
-							// String recursive = xmlReader.getAttributeValue(null, "recursive"); // only used for packages
+							// String recursive = xmlReader.getAttributeValue(null, "recursive"); // only used for packages, indicates if subpackages should also be renamed
 
 							if (srcName == null || srcName.isEmpty()) throw new IOException("missing/empty oldName attribute at line "+xmlReader.getLocation().getLineNumber());
 							if (dstName == null || dstName.isEmpty()) throw new IOException("missing/empty newName attribute at line "+xmlReader.getLocation().getLineNumber());
@@ -137,7 +140,11 @@ public final class MigrationMapFileReader {
 							srcName = srcName.replace('.', '/');
 							dstName = dstName.replace('.', '/');
 
-							if (visitor.visitClass(srcName)) {
+							if (isPackage && visitor.visitPackage(srcName)) {
+								visitor.visitDstName(MappedElementKind.PACKAGE, 0, dstName);
+								visitor.visitElementContent(MappedElementKind.PACKAGE);
+								// TODO: visit "recursive" attribute as element metadata once https://github.com/FabricMC/mapping-io/pull/41 is merged
+							} else if (!isPackage && visitor.visitClass(srcName)) {
 								visitor.visitDstName(MappedElementKind.CLASS, 0, dstName);
 								visitor.visitElementContent(MappedElementKind.CLASS);
 							}

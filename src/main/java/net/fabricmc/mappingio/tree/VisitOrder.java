@@ -31,6 +31,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MemberMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodArgMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodVarMappingView;
+import net.fabricmc.mappingio.tree.MappingTreeView.PackageMappingView;
 
 /**
  * Visitation order configuration for {@link MappingTreeView#accept(net.fabricmc.mappingio.MappingVisitor, VisitOrder)}.
@@ -55,6 +56,7 @@ public final class VisitOrder {
 	 */
 	public static VisitOrder createByName() {
 		return new VisitOrder()
+				.packagesBySrcName()
 				.classesBySrcName()
 				.fieldsBySrcNameDesc()
 				.methodsBySrcNameDesc()
@@ -63,6 +65,20 @@ public final class VisitOrder {
 	}
 
 	// visit order configuration
+
+	public VisitOrder packageComparator(Comparator<PackageMappingView> comparator) {
+		this.packageComparator = comparator;
+
+		return this;
+	}
+
+	public VisitOrder packagesBySrcName() {
+		return packageComparator(compareBySrcName());
+	}
+
+	public VisitOrder packagesBySrcNameShortFirst() {
+		return packageComparator(compareBySrcNameShortFirst());
+	}
 
 	public VisitOrder classComparator(Comparator<ClassMappingView> comparator) {
 		this.classComparator = comparator;
@@ -129,6 +145,20 @@ public final class VisitOrder {
 				.comparingInt(MethodVarMappingView::getLvIndex)
 				.thenComparingInt(MethodVarMappingView::getStartOpIdx)
 				.thenComparingInt(MethodVarMappingView::getEndOpIdx));
+	}
+
+	public VisitOrder classesFirst(boolean classesFirst) {
+		this.classesFirst = classesFirst;
+
+		return this;
+	}
+
+	public VisitOrder packagesFirst() {
+		return classesFirst(false);
+	}
+
+	public VisitOrder classesFirst() {
+		return classesFirst(true);
 	}
 
 	public VisitOrder methodsFirst(boolean methodsFirst) {
@@ -277,6 +307,10 @@ public final class VisitOrder {
 
 	// application
 
+	public <T extends PackageMappingView> Collection<T> sortPackages(Collection<T> packages) {
+		return sort(packages, packageComparator);
+	}
+
 	public <T extends ClassMappingView> Collection<T> sortClasses(Collection<T> classes) {
 		return sort(classes, classComparator);
 	}
@@ -306,6 +340,10 @@ public final class VisitOrder {
 		return ret;
 	}
 
+	public boolean isClassesFirst() {
+		return classesFirst;
+	}
+
 	public boolean isMethodsFirst() {
 		return methodsFirst;
 	}
@@ -315,11 +353,13 @@ public final class VisitOrder {
 	}
 
 	private static final AlphanumericComparator ALPHANUM = new AlphanumericComparator(Locale.ROOT);
+	private Comparator<PackageMappingView> packageComparator;
 	private Comparator<ClassMappingView> classComparator;
 	private Comparator<FieldMappingView> fieldComparator;
 	private Comparator<MethodMappingView> methodComparator;
 	private Comparator<MethodArgMappingView> methodArgComparator;
 	private Comparator<MethodVarMappingView> methodVarComparator;
+	private boolean classesFirst;
 	private boolean methodsFirst;
 	private boolean methodVarsFirst;
 }

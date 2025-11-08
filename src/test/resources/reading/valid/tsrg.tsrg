@@ -1,3 +1,5 @@
+package_1/ package1Ns0Rename/
+package_1/package_2/ package1Ns0Rename/package2Ns0Rename/
 class_1 class1Ns0Rename
 	field_1 field1Ns0Rename
 	method_1 ()I method1Ns0Rename

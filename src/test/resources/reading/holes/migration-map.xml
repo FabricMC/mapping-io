@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migrationMap>
+	<entry oldName="package_1" newName="package1Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_2" newName="package2Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_3" newName="filler_3.package3Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_6.package_7" newName="filler_7.package6Ns0Rename.package7Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_8.package_9" newName="package8Ns0Rename.package9Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_10.package_11" newName="package10Ns0Rename.package11Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_12.package_13" newName="filler_13.package12Ns0Rename.package13Ns0Rename" type="package" recursive="false"/>
 	<entry oldName="class_3" newName="package_3.class3Ns0Rename" type="class"/>
 	<entry oldName="package_6.class_6" newName="package_7.class6Ns0Rename" type="class"/>
 	<entry oldName="class_9$class_10" newName="class_9$class10Ns0Rename" type="class"/>

@@ -1,4 +1,12 @@
 tsrg2 nsA nsB nsC
+pkg0NsAName/ pkg0NsBName/ pkg0NsCName/
+pkg1NsAName/ pkg1NsBName/ pkg1NsAName/
+pkg2NsAName/ pkg2NsAName/ pkg2NsCName/
+pkg3NsAName/ pkg3NsAName/ pkg3NsCName/
+pkg4NsAName/ pkg4NsBName/ pkg4NsAName/
+pkg5NsAName/ pkg5NsAName/ pkg5NsAName/
+pkg6NsAName/ pkg6NsAName/ pkg6NsAName/
+pkg7NsAName/ pkg7NsAName/ pkg7NsAName/
 cls0NsAName cls0NsBName cls0NsCName
 cls1NsAName cls1NsBName cls1NsAName
 cls2NsAName cls2NsAName cls2NsCName

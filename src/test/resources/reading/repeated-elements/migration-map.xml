@@ -4,6 +4,10 @@
 	<order value="0"/>
 	<property-with-empty-value value=""/>
 	<property-with-null-value/>
+	<entry oldName="package_1" newName="package1Ns0Rename0" type="package" recursive="false"/>
+	<entry oldName="package_1" newName="package1Ns0Rename" type="package" recursive="false"/>
+	<entry oldName="package_1.package_2" newName="package1Ns0Rename.package2Ns0Rename0" type="package" recursive="false"/>
+	<entry oldName="package_1.package_2" newName="package1Ns0Rename.package2Ns0Rename" type="package" recursive="false"/>
 	<entry oldName="class_1" newName="class1Ns0Rename0" type="class"/>
 	<entry oldName="class_1" newName="class1Ns0Rename" type="class"/>
 	<entry oldName="class_1$class_2" newName="class1Ns0Rename$class2Ns0Rename0" type="class"/>

@@ -26,17 +26,29 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
 class NameGen {
+	boolean visitPackage(MappingVisitor target, int nestLevel, int... dstNs) throws IOException {
+		if (!target.visitPackage(nestLevel <= 0 ? srcOutermostPkgOrCls(pkgKind) : srcInnerPkgOrCls(pkgKind, nestLevel))) {
+			return false;
+		}
+
+		for (int ns : dstNs) {
+			target.visitDstName(pkgKind, ns, nestLevel <= 0 ? dstOutermostPkgOrCls(pkgKind, ns) : dstInnerPkgOrCls(pkgKind, ns));
+		}
+
+		return target.visitElementContent(pkgKind);
+	}
+
 	boolean visitClass(MappingVisitor target, int... dstNs) throws IOException {
 		return visitInnerClass(target, 0, dstNs);
 	}
 
 	boolean visitInnerClass(MappingVisitor target, int nestLevel, int... dstNs) throws IOException {
-		if (!target.visitClass(nestLevel <= 0 ? srcOutermostClass() : srcInnerClasses(nestLevel))) {
+		if (!target.visitClass(nestLevel <= 0 ? srcOutermostPkgOrCls(clsKind) : srcInnerPkgOrCls(clsKind, nestLevel))) {
 			return false;
 		}
 
 		for (int ns : dstNs) {
-			target.visitDstName(clsKind, ns, nestLevel <= 0 ? dstOutermostClass(ns) : dstInnerClasses(ns));
+			target.visitDstName(clsKind, ns, nestLevel <= 0 ? dstOutermostPkgOrCls(clsKind, ns) : dstInnerPkgOrCls(clsKind, ns));
 		}
 
 		return target.visitElementContent(clsKind);
@@ -109,39 +121,45 @@ class NameGen {
 		nsNum = 0;
 		lastKind = kind;
 
-		if (kind == clsKind) {
-			classHasDst = false;
+		if (kind.level == 0) {
+			pkgOrClsHasDst = false;
 		}
 
 		return getPrefix(kind) + "_" + getCounter(kind).incrementAndGet();
 	}
 
-	private String srcOutermostClass() {
-		innerClassNestLevel = 0;
-		String ret = src(clsKind);
+	private String srcOutermostPkgOrCls(MappedElementKind kind) {
+		assert kind.level == 0;
 
-		if (clsNum.get() % 2 == 0) {
-			ret = "package_" + clsNum.get() + "/" + ret;
+		innerPkgOrClsNestLevel = 0;
+		String ret = src(kind);
+		int counter = getCounter(kind).get();
+
+		if (kind == clsKind && counter % 2 == 0) {
+			ret = "package_" + counter + "/" + ret;
 		}
 
 		return ret;
 	}
 
-	private String srcInnerClasses(/* >=1 */ int nestLevel) {
-		if (innerClassNestLevel == 0) {
-			clsNum.decrementAndGet(); // we need the previously generated outer class
+	private String srcInnerPkgOrCls(MappedElementKind kind, /* >=1 */ int nestLevel) {
+		assert kind.level == 0;
+
+		if (innerPkgOrClsNestLevel == 0) {
+			getCounter(kind).decrementAndGet(); // we need the previously generated outer package/class
 		}
 
-		boolean hasDst = classHasDst;
-		StringBuilder sb = new StringBuilder(srcOutermostClass());
+		boolean hasDst = pkgOrClsHasDst;
+		char separator = kind == clsKind ? '$' : '/';
+		StringBuilder sb = new StringBuilder(srcOutermostPkgOrCls(kind));
 
 		for (int i = 0; i < nestLevel; i++) {
-			sb.append('$');
-			sb.append(src(clsKind));
+			sb.append(separator);
+			sb.append(src(kind));
 		}
 
-		classHasDst = hasDst;
-		innerClassNestLevel = nestLevel;
+		pkgOrClsHasDst = hasDst;
+		innerPkgOrClsNestLevel = nestLevel;
 		return sb.toString();
 	}
 
@@ -154,51 +172,59 @@ class NameGen {
 			nsNum = ns + 1;
 		}
 
-		if (kind == clsKind) {
-			classHasDst = true;
+		if (kind.level == 0) {
+			pkgOrClsHasDst = true;
 		}
 
 		return getPrefix(kind) + getCounter(kind).get() + "Ns" + ns + "Rename";
 	}
 
-	private String dstOutermostClass(int ns) {
-		String ret = dst(clsKind, ns);
+	private String dstOutermostPkgOrCls(MappedElementKind kind, int ns) {
+		assert kind.level == 0;
 
-		if (clsNum.get() % 3 == 0) {
-			int num = clsNum.get() % 6 == 0 && innerClassNestLevel == 0
-					? clsNum.get() + 1
-					: clsNum.get();
-			ret = "package_" + num + "/" + ret;
+		String ret = dst(kind, ns);
+		AtomicInteger counter = getCounter(kind);
+
+		if (counter.get() % 3 == 0) {
+			int num = counter.get() % 6 == 0
+					? counter.get() + 1
+					: counter.get();
+			String pkgName = kind == pkgKind ? "filler_" : "package_";
+			ret = pkgName + num + "/" + ret;
 		}
 
 		return ret;
 	}
 
-	private String dstInnerClasses(int ns) {
-		boolean hasDst = classHasDst;
-		int nestLevel = innerClassNestLevel;
-		StringBuilder sb = new StringBuilder(dst(clsKind, ns));
+	private String dstInnerPkgOrCls(MappedElementKind kind, int ns) {
+		assert kind.level == 0;
+
+		boolean hasDst = pkgOrClsHasDst;
+		int nestLevel = innerPkgOrClsNestLevel;
+		char separator = kind == clsKind ? '$' : '/';
+		AtomicInteger counter = getCounter(kind);
+		StringBuilder sb = new StringBuilder(dst(kind, ns));
 
 		for (int i = nestLevel - 1; i >= 0; i--) {
-			sb.insert(0, '$');
-			clsNum.decrementAndGet();
+			sb.insert(0, separator);
+			counter.decrementAndGet();
 
 			if (!hasDst) {
-				clsNum.decrementAndGet();
+				counter.decrementAndGet();
 			}
 
 			sb.insert(0, hasDst
 					? i == 0
-							? dstOutermostClass(ns)
-							: dst(clsKind, ns)
+							? dstOutermostPkgOrCls(kind, ns)
+							: dst(kind, ns)
 					: i == 0
-							? srcOutermostClass()
-							: src(clsKind));
+							? srcOutermostPkgOrCls(kind)
+							: src(kind));
 		}
 
-		classHasDst = hasDst;
-		innerClassNestLevel = nestLevel;
-		clsNum.addAndGet(nestLevel);
+		pkgOrClsHasDst = hasDst;
+		innerPkgOrClsNestLevel = nestLevel;
+		counter.addAndGet(nestLevel);
 		return sb.toString();
 	}
 
@@ -215,6 +241,8 @@ class NameGen {
 
 	private AtomicInteger getCounter(MappedElementKind kind) {
 		switch (kind) {
+		case PACKAGE:
+			return pkgNum;
 		case CLASS:
 			return clsNum;
 		case FIELD:
@@ -232,6 +260,8 @@ class NameGen {
 
 	private String getPrefix(MappedElementKind kind) {
 		switch (kind) {
+		case PACKAGE:
+			return pkgPrefix;
 		case CLASS:
 			return clsPrefix;
 		case FIELD:
@@ -247,6 +277,7 @@ class NameGen {
 		}
 	}
 
+	private static final String pkgPrefix = "package";
 	private static final String clsPrefix = "class";
 	private static final String fldPrefix = "field";
 	private static final String mthPrefix = "method";
@@ -255,11 +286,13 @@ class NameGen {
 	private static final String comment = "This is a comment";
 	private static final List<String> fldDescs = Collections.unmodifiableList(Arrays.asList("I", "Lcls;", "Lpkg/cls;", "[I", null));
 	private static final List<String> mthDescs = Collections.unmodifiableList(Arrays.asList("()I", "(I)V", "(Lcls;)Lcls;", "(ILcls;)Lpkg/cls;", "(Lcls;[I)[[B", null));
+	private static final MappedElementKind pkgKind = MappedElementKind.PACKAGE;
 	private static final MappedElementKind clsKind = MappedElementKind.CLASS;
 	private static final MappedElementKind fldKind = MappedElementKind.FIELD;
 	private static final MappedElementKind mthKind = MappedElementKind.METHOD;
 	private static final MappedElementKind argKind = MappedElementKind.METHOD_ARG;
 	private static final MappedElementKind varKind = MappedElementKind.METHOD_VAR;
+	private final AtomicInteger pkgNum = new AtomicInteger();
 	private final AtomicInteger clsNum = new AtomicInteger();
 	private final AtomicInteger fldNum = new AtomicInteger();
 	private final AtomicInteger mthNum = new AtomicInteger();
@@ -268,6 +301,6 @@ class NameGen {
 	private int nsNum;
 	private int counter;
 	private MappedElementKind lastKind;
-	private boolean classHasDst;
-	private int innerClassNestLevel;
+	private boolean pkgOrClsHasDst;
+	private int innerPkgOrClsNestLevel;
 }

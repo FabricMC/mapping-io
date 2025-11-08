@@ -92,6 +92,11 @@ public final class Tiny1FileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		return false; // not supported, skip
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		classSrcName = srcName;
 

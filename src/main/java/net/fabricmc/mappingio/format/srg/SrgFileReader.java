@@ -76,7 +76,23 @@ public final class SrgFileReader {
 				do {
 					boolean isMethod;
 
-					if (reader.nextCol("CL:")) { // class: CL: <src> <dst>
+					if (reader.nextCol("PK:")) { // package: PK: <src>/ <dst>/
+						String srcName = reader.nextCol();
+						if (srcName == null || srcName.isEmpty()) throw new IOException("missing package-name-a in line "+reader.getLineNumber());
+
+						if (classContentVisitPending) {
+							visitor.visitElementContent(MappedElementKind.CLASS);
+							classContentVisitPending = false;
+						}
+
+						if (visitor.visitPackage(srcName.substring(0, srcName.length() - 1))) {
+							String dstName = reader.nextCol();
+							if (dstName == null || dstName.isEmpty()) throw new IOException("missing package-name-b in line "+reader.getLineNumber());
+
+							visitor.visitDstName(MappedElementKind.PACKAGE, 0, dstName.substring(0, dstName.length() - 1));
+							visitor.visitElementContent(MappedElementKind.PACKAGE);
+						}
+					} else if (reader.nextCol("CL:")) { // class: CL: <src> <dst>
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 

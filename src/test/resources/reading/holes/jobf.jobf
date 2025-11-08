@@ -1,3 +1,7 @@
+p package_1 = package1Ns0Rename
+p package_2 = package2Ns0Rename
+p package_8.package_9 = package8Ns0Rename.package9Ns0Rename
+p package_10.package_11 = package10Ns0Rename.package11Ns0Rename
 c class_9$class_10 = class_9$class10Ns0Rename
 c class_15$class_16 = class_15$class16Ns0Rename
 c package_20.class_20$class_21$class_22 = class_20$class_21$class22Ns0Rename

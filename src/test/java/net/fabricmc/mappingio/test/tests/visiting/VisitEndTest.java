@@ -131,6 +131,13 @@ public class VisitEndTest {
 		}
 
 		@Override
+		public boolean visitPackage(String srcName) throws IOException {
+			check();
+			tree.visitPackage(srcName);
+			return true;
+		}
+
+		@Override
 		public boolean visitClass(String srcName) throws IOException {
 			check();
 			tree.visitClass(srcName);

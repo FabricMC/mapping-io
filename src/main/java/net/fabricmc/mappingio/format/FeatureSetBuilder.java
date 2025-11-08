@@ -28,11 +28,13 @@ import net.fabricmc.mappingio.format.FeatureSet.LocalSupport;
 import net.fabricmc.mappingio.format.FeatureSet.MemberSupport;
 import net.fabricmc.mappingio.format.FeatureSet.MetadataSupport;
 import net.fabricmc.mappingio.format.FeatureSet.NameSupport;
+import net.fabricmc.mappingio.format.FeatureSet.PackageSupport;
 import net.fabricmc.mappingio.format.FeatureSetImpl.ClassSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.DescSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.LocalSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.MemberSupportImpl;
 import net.fabricmc.mappingio.format.FeatureSetImpl.NameSupportImpl;
+import net.fabricmc.mappingio.format.FeatureSetImpl.PackageSupportImpl;
 
 /**
  * <b>Experimental feature</b>, may be removed or changed without further notice.
@@ -48,7 +50,7 @@ public class FeatureSetBuilder {
 				featureSet.hasNamespaces(),
 				featureSet.fileMetadata(),
 				featureSet.elementMetadata(),
-				new NameFeatureBuilder(featureSet.packages()),
+				new PackageSupportBuilder(featureSet.packages()),
 				new ClassSupportBuilder(featureSet.classes()),
 				new MemberSupportBuilder(featureSet.fields()),
 				new MemberSupportBuilder(featureSet.methods()),
@@ -63,7 +65,7 @@ public class FeatureSetBuilder {
 		this(initWithFullSupport,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
 				initWithFullSupport ? MetadataSupport.ARBITRARY : MetadataSupport.NONE,
-				new NameFeatureBuilder(initWithFullSupport),
+				new PackageSupportBuilder(initWithFullSupport),
 				new ClassSupportBuilder(initWithFullSupport),
 				new MemberSupportBuilder(initWithFullSupport),
 				new MemberSupportBuilder(initWithFullSupport),
@@ -73,7 +75,7 @@ public class FeatureSetBuilder {
 				initWithFullSupport);
 	}
 
-	FeatureSetBuilder(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, NameFeatureBuilder packages, ClassSupportBuilder classes, MemberSupportBuilder fields, MemberSupportBuilder methods, LocalSupportBuilder args, LocalSupportBuilder vars, ElementCommentSupport elementComments, boolean hasFileComments) {
+	FeatureSetBuilder(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, PackageSupportBuilder packages, ClassSupportBuilder classes, MemberSupportBuilder fields, MemberSupportBuilder methods, LocalSupportBuilder args, LocalSupportBuilder vars, ElementCommentSupport elementComments, boolean hasFileComments) {
 		this.hasNamespaces = hasNamespaces;
 		this.fileMetadata = fileMetadata;
 		this.elementMetadata = elementMetadata;
@@ -102,7 +104,7 @@ public class FeatureSetBuilder {
 		return this;
 	}
 
-	public FeatureSetBuilder withPackages(Consumer<NameFeatureBuilder> featureApplier) {
+	public FeatureSetBuilder withPackages(Consumer<PackageSupportBuilder> featureApplier) {
 		featureApplier.accept(packages);
 		return this;
 	}
@@ -160,7 +162,7 @@ public class FeatureSetBuilder {
 	private boolean hasNamespaces;
 	private MetadataSupport fileMetadata;
 	private MetadataSupport elementMetadata;
-	private NameFeatureBuilder packages;
+	private PackageSupportBuilder packages;
 	private ClassSupportBuilder classes;
 	private MemberSupportBuilder fields;
 	private MemberSupportBuilder methods;
@@ -168,6 +170,47 @@ public class FeatureSetBuilder {
 	private LocalSupportBuilder vars;
 	private ElementCommentSupport elementComments;
 	private boolean hasFileComments;
+
+	public static class PackageSupportBuilder {
+		PackageSupportBuilder() {
+			this(false);
+		}
+
+		PackageSupportBuilder(boolean initWithFullSupport) {
+			this(new NameFeatureBuilder(initWithFullSupport), initWithFullSupport);
+		}
+
+		PackageSupportBuilder(PackageSupport classFeature) {
+			this(new NameFeatureBuilder(classFeature), classFeature.hasStructureModification());
+		}
+
+		private PackageSupportBuilder(NameFeatureBuilder names, boolean hasStructureModification) {
+			this.names = names;
+			this.hasStructureModification = hasStructureModification;
+		}
+
+		public PackageSupportBuilder withSrcNames(FeaturePresence featurePresence) {
+			names.withSrcNames(featurePresence);
+			return this;
+		}
+
+		public PackageSupportBuilder withDstNames(FeaturePresence featurePresence) {
+			names.withDstNames(featurePresence);
+			return this;
+		}
+
+		public PackageSupportBuilder withStructureModification(boolean value) {
+			hasStructureModification = value;
+			return this;
+		}
+
+		public PackageSupport build() {
+			return new PackageSupportImpl(names.build(), hasStructureModification);
+		}
+
+		private NameFeatureBuilder names;
+		private boolean hasStructureModification;
+	}
 
 	public static class ClassSupportBuilder {
 		ClassSupportBuilder() {

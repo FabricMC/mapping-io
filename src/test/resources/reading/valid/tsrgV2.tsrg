@@ -1,4 +1,6 @@
 tsrg2 source target target2
+package_1/ package1Ns0Rename/ package1Ns1Rename/
+package_1/package_2/ package1Ns0Rename/package2Ns0Rename/ package1Ns1Rename/package2Ns1Rename/
 class_1 class1Ns0Rename class1Ns1Rename
 	field_1 I field1Ns0Rename field1Ns1Rename
 	method_1 ()I method1Ns0Rename method1Ns1Rename

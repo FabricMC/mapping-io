@@ -70,6 +70,11 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		return next.visitPackage(srcName);
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		return next.visitClass(srcName);
 	}

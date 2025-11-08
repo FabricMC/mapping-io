@@ -53,6 +53,7 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 		visitedMetadata = false;
 		visitedContent = false;
 		shouldVisitContentElements = false;
+		visitedPackage = false;
 		visitedClass = false;
 		visitedField = false;
 		visitedMethod = false;
@@ -111,6 +112,7 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 		assertShouldVisitHeaderElements();
 
 		visitedMetadata = true;
+		visitedPackage = false;
 		visitedClass = false;
 		visitedField = false;
 		visitedMethod = false;
@@ -134,6 +136,30 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		MappedElementKind elementKind = MappedElementKind.PACKAGE;
+		SrcInfo srcInfo = new SrcInfo().srcName(srcName);
+
+		assertContentVisited();
+		assertShouldVisitContentElements();
+		assertLastElementContentVisited();
+		resetLastSrcInfoDownTo(elementKind.level);
+		assertNewSrcInfo(elementKind, srcInfo);
+
+		visitedPackage = true;
+		visitedClass = false;
+		visitedField = false;
+		visitedMethod = false;
+		visitedMethodArg = false;
+		visitedMethodVar = false;
+		lastVisitedElement = elementKind;
+		lastSrcInfo.put(elementKind, srcInfo);
+		resetVisitedElementContentDownTo(elementKind.level);
+
+		return visitedLastElement = super.visitPackage(srcName);
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		MappedElementKind elementKind = MappedElementKind.CLASS;
 		SrcInfo srcInfo = new SrcInfo().srcName(srcName);
@@ -144,6 +170,7 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
 
+		visitedPackage = false;
 		visitedClass = true;
 		visitedField = false;
 		visitedMethod = false;
@@ -430,6 +457,7 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 	private boolean visitedMetadata;
 	private boolean visitedContent;
 	private boolean shouldVisitContentElements;
+	private boolean visitedPackage;
 	private boolean visitedClass;
 	private boolean visitedField;
 	private boolean visitedMethod;

@@ -123,9 +123,19 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		this.srcName = srcName;
+		this.dstName = null;
+		this.isPackage = true;
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		this.srcName = srcName;
 		this.dstName = null;
+		this.isPackage = false;
 
 		return true;
 	}
@@ -166,7 +176,11 @@ public final class MigrationMapFileWriter implements MappingWriter {
 			xmlWriter.writeEmptyElement("entry");
 			xmlWriter.writeAttribute("oldName", srcName.replace('/', '.'));
 			xmlWriter.writeAttribute("newName", dstName.replace('/', '.'));
-			xmlWriter.writeAttribute("type", "class");
+			xmlWriter.writeAttribute("type", isPackage ? "package" : "class");
+
+			if (isPackage) {
+				xmlWriter.writeAttribute("recursive", "false"); // TODO: true or false?
+			}
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
@@ -185,6 +199,7 @@ public final class MigrationMapFileWriter implements MappingWriter {
 	private XMLStreamWriter xmlWriter;
 	private boolean wroteName;
 	private boolean wroteOrder;
+	private boolean isPackage;
 	private String srcName;
 	private String dstName;
 }

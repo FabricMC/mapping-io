@@ -1,3 +1,7 @@
+PK: pkg0NsAName/ pkg0NsBName/
+PK: pkg1NsAName/ pkg1NsBName/
+PK: pkg3NsAName/ pkg3NsAName/
+PK: pkg4NsAName/ pkg4NsBName/
 CL: cls0NsAName cls0NsBName
 CL: cls1NsAName cls1NsBName
 CL: cls3NsAName cls3NsAName

@@ -1,3 +1,10 @@
+PK: package_1/ package1Ns0Rename/
+PK: package_2/ package2Ns0Rename/
+PK: package_3/ filler_3/package3Ns0Rename/
+PK: package_6/package_7/ filler_7/package6Ns0Rename/package7Ns0Rename/
+PK: package_8/package_9/ package8Ns0Rename/package9Ns0Rename/
+PK: package_10/package_11/ package10Ns0Rename/package11Ns0Rename/
+PK: package_12/package_13/ filler_13/package12Ns0Rename/package13Ns0Rename/
 CL: class_3 package_3/class3Ns0Rename
 CL: package_6/class_6 package_7/class6Ns0Rename
 CL: class_9$class_10 class_9$class10Ns0Rename

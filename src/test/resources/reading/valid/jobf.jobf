@@ -1,3 +1,5 @@
+p package_1 = package1Ns0Rename
+p package_1.package_2 = package1Ns0Rename.package2Ns0Rename
 c class_1 = class1Ns0Rename
 f class_1.field_1:I = field1Ns0Rename
 m class_1.method_1()I = method1Ns0Rename

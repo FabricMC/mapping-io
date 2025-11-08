@@ -20,6 +20,7 @@ package net.fabricmc.mappingio;
  * A kind of element that can be mapped.
  */
 public enum MappedElementKind {
+	PACKAGE(0),
 	CLASS(0),
 	FIELD(1),
 	METHOD(1),

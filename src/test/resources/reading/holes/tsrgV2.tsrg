@@ -1,4 +1,14 @@
 tsrg2 source target target2
+package_1/ package1Ns0Rename/ package_1/
+package_2/ package2Ns0Rename/ package_2/
+package_3/ filler_3/package3Ns0Rename/ package_3/
+package_4/ package_4/ package4Ns1Rename/
+package_5/ package_5/ package5Ns1Rename/
+package_6/ package_6/ filler_7/package6Ns1Rename/
+package_6/package_7/ filler_7/package6Ns0Rename/package7Ns0Rename/ package_6/package_7/
+package_8/package_9/ package8Ns0Rename/package9Ns0Rename/ package_8/package_9/
+package_10/package_11/ package10Ns0Rename/package11Ns0Rename/ package_10/package_11/
+package_12/package_13/ filler_13/package12Ns0Rename/package13Ns0Rename/ package_12/package_13/
 class_3 package_3/class3Ns0Rename class_3
 package_4/class_4 package_4/class_4 class4Ns1Rename
 package_6/class_6 package_7/class6Ns0Rename package_6/class_6

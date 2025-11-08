@@ -54,6 +54,14 @@ public final class SrgFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		packageSrcName = srcName + "/";
+		packageDstName = null;
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		classSrcName = srcName;
 		classDstName = null;
@@ -104,6 +112,9 @@ public final class SrgFileWriter implements MappingWriter {
 		if (namespace != 0) return;
 
 		switch (targetKind) {
+		case PACKAGE:
+			packageDstName = name == null ? null : name + "/";
+			break;
 		case CLASS:
 			classDstName = name;
 			break;
@@ -125,9 +136,18 @@ public final class SrgFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		boolean isPackage = false;
+		boolean isClass = false;
+
 		switch (targetKind) {
+		case PACKAGE:
+			if (packageDstName == null) return false;
+			isPackage = true;
+			write("PK: ");
+			break;
 		case CLASS:
 			if (classDstName == null) return true;
+			isClass = true;
 			write("CL: ");
 			break;
 		case FIELD:
@@ -142,9 +162,9 @@ public final class SrgFileWriter implements MappingWriter {
 			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
 
-		write(classSrcName);
+		write(isPackage ? packageSrcName : classSrcName);
 
-		if (targetKind != MappedElementKind.CLASS) {
+		if (!isPackage && !isClass) {
 			write("/");
 			write(memberSrcName);
 
@@ -155,10 +175,11 @@ public final class SrgFileWriter implements MappingWriter {
 		}
 
 		write(" ");
-		if (classDstName == null) classDstName = classSrcName;
-		write(classDstName);
+		write(isPackage
+				? packageDstName != null ? packageDstName : packageSrcName
+				: classDstName != null ? classDstName : classSrcName);
 
-		if (targetKind != MappedElementKind.CLASS) {
+		if (!isPackage && !isClass) {
 			write("/");
 			write(memberDstName);
 
@@ -170,7 +191,7 @@ public final class SrgFileWriter implements MappingWriter {
 
 		writeLn();
 
-		return targetKind == MappedElementKind.CLASS; // only members are supported, skip anything but class contents
+		return targetKind == MappedElementKind.CLASS; // skip anything but members
 	}
 
 	@Override
@@ -197,9 +218,11 @@ public final class SrgFileWriter implements MappingWriter {
 
 	private final Writer writer;
 	private final boolean xsrg;
+	private String packageSrcName;
 	private String classSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;
+	private String packageDstName;
 	private String classDstName;
 	private String memberDstName;
 	private String memberDstDesc;

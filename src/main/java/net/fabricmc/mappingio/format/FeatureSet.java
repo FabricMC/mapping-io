@@ -20,7 +20,7 @@ public interface FeatureSet {
 	boolean hasNamespaces();
 	MetadataSupport fileMetadata();
 	MetadataSupport elementMetadata();
-	NameSupport packages();
+	PackageSupport packages();
 	ClassSupport classes();
 	MemberSupport fields();
 	MemberSupport methods();
@@ -30,13 +30,11 @@ public interface FeatureSet {
 	boolean hasFileComments();
 
 	default boolean supportsPackages() {
-		return packages().srcNames() != FeaturePresence.ABSENT
-				|| packages().dstNames() != FeaturePresence.ABSENT;
+		return packages().srcNames() != FeaturePresence.ABSENT;
 	}
 
 	default boolean supportsClasses() {
-		return classes().srcNames() != FeaturePresence.ABSENT
-				|| classes().dstNames() != FeaturePresence.ABSENT;
+		return classes().srcNames() != FeaturePresence.ABSENT;
 	}
 
 	default boolean supportsFields() {
@@ -80,6 +78,10 @@ public interface FeatureSet {
 	interface DescSupport {
 		FeaturePresence srcDescs();
 		FeaturePresence dstDescs();
+	}
+
+	interface PackageSupport extends NameSupport {
+		boolean hasStructureModification();
 	}
 
 	interface ClassSupport extends NameSupport {

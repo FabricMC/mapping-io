@@ -53,6 +53,13 @@ public final class CsrgFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		packageSrcName = srcName + "/";
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		classSrcName = srcName;
 
@@ -92,15 +99,22 @@ public final class CsrgFileWriter implements MappingWriter {
 	public void visitDstName(MappedElementKind targetKind, int namespace, String name) {
 		if (namespace != 0) return;
 
+		if (targetKind == MappedElementKind.PACKAGE && name != null) {
+			name += "/";
+		}
+
 		dstName = name;
 	}
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 		if (dstName != null) {
-			write(classSrcName);
+			boolean isPackage = targetKind == MappedElementKind.PACKAGE;
+			boolean isClass = targetKind == MappedElementKind.CLASS;
 
-			if (targetKind != MappedElementKind.CLASS) {
+			write(isPackage ? packageSrcName : classSrcName);
+
+			if (!isPackage && !isClass) {
 				writeSpace();
 				write(memberSrcName);
 
@@ -114,8 +128,8 @@ public final class CsrgFileWriter implements MappingWriter {
 
 			writeSpace();
 			write(dstName);
-			writeLn();
 
+			writeLn();
 			dstName = null;
 		}
 
@@ -142,6 +156,7 @@ public final class CsrgFileWriter implements MappingWriter {
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
+	private String packageSrcName;
 	private String classSrcName;
 	private String memberSrcName;
 	private String methodSrcDesc;

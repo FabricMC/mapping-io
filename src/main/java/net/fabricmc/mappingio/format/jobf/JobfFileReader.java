@@ -73,7 +73,21 @@ public class JobfFileReader {
 				do {
 					boolean isField;
 
-					if (reader.nextCol("c")) { // class: c <pkg>.<cls-name-a> = <cls-name-b>
+					if (reader.nextCol("p")) { // package: p <name-a> = <name-b>
+						String srcName = reader.nextCol();
+						if (srcName == null || srcName.isEmpty()) throw new IOException("missing package-name-a in line "+reader.getLineNumber());
+						srcName = srcName.replace('.', '/');
+
+						if (visitor.visitPackage(srcName)) {
+							readSeparator(reader);
+
+							String dstName = reader.nextCol();
+							if (dstName == null || dstName.isEmpty()) throw new IOException("missing package-name-b in line "+reader.getLineNumber());
+
+							visitor.visitDstName(MappedElementKind.PACKAGE, 0, dstName.replace('.', '/'));
+							visitor.visitElementContent(MappedElementKind.PACKAGE);
+						}
+					} else if (reader.nextCol("c")) { // class: c <pkg>.<cls-name-a> = <cls-name-b>
 						String srcName = reader.nextCol();
 						if (srcName == null || srcName.isEmpty()) throw new IOException("missing class-name-a in line "+reader.getLineNumber());
 						srcName = srcName.replace('.', '/');
@@ -128,8 +142,6 @@ public class JobfFileReader {
 								visitor.visitElementContent(kind);
 							}
 						}
-					} else if (reader.nextCol("p")) { // package: p <name-a> = <name-b>
-						// TODO
 					}
 				} while (reader.nextLine(0));
 			}

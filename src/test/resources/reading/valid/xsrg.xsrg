@@ -1,3 +1,5 @@
+PK: package_1/ package1Ns0Rename/
+PK: package_1/package_2/ package1Ns0Rename/package2Ns0Rename/
 CL: class_1 class1Ns0Rename
 FD: class_1/field_1 I class1Ns0Rename/field1Ns0Rename I
 MD: class_1/method_1 ()I class1Ns0Rename/method1Ns0Rename ()I

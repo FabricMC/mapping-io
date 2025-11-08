@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -28,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>The visitation order is as follows (omitting visit prefixes for brevity, lowercase for cross-references):
  * <ul><li>overall: header -> content -> End -> overall
  * <li>header: Header -> Namespaces [-> Metadata]*
- * <li>content: Content [-> class|Metadata]*
+ * <li>content: Content [-> package|class|Metadata]*
+ * <li>package: Package [-> DstName]* -> ElementContent [-> Comment]
  * <li>class: Class [-> DstName]* -> ElementContent [-> field|method|Comment]*
  * <li>field: Field [-> DstName|DstDesc]* -> ElementContent [-> Comment]
  * <li>method: Method [-> DstName|DstDesc]* -> ElementContent [-> arg|var|Comment]*
@@ -83,6 +85,21 @@ public interface MappingVisitor {
 	 */
 	default boolean visitContent() throws IOException {
 		return true;
+	}
+
+	/**
+	 * Visit a package.
+	 *
+	 * <p><b>Experimental feature</b>, may be changed without further notice.
+	 *
+	 * @param srcName The package path, with slashes instead of dots, and no trailing slash.
+	 * An empty string represents the default package.
+	 * @return Whether the package's content should be visited too.
+	 */
+	// TODO: Un-"default" in the next breaking release
+	@ApiStatus.Experimental
+	default boolean visitPackage(String srcName) throws IOException {
+		return false;
 	}
 
 	/**

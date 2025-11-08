@@ -52,6 +52,14 @@ public final class JobfFileWriter implements MappingWriter {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		packageSrcName = srcName;
+		dstName = null;
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		classSrcName = srcName;
 		dstName = null;
@@ -104,12 +112,23 @@ public final class JobfFileWriter implements MappingWriter {
 
 	@Override
 	public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
+		boolean isPackage = targetKind == MappedElementKind.PACKAGE;
 		boolean isClass = targetKind == MappedElementKind.CLASS;
 		boolean isField = false;
 
-		if (dstName == null) return isClass;
+		if (dstName == null) {
+			return isPackage || isClass;
+		}
 
-		if ((isClass)) {
+		if (isPackage) {
+			if (countOccurrences(packageSrcName, '/') != countOccurrences(dstName, '/')) {
+				return false; // JOBF doesn't allow changes to the package structure
+			}
+
+			packageSrcName = packageSrcName.replace('/', '.');
+			dstName = dstName.replace('/', '.');
+			write("p ");
+		} else if (isClass) {
 			int srcNameLastSep = classSrcName.lastIndexOf('/');
 			int dstNameLastSep = dstName.lastIndexOf('/');
 			String srcPkg = classSrcName.substring(0, srcNameLastSep + 1);
@@ -127,9 +146,9 @@ public final class JobfFileWriter implements MappingWriter {
 			throw new IllegalStateException("unexpected invocation for "+targetKind);
 		}
 
-		write(classSrcName);
+		write(isPackage ? packageSrcName : classSrcName);
 
-		if (!isClass) {
+		if (!isPackage && !isClass) {
 			write(".");
 			write(memberSrcName);
 
@@ -158,9 +177,20 @@ public final class JobfFileWriter implements MappingWriter {
 		writer.write('\n');
 	}
 
+	private int countOccurrences(String str, char c) {
+		int count = 0;
+
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == c) count++;
+		}
+
+		return count;
+	}
+
 	private static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
 
 	private final Writer writer;
+	private String packageSrcName;
 	private String classSrcName;
 	private String memberSrcName;
 	private String memberSrcDesc;

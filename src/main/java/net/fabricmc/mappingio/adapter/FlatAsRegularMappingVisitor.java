@@ -84,6 +84,15 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		this.srcPkgName = srcName;
+
+		Arrays.fill(dstNames, null);
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) {
 		this.srcClsName = srcName;
 
@@ -161,6 +170,9 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		boolean relay;
 
 		switch (targetKind) {
+		case PACKAGE:
+			relay = next.visitPackage(srcPkgName, dstNames);
+			break;
 		case CLASS:
 			relay = next.visitClass(srcClsName, dstNames);
 			if (relay && dstClassNames != null) System.arraycopy(dstNames, 0, dstClassNames, 0, dstNames.length);
@@ -193,6 +205,9 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		switch (targetKind) {
+		case PACKAGE:
+			next.visitPackageComment(srcPkgName, dstNames, comment);
+			break;
 		case CLASS:
 			next.visitClassComment(srcClsName, dstClassNames, comment);
 			break;
@@ -217,6 +232,7 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 
 	private final FlatMappingVisitor next;
 
+	private String srcPkgName;
 	private String srcClsName;
 	private String srcMemberName;
 	private String srcMemberDesc;

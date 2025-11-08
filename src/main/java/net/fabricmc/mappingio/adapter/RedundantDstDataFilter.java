@@ -45,6 +45,12 @@ public class RedundantDstDataFilter extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		this.srcName = srcName;
+		return super.visitPackage(srcName);
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		this.srcName = srcName;
 		return super.visitClass(srcName);

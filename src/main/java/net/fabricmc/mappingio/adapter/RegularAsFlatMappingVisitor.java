@@ -74,7 +74,38 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	}
 
 	@Override
-	public boolean visitClass(String srcName, String[] dstNames) throws IOException {
+	public boolean visitPackage(String srcName, @Nullable String[] dstNames) throws IOException {
+		return visitPackage(srcName, dstNames, null);
+	}
+
+	@Override
+	public boolean visitPackage(String srcName, String dstName) throws IOException {
+		return visitPackage(srcName, null, dstName);
+	}
+
+	private boolean visitPackage(String srcName, @Nullable String[] dstNames, @Nullable String dstName) throws IOException {
+		if (!srcName.equals(lastPackage)) {
+			lastPackage = srcName;
+			relayLastPackage = next.visitPackage(srcName) && visitDstNames(MappedElementKind.PACKAGE, dstNames, dstName);
+		}
+
+		return relayLastPackage;
+	}
+
+	@Override
+	public void visitPackageComment(String srcName, @Nullable String[] dstNames, String comment) throws IOException {
+		if (!visitPackage(srcName, dstNames, null)) return;
+		next.visitComment(MappedElementKind.PACKAGE, comment);
+	}
+
+	@Override
+	public void visitPackageComment(String srcName, @Nullable String dstName, String comment) throws IOException {
+		if (!visitPackage(srcName, null, dstName)) return;
+		next.visitComment(MappedElementKind.PACKAGE, comment);
+	}
+
+	@Override
+	public boolean visitClass(String srcName, @Nullable String[] dstNames) throws IOException {
 		return visitClass(srcName, dstNames, null);
 	}
 
@@ -367,6 +398,8 @@ public final class RegularAsFlatMappingVisitor implements FlatMappingVisitor {
 	private boolean relayDstFieldDescs;
 	private boolean relayDstMethodDescs;
 
+	private String lastPackage;
+	private boolean relayLastPackage;
 	private String lastClass;
 	private boolean relayLastClass;
 	private String lastMemberName, lastMemberDesc;

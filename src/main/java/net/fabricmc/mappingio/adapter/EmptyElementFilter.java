@@ -63,7 +63,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		dstNsCount = -1;
 		memberKind = null;
 		localKind = null;
-		classSrcName = null;
+		packageOrClassSrcName = null;
 		memberSrcName = null;
 		memberSrcDesc = null;
 		localSrcName = null;
@@ -72,20 +72,20 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		varLvtRowIndex = -1;
 		varStartOpIdx = -1;
 		varEndOpIdx = -1;
-		classDstNames = null;
+		packageOrClassDstNames = null;
 		memberDstNames = null;
 		memberDstDescs = null;
 		localDstNames = null;
-		classComment = null;
+		packageOrClassComment = null;
 		memberComment = null;
 		localComment = null;
-		forwardClass = false;
+		forwardPackageOrClass = false;
 		forwardMember = false;
 		forwardLocal = false;
-		forwardedClass = false;
+		forwardedPackageOrClass = false;
 		forwardedMember = false;
 		forwardedLocal = false;
-		visitClass = true;
+		visitPackageOrClass = true;
 		visitMember = true;
 		visitLocal = true;
 	}
@@ -109,7 +109,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		}
 
 		dstNsCount = dstNamespaces.size();
-		classDstNames = new String[dstNsCount];
+		packageOrClassDstNames = new String[dstNsCount];
 		memberDstNames = new String[dstNsCount];
 		memberDstDescs = new String[dstNsCount];
 		localDstNames = new String[dstNsCount];
@@ -128,15 +128,26 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		packageOrClassKind = MappedElementKind.PACKAGE;
+		return visitPackageOrClass(srcName);
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
-		forwardClass = false;
+		packageOrClassKind = MappedElementKind.CLASS;
+		return visitPackageOrClass(srcName);
+	}
+
+	protected boolean visitPackageOrClass(String srcName) throws IOException {
+		forwardPackageOrClass = false;
 		forwardMember = false;
 		forwardLocal = false;
-		forwardedClass = false;
-		visitClass = true;
-		classSrcName = srcName;
-		Arrays.fill(classDstNames, null);
-		classComment = null;
+		forwardedPackageOrClass = false;
+		visitPackageOrClass = true;
+		packageOrClassSrcName = srcName;
+		Arrays.fill(packageOrClassDstNames, null);
+		packageOrClassComment = null;
 		return true;
 	}
 
@@ -197,19 +208,20 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		boolean forward = name != null && !(treatSrcOnDstAsEmpty && name.equals(getSrcName(targetKind)));
 
 		switch (targetKind) {
+		case PACKAGE:
 		case CLASS:
-			forwardClass |= forward;
-			classDstNames[namespace] = name;
+			forwardPackageOrClass |= forward;
+			packageOrClassDstNames[namespace] = name;
 			break;
 		case FIELD:
 		case METHOD:
-			forwardClass |= forward;
+			forwardPackageOrClass |= forward;
 			forwardMember |= forward;
 			memberDstNames[namespace] = name;
 			break;
 		case METHOD_ARG:
 		case METHOD_VAR:
-			forwardClass |= forward;
+			forwardPackageOrClass |= forward;
 			forwardMember |= forward;
 			forwardLocal |= forward;
 			localDstNames[namespace] = name;
@@ -221,8 +233,9 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 
 	protected String getSrcName(MappedElementKind targetKind) {
 		switch (targetKind) {
+		case PACKAGE:
 		case CLASS:
-			return classSrcName;
+			return packageOrClassSrcName;
 		case FIELD:
 		case METHOD:
 			return memberSrcName;
@@ -239,7 +252,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		assert targetKind == memberKind;
 		boolean forward = desc != null && !(treatSrcOnDstAsEmpty && desc.equals(memberSrcDesc));
 
-		forwardClass |= forward;
+		forwardPackageOrClass |= forward;
 		forwardMember |= forward;
 		memberDstDescs[namespace] = desc;
 	}
@@ -257,19 +270,20 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 		}
 
 		switch (targetKind) {
+		case PACKAGE:
 		case CLASS:
-			forwardClass = true;
-			classComment = comment;
+			forwardPackageOrClass = true;
+			packageOrClassComment = comment;
 			break;
 		case FIELD:
 		case METHOD:
-			forwardClass = true;
+			forwardPackageOrClass = true;
 			forwardMember = true;
 			memberComment = comment;
 			break;
 		case METHOD_ARG:
 		case METHOD_VAR:
-			forwardClass = true;
+			forwardPackageOrClass = true;
 			forwardMember = true;
 			forwardLocal = true;
 			localComment = comment;
@@ -282,24 +296,30 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 	}
 
 	protected void forward(MappedElementKind targetKind) throws IOException {
-		if (forwardClass && !forwardedClass && visitClass) {
-			if (visitClass = super.visitClass(classSrcName)) {
+		if (forwardPackageOrClass && !forwardedPackageOrClass && visitPackageOrClass) {
+			if (packageOrClassKind == MappedElementKind.PACKAGE) {
+				visitPackageOrClass = super.visitPackage(packageOrClassSrcName);
+			} else {
+				visitPackageOrClass = super.visitClass(packageOrClassSrcName);
+			}
+
+			if (visitPackageOrClass) {
 				for (int i = 0; i < dstNsCount; i++) {
-					if (classDstNames[i] != null) {
-						super.visitDstName(MappedElementKind.CLASS, i, classDstNames[i]);
+					if (packageOrClassDstNames[i] != null) {
+						super.visitDstName(packageOrClassKind, i, packageOrClassDstNames[i]);
 					}
 				}
 
-				visitClass = super.visitElementContent(MappedElementKind.CLASS);
-				forwardedClass = true;
+				visitPackageOrClass = super.visitElementContent(packageOrClassKind);
+				forwardedPackageOrClass = true;
 
-				if (visitClass && classComment != null) {
-					super.visitComment(MappedElementKind.CLASS, classComment);
+				if (visitPackageOrClass && packageOrClassComment != null) {
+					super.visitComment(packageOrClassKind, packageOrClassComment);
 				}
 			}
 		}
 
-		if (forwardMember && !forwardedMember && visitClass && visitMember) {
+		if (forwardMember && !forwardedMember && visitPackageOrClass && visitMember) {
 			if (memberKind == MappedElementKind.FIELD) {
 				visitMember = super.visitField(memberSrcName, memberSrcDesc);
 			} else {
@@ -326,7 +346,7 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 			}
 		}
 
-		if (forwardLocal && !forwardedLocal && visitClass && visitMember && visitLocal) {
+		if (forwardLocal && !forwardedLocal && visitPackageOrClass && visitMember && visitLocal) {
 			if (localKind == MappedElementKind.METHOD_ARG) {
 				visitLocal = super.visitMethodArg(argPosition, localLvIndex, localSrcName);
 			} else {
@@ -360,9 +380,10 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 	protected boolean relayHeaderElements;
 	protected boolean relayMetadata;
 	protected int dstNsCount;
+	protected MappedElementKind packageOrClassKind;
 	protected MappedElementKind memberKind;
 	protected MappedElementKind localKind;
-	protected String classSrcName;
+	protected String packageOrClassSrcName;
 	protected String memberSrcName;
 	protected String memberSrcDesc;
 	protected String localSrcName;
@@ -371,20 +392,20 @@ public class EmptyElementFilter extends ForwardingMappingVisitor {
 	protected int varLvtRowIndex;
 	protected int varStartOpIdx;
 	protected int varEndOpIdx;
-	protected String[] classDstNames;
+	protected String[] packageOrClassDstNames;
 	protected String[] memberDstNames;
 	protected String[] memberDstDescs;
 	protected String[] localDstNames;
-	protected String classComment;
+	protected String packageOrClassComment;
 	protected String memberComment;
 	protected String localComment;
-	protected boolean forwardClass;
+	protected boolean forwardPackageOrClass;
 	protected boolean forwardMember;
 	protected boolean forwardLocal;
-	protected boolean forwardedClass;
+	protected boolean forwardedPackageOrClass;
 	protected boolean forwardedMember;
 	protected boolean forwardedLocal;
-	protected boolean visitClass;
+	protected boolean visitPackageOrClass;
 	protected boolean visitMember;
 	protected boolean visitLocal;
 }

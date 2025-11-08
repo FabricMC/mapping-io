@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
@@ -84,6 +85,34 @@ public interface MappingTree extends MappingTreeView {
 	 * @return Whether any entries have been removed.
 	 */
 	boolean removeMetadata(String key);
+
+	@Override
+	Collection<? extends PackageMapping> getPackages();
+	@Override
+	@Nullable
+	PackageMapping getPackage(String srcName);
+
+	@Override
+	@Nullable
+	default PackageMapping getPackage(String name, int namespace) {
+		return (PackageMapping) MappingTreeView.super.getPackage(name, namespace);
+	}
+
+	/**
+	 * Merges a package mapping into the tree.
+	 *
+	 * @return The {@link PackageMapping} instance present in the tree after the merge has occurred.
+	 * May or may not be the passed instance.
+	 */
+	PackageMapping addPackage(PackageMapping pkg);
+
+	/**
+	 * Removes a package mapping from the tree.
+	 *
+	 * @return The removed package mapping, if any.
+	 */
+	@Nullable
+	PackageMapping removePackage(String srcName);
 
 	@Override
 	Collection<? extends ClassMapping> getClasses();
@@ -227,6 +256,12 @@ public interface MappingTree extends MappingTreeView {
 		void setDstName(String name, int namespace);
 		void setComment(String comment);
 	}
+
+	/**
+	 * <b>Experimental feature</b>, may be changed without further notice.
+	 */
+	@ApiStatus.Experimental
+	interface PackageMapping extends ElementMapping, PackageMappingView { }
 
 	interface ClassMapping extends ElementMapping, ClassMappingView {
 		@Override

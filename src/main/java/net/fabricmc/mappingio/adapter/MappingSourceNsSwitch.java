@@ -143,6 +143,15 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		if (passThrough) return next.visitPackage(srcName);
+
+		this.srcName = srcName;
+
+		return true;
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		if (passThrough) return next.visitClass(srcName);
 
@@ -256,6 +265,9 @@ public final class MappingSourceNsSwitch extends ForwardingMappingVisitor {
 		boolean relay;
 
 		switch (targetKind) {
+		case PACKAGE:
+			relay = next.visitPackage(dstName);
+			break;
 		case CLASS:
 			relay = next.visitClass(dstName);
 			break;

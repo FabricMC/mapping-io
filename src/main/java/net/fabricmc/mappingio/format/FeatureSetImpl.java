@@ -17,7 +17,7 @@
 package net.fabricmc.mappingio.format;
 
 class FeatureSetImpl implements FeatureSet {
-	FeatureSetImpl(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, NameSupport packages, ClassSupport classes, MemberSupport fields, MemberSupport methods, LocalSupport args, LocalSupport vars, ElementCommentSupport elementComments, boolean hasFileComments) {
+	FeatureSetImpl(boolean hasNamespaces, MetadataSupport fileMetadata, MetadataSupport elementMetadata, PackageSupport packages, ClassSupport classes, MemberSupport fields, MemberSupport methods, LocalSupport args, LocalSupport vars, ElementCommentSupport elementComments, boolean hasFileComments) {
 		this.hasNamespaces = hasNamespaces;
 		this.fileMetadata = fileMetadata;
 		this.elementMetadata = elementMetadata;
@@ -47,7 +47,7 @@ class FeatureSetImpl implements FeatureSet {
 	}
 
 	@Override
-	public NameSupport packages() {
+	public PackageSupport packages() {
 		return packages;
 	}
 
@@ -89,7 +89,7 @@ class FeatureSetImpl implements FeatureSet {
 	private final boolean hasNamespaces;
 	private final MetadataSupport fileMetadata;
 	private final MetadataSupport elementMetadata;
-	private final NameSupport packages;
+	private final PackageSupport packages;
 	private final ClassSupport classes;
 	private final MemberSupport fields;
 	private final MemberSupport methods;
@@ -97,6 +97,20 @@ class FeatureSetImpl implements FeatureSet {
 	private final LocalSupport vars;
 	private final ElementCommentSupport elementComments;
 	private final boolean hasFileComments;
+
+	static class PackageSupportImpl extends NameSupportImpl implements PackageSupport {
+		PackageSupportImpl(NameSupport names, boolean hasStructureModification) {
+			super(names.srcNames(), names.dstNames());
+			this.hasStructureModification = hasStructureModification;
+		}
+
+		@Override
+		public boolean hasStructureModification() {
+			return hasStructureModification;
+		}
+
+		private final boolean hasStructureModification;
+	}
 
 	static class ClassSupportImpl extends NameSupportImpl implements ClassSupport {
 		ClassSupportImpl(NameSupport names, boolean hasRepackaging) {
