@@ -64,11 +64,10 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		Set<MappingFlag> flags = next.getFlags();
 
 		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
-			dstPackageNames = new String[count];
 			dstClassNames = new String[count];
 			dstMemberNames = new String[count];
 		} else {
-			dstPackageNames = dstClassNames = dstMemberNames = null;
+			dstClassNames = dstMemberNames = null;
 		}
 
 		dstMemberDescs = flags.contains(MappingFlag.NEEDS_DST_FIELD_DESC) || flags.contains(MappingFlag.NEEDS_DST_METHOD_DESC) ? new String[count] : null;
@@ -89,7 +88,6 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		this.srcPkgName = srcName;
 
 		Arrays.fill(dstNames, null);
-		if (dstPackageNames != null) Arrays.fill(dstPackageNames, null);
 
 		return true;
 	}
@@ -174,7 +172,6 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 		switch (targetKind) {
 		case PACKAGE:
 			relay = next.visitPackage(srcPkgName, dstNames);
-			if (relay && dstPackageNames != null) System.arraycopy(dstNames, 0, dstPackageNames, 0, dstNames.length);
 			break;
 		case CLASS:
 			relay = next.visitClass(srcClsName, dstNames);
@@ -242,7 +239,6 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 	private String srcMemberSubName;
 	private int argIdx, lvIndex, startOpIdx, endOpIdx;
 	private String[] dstNames;
-	private String[] dstPackageNames;
 	private String[] dstClassNames;
 	private String[] dstMemberNames;
 	private String[] dstMemberDescs;
