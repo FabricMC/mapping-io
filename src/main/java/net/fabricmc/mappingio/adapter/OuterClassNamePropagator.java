@@ -139,6 +139,13 @@ public class OuterClassNamePropagator extends ForwardingMappingVisitor {
 	}
 
 	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		if (pass < FIST_EMIT_PASS) return false;
+
+		return super.visitPackage(srcName);
+	}
+
+	@Override
 	public boolean visitClass(String srcName) throws IOException {
 		this.srcName = srcName;
 
