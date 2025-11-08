@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
@@ -62,12 +63,20 @@ public interface FlatMappingVisitor {
 		return true;
 	}
 
+	/**
+	 * <b>Experimental feature</b>, may be changed without further notice.
+	 */
 	// TODO: Un-"default" in the next breaking release
+	@ApiStatus.Experimental
 	default boolean visitPackage(String srcName, @Nullable String[] dstNames) throws IOException {
 		return false;
 	}
 
+	/**
+	 * <b>Experimental feature</b>, may be changed without further notice.
+	 */
 	// TODO: Un-"default" in the next breaking release
+	@ApiStatus.Experimental
 	default void visitPackageComment(String srcName, @Nullable String[] dstNames, String comment) throws IOException { }
 
 	boolean visitClass(String srcName, @Nullable String[] dstNames) throws IOException;
@@ -157,14 +166,17 @@ public interface FlatMappingVisitor {
 	}
 
 	// convenience / potentially higher efficiency visit methods for only one dst name
+	@ApiStatus.Experimental
 	default boolean visitPackage(String srcName, String dstName) throws IOException {
 		return visitPackage(srcName, toArray(dstName));
 	}
 
+	@ApiStatus.Experimental
 	default void visitPackageComment(String srcName, String comment) throws IOException {
 		visitPackageComment(srcName, (String) null, comment);
 	}
 
+	@ApiStatus.Experimental
 	default void visitPackageComment(String srcName, @Nullable String dstName, String comment) throws IOException {
 		visitPackageComment(srcName, toArray(dstName), comment);
 	}

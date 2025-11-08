@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappingVisitor;
@@ -278,6 +279,10 @@ public interface MappingTreeView {
 		String getComment();
 	}
 
+	/**
+	 * <b>Experimental feature</b>, may be changed without further notice.
+	 */
+	@ApiStatus.Experimental
 	interface PackageMappingView extends ElementMappingView { }
 
 	interface ClassMappingView extends ElementMappingView {
