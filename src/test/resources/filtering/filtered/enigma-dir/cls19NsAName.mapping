@@ -1,0 +1,8 @@
+CLASS cls19NsAName
+	METHOD mth6NsAName mth6NsBName ()I
+	METHOD mth7NsAName mth7NsBName ()I
+	METHOD mth8NsAName ()I
+	METHOD mth9NsAName mth9NsAName ()I
+	METHOD mth10NsAName mth10NsBName ()I
+	METHOD mth15NsAName ()I
+		COMMENT mth15Comment

@@ -129,6 +129,9 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 	}
 
+	/**
+	 * <b>Experimental feature</b>, may be removed or changed without further notice.
+	 */
 	@ApiStatus.Experimental
 	public void setHierarchyInfoProvider(@Nullable HierarchyInfoProvider<?> provider) {
 		hierarchyInfo = provider;

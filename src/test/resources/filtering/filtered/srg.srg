@@ -1,0 +1,16 @@
+PK: pkg0NsAName/ pkg0NsBName/
+PK: pkg1NsAName/ pkg1NsBName/
+PK: pkg3NsAName/ pkg3NsAName/
+PK: pkg4NsAName/ pkg4NsBName/
+CL: cls0NsAName cls0NsBName
+CL: cls1NsAName cls1NsBName
+CL: cls3NsAName cls3NsAName
+CL: cls4NsAName cls4NsBName
+FD: cls18NsAName/fld2NsAName cls18NsAName/fld2NsBName
+FD: cls18NsAName/fld3NsAName cls18NsAName/fld3NsBName
+FD: cls18NsAName/fld5NsAName cls18NsAName/fld5NsAName
+FD: cls18NsAName/fld6NsAName cls18NsAName/fld6NsBName
+MD: cls19NsAName/mth6NsAName ()I cls19NsAName/mth6NsBName ()I
+MD: cls19NsAName/mth7NsAName ()I cls19NsAName/mth7NsBName ()I
+MD: cls19NsAName/mth9NsAName ()I cls19NsAName/mth9NsAName ()I
+MD: cls19NsAName/mth10NsAName ()I cls19NsAName/mth10NsBName ()I

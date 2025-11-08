@@ -122,7 +122,7 @@ class NameGen {
 		lastKind = kind;
 
 		if (kind.level == 0) {
-			clsOrPkgHasDst = false;
+			pkgOrClsHasDst = false;
 		}
 
 		return getPrefix(kind) + "_" + getCounter(kind).incrementAndGet();
@@ -149,7 +149,7 @@ class NameGen {
 			getCounter(kind).decrementAndGet(); // we need the previously generated outer package/class
 		}
 
-		boolean hasDst = clsOrPkgHasDst;
+		boolean hasDst = pkgOrClsHasDst;
 		char separator = kind == clsKind ? '$' : '/';
 		StringBuilder sb = new StringBuilder(srcOutermostPkgOrCls(kind));
 
@@ -158,7 +158,7 @@ class NameGen {
 			sb.append(src(kind));
 		}
 
-		clsOrPkgHasDst = hasDst;
+		pkgOrClsHasDst = hasDst;
 		innerPkgOrClsNestLevel = nestLevel;
 		return sb.toString();
 	}
@@ -173,7 +173,7 @@ class NameGen {
 		}
 
 		if (kind.level == 0) {
-			clsOrPkgHasDst = true;
+			pkgOrClsHasDst = true;
 		}
 
 		return getPrefix(kind) + getCounter(kind).get() + "Ns" + ns + "Rename";
@@ -199,7 +199,7 @@ class NameGen {
 	private String dstInnerPkgOrCls(MappedElementKind kind, int ns) {
 		assert kind.level == 0;
 
-		boolean hasDst = clsOrPkgHasDst;
+		boolean hasDst = pkgOrClsHasDst;
 		int nestLevel = innerPkgOrClsNestLevel;
 		char separator = kind == clsKind ? '$' : '/';
 		AtomicInteger counter = getCounter(kind);
@@ -222,7 +222,7 @@ class NameGen {
 							: src(kind));
 		}
 
-		clsOrPkgHasDst = hasDst;
+		pkgOrClsHasDst = hasDst;
 		innerPkgOrClsNestLevel = nestLevel;
 		counter.addAndGet(nestLevel);
 		return sb.toString();
@@ -301,6 +301,6 @@ class NameGen {
 	private int nsNum;
 	private int counter;
 	private MappedElementKind lastKind;
-	private boolean clsOrPkgHasDst;
+	private boolean pkgOrClsHasDst;
 	private int innerPkgOrClsNestLevel;
 }

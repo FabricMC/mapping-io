@@ -1,0 +1,18 @@
+pkg0NsAName/ pkg0NsBName/
+pkg1NsAName/ pkg1NsBName/
+pkg3NsAName/ pkg3NsAName/
+pkg4NsAName/ pkg4NsBName/
+cls0NsAName cls0NsBName
+cls1NsAName cls1NsBName
+cls3NsAName cls3NsAName
+cls4NsAName cls4NsBName
+cls18NsAName cls18NsAName
+	fld2NsAName fld2NsBName
+	fld3NsAName fld3NsBName
+	fld5NsAName fld5NsAName
+	fld6NsAName fld6NsBName
+cls19NsAName cls19NsAName
+	mth6NsAName ()I mth6NsBName
+	mth7NsAName ()I mth7NsBName
+	mth9NsAName ()I mth9NsAName
+	mth10NsAName ()I mth10NsBName

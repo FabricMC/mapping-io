@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappingio.test.visitors;
+package net.fabricmc.mappingio.adapter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,22 +22,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
-import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 
 /**
  * Visitor which verifies on each visit call that the invoked visits were in accordance
  * with the expected order of visitation, as defined in {@link MappingVisitor}'s Javadocs.
+ *
+ * <p><b>Experimental feature</b>, may be removed or changed without further notice.
  */
-public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
-	public VisitOrderVerifyingVisitor(MappingVisitor next) {
+@ApiStatus.Experimental
+public class VisitOrderVerifier extends ForwardingMappingVisitor {
+	public VisitOrderVerifier(MappingVisitor next) {
 		this(next, false);
 	}
 
-	public VisitOrderVerifyingVisitor(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
+	public VisitOrderVerifier(MappingVisitor next, boolean allowConsecutiveDuplicateElementVisits) {
 		super(next);
 		this.allowConsecutiveDuplicateElementVisits = allowConsecutiveDuplicateElementVisits;
 		init();
@@ -45,9 +48,11 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 	private void init() {
 		visitedHeader = false;
+		shouldVisitHeaderElements = false;
 		visitedNamespaces = false;
 		visitedMetadata = false;
 		visitedContent = false;
+		shouldVisitContentElements = false;
 		visitedPackage = false;
 		visitedClass = false;
 		visitedField = false;
@@ -87,13 +92,15 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 		visitedEnd = false;
 		visitedHeader = true;
-		return super.visitHeader();
+		return shouldVisitHeaderElements = super.visitHeader();
 	}
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException {
 		assertHeaderVisited();
 		assertNamespacesNotVisited();
+		assertMetadataNotVisited();
+		assertShouldVisitHeaderElements();
 
 		visitedNamespaces = true;
 		super.visitNamespaces(srcNamespace, dstNamespaces);
@@ -102,6 +109,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public void visitMetadata(String key, @Nullable String value) throws IOException {
 		assertNamespacesVisited();
+		assertShouldVisitHeaderElements();
 
 		visitedMetadata = true;
 		visitedPackage = false;
@@ -116,10 +124,15 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	@Override
 	public boolean visitContent() throws IOException {
 		assertHeaderVisited();
+
+		if (shouldVisitHeaderElements) {
+			assertNamespacesVisited();
+		}
+
 		assertContentNotVisited();
 
 		visitedContent = true;
-		return super.visitContent();
+		return shouldVisitContentElements = super.visitContent();
 	}
 
 	@Override
@@ -128,6 +141,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		SrcInfo srcInfo = new SrcInfo().srcName(srcName);
 
 		assertContentVisited();
+		assertShouldVisitContentElements();
 		assertLastElementContentVisited();
 		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
@@ -151,6 +165,7 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		SrcInfo srcInfo = new SrcInfo().srcName(srcName);
 
 		assertContentVisited();
+		assertShouldVisitContentElements();
 		assertLastElementContentVisited();
 		resetLastSrcInfoDownTo(elementKind.level);
 		assertNewSrcInfo(elementKind, srcInfo);
@@ -348,9 +363,9 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		}
 	}
 
-	private void assertMetadataVisited() {
-		if (!visitedMetadata) {
-			throw new IllegalStateException("Metadata not visited");
+	private void assertShouldVisitHeaderElements() {
+		if (!shouldVisitHeaderElements) {
+			throw new IllegalStateException("Header elements were not supposed to be visited");
 		}
 	}
 
@@ -366,6 +381,12 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		}
 	}
 
+	private void assertShouldVisitContentElements() {
+		if (!shouldVisitContentElements) {
+			throw new IllegalStateException("Content elements were not supposed to be visited");
+		}
+	}
+
 	private void assertElementVisited(MappedElementKind kind) {
 		if (lastVisitedElement.level < kind.level) {
 			throw new IllegalStateException("Element not visited");
@@ -375,12 +396,6 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 	private void assertLastVisitedElement(MappedElementKind kind) {
 		if (lastVisitedElement != kind) {
 			throw new IllegalStateException("Last visited element is not " + kind);
-		}
-	}
-
-	private void assertClassNotVisited() {
-		if (visitedClass) {
-			throw new IllegalStateException("Class already visited");
 		}
 	}
 
@@ -396,45 +411,9 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 		}
 	}
 
-	private void assertFieldVisited() {
-		if (!visitedField) {
-			throw new IllegalStateException("Field not visited");
-		}
-	}
-
-	private void assertMethodNotVisited() {
-		if (visitedMethod) {
-			throw new IllegalStateException("Method already visited");
-		}
-	}
-
 	private void assertMethodVisited() {
 		if (!visitedMethod) {
 			throw new IllegalStateException("Method not visited");
-		}
-	}
-
-	private void assertMethodArgNotVisited() {
-		if (visitedMethodArg) {
-			throw new IllegalStateException("Method argument already visited");
-		}
-	}
-
-	private void assertMethodArgVisited() {
-		if (!visitedMethodArg) {
-			throw new IllegalStateException("Method argument not visited");
-		}
-	}
-
-	private void assertMethodVarNotVisited() {
-		if (visitedMethodVar) {
-			throw new IllegalStateException("Method variable already visited");
-		}
-	}
-
-	private void assertMethodVarVisited() {
-		if (!visitedMethodVar) {
-			throw new IllegalStateException("Method variable not visited");
 		}
 	}
 
@@ -473,9 +452,11 @@ public class VisitOrderVerifyingVisitor extends ForwardingMappingVisitor {
 
 	private final boolean allowConsecutiveDuplicateElementVisits;
 	private boolean visitedHeader;
+	private boolean shouldVisitHeaderElements;
 	private boolean visitedNamespaces;
 	private boolean visitedMetadata;
 	private boolean visitedContent;
+	private boolean shouldVisitContentElements;
 	private boolean visitedPackage;
 	private boolean visitedClass;
 	private boolean visitedField;

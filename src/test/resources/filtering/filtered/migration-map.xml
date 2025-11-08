@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migrationMap>
+	<entry oldName="pkg0NsAName" newName="pkg0NsBName" type="package" recursive="false"/>
+	<entry oldName="pkg1NsAName" newName="pkg1NsBName" type="package" recursive="false"/>
+	<entry oldName="pkg3NsAName" newName="pkg3NsAName" type="package" recursive="false"/>
+	<entry oldName="pkg4NsAName" newName="pkg4NsBName" type="package" recursive="false"/>
+	<entry oldName="cls0NsAName" newName="cls0NsBName" type="class"/>
+	<entry oldName="cls1NsAName" newName="cls1NsBName" type="class"/>
+	<entry oldName="cls3NsAName" newName="cls3NsAName" type="class"/>
+	<entry oldName="cls4NsAName" newName="cls4NsBName" type="class"/>
+	<name value="Unnamed migration map"/>
+	<order value="0"/>
+</migrationMap>

@@ -31,8 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.mappingio.MappingFlag;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.test.TestMappings;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
 

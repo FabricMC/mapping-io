@@ -1,0 +1,30 @@
+tsrg2 nsA nsB nsC
+pkg0NsAName/ pkg0NsBName/ pkg0NsCName/
+pkg1NsAName/ pkg1NsBName/ pkg1NsAName/
+pkg2NsAName/ pkg2NsAName/ pkg2NsCName/
+pkg3NsAName/ pkg3NsAName/ pkg3NsCName/
+pkg4NsAName/ pkg4NsBName/ pkg4NsAName/
+cls0NsAName cls0NsBName cls0NsCName
+cls1NsAName cls1NsBName cls1NsAName
+cls2NsAName cls2NsAName cls2NsCName
+cls3NsAName cls3NsAName cls3NsCName
+cls4NsAName cls4NsBName cls4NsAName
+cls18NsAName cls18NsAName cls18NsAName
+	fld2NsAName I fld2NsBName fld2NsCName
+	fld3NsAName I fld3NsBName fld3NsAName
+	fld4NsAName I fld4NsAName fld4NsCName
+	fld5NsAName I fld5NsAName fld5NsCName
+	fld6NsAName I fld6NsBName fld6NsAName
+cls19NsAName cls19NsAName cls19NsAName
+	mth6NsAName ()I mth6NsBName mth6NsCName
+	mth7NsAName ()I mth7NsBName mth7NsAName
+	mth8NsAName ()I mth8NsAName mth8NsCName
+	mth9NsAName ()I mth9NsAName mth9NsCName
+	mth10NsAName ()I mth10NsBName mth10NsAName
+cls20NsAName cls20NsAName cls20NsAName
+	mth16NsAName ()I mth16NsAName mth16NsAName
+		2 arg2NsAName arg2NsBName arg2NsCName
+		3 arg3NsAName arg3NsBName arg3NsAName
+		4 arg4NsAName arg4NsAName arg4NsCName
+		5 arg5NsAName arg5NsAName arg5NsCName
+		6 arg6NsAName arg6NsBName arg6NsAName

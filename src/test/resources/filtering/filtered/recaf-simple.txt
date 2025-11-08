@@ -1,0 +1,12 @@
+cls0NsAName cls0NsBName
+cls1NsAName cls1NsBName
+cls3NsAName cls3NsAName
+cls4NsAName cls4NsBName
+cls18NsAName.fld2NsAName I fld2NsBName
+cls18NsAName.fld3NsAName I fld3NsBName
+cls18NsAName.fld5NsAName I fld5NsAName
+cls18NsAName.fld6NsAName I fld6NsBName
+cls19NsAName.mth6NsAName()I mth6NsBName
+cls19NsAName.mth7NsAName()I mth7NsBName
+cls19NsAName.mth9NsAName()I mth9NsAName
+cls19NsAName.mth10NsAName()I mth10NsBName

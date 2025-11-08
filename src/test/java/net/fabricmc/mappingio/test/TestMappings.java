@@ -34,13 +34,14 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.adapter.EmptyElementFilter;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
+import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.intellij.MigrationMapConstants;
 import net.fabricmc.mappingio.test.lib.jool.Unchecked;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
-import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
 
 /*
  * After any changes to the "generate" methods, run the "generateTestMappings" Gradle task
@@ -50,7 +51,7 @@ import net.fabricmc.mappingio.test.visitors.VisitOrderVerifyingVisitor;
  */
 public class TestMappings {
 	public static <T extends MappingVisitor> T generateValid(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -97,7 +98,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateRepeatedElements(T target, boolean repeatComments, boolean repeatClasses) throws IOException {
-		generateValid(new ForwardingMappingVisitor(new VisitOrderVerifyingVisitor(target, true)) {
+		generateValid(new ForwardingMappingVisitor(new VisitOrderVerifier(target, true)) {
 			private final List<Runnable> replayQueue = new ArrayList<>();
 
 			@Override
@@ -194,7 +195,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateHoles(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 
 		if (delegate.visitHeader()) {
 			delegate.visitNamespaces(MappingUtil.NS_SOURCE_FALLBACK, Arrays.asList(MappingUtil.NS_TARGET_FALLBACK, MappingUtil.NS_TARGET_FALLBACK + "2"));
@@ -320,7 +321,7 @@ public class TestMappings {
 	}
 
 	public static <T extends MappingVisitor> T generateOuterClassNamePropagation(T target) throws IOException {
-		MappingVisitor delegate = target instanceof VisitOrderVerifyingVisitor ? target : new VisitOrderVerifyingVisitor(target);
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
 		String srcNs = MappingUtil.NS_SOURCE_FALLBACK;
 		List<String> dstNamespaces = Arrays.asList("dstNs0", "dstNs1", "dstNs2", "dstNs3", "dstNs4", "dstNs5", "dstNs6");
 
@@ -386,6 +387,463 @@ public class TestMappings {
 		return target;
 	}
 
+	public static <T extends MappingVisitor> T generateEmptyElementFiltering(T target) throws IOException {
+		MappingVisitor delegate = visitOrderVerifierWrapped(target);
+
+		if (delegate.visitHeader()) {
+			delegate.visitNamespaces("nsA", Arrays.asList("nsB", "nsC"));
+		}
+
+		if (delegate.visitContent()) {
+			String pkgPrefix = "pkg";
+			String clsPrefix = "cls";
+			String fieldPrefix = "fld";
+			String methodPrefix = "mth";
+			String argPrefix = "arg";
+			String varPrefix = "var";
+			String commentSuffix = "Comment";
+			String nsASuffix = "NsAName";
+			String nsBSuffix = "NsBName";
+			String nsCSuffix = "NsCName";
+			String pkgName, pkgNsAName;
+			String clsName, clsNsAName;
+			String fldName, fldNsAName;
+			String mthName, mthNsAName;
+			String argName, argNsAName;
+			String varName, varNsAName;
+			String fldDesc = "I";
+			String mthDesc = "()I";
+			int pkgNum = 0;
+			int clsNum = 0;
+			int fieldNum = 0;
+			int methodNum = 0;
+			int argNum = 0;
+			int varNum = 0;
+
+			// Packages
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 0, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.PACKAGE, 1, pkgNsAName);
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				delegate.visitElementContent(MappedElementKind.PACKAGE);
+			}
+
+			if (delegate.visitPackage(pkgNsAName = (pkgName = pkgPrefix + pkgNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.PACKAGE)) {
+					delegate.visitComment(MappedElementKind.PACKAGE, pkgName + commentSuffix);
+				}
+			}
+
+			// Classes
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsName + nsBSuffix);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsNsAName);
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsName + nsCSuffix);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsName + nsBSuffix);
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsNsAName);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsNsAName);
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsNsAName);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 0, clsNsAName);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitDstName(MappedElementKind.CLASS, 1, clsNsAName);
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				delegate.visitElementContent(MappedElementKind.CLASS);
+			}
+
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+					delegate.visitComment(MappedElementKind.CLASS, clsName + commentSuffix);
+				}
+			}
+
+			for (int pass = 1; pass <= 2; pass++) {
+				if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+					if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+						if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+							if (pass == 2) {
+								delegate.visitDstName(MappedElementKind.FIELD, 0, fldNsAName);
+							}
+
+							delegate.visitElementContent(MappedElementKind.FIELD);
+						}
+					}
+				}
+
+				if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+					if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+						if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+							if (pass == 2) {
+								delegate.visitDstName(MappedElementKind.METHOD, 0, mthNsAName);
+							}
+
+							delegate.visitElementContent(MappedElementKind.METHOD);
+						}
+					}
+				}
+
+				if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+					if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+						if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+							if (delegate.visitElementContent(MappedElementKind.METHOD)) {
+								if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+									if (pass == 2) {
+										delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argNsAName);
+									}
+
+									delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+								}
+							}
+						}
+					}
+				}
+
+				if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+					if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+						if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+							if (delegate.visitElementContent(MappedElementKind.METHOD)) {
+								if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+									if (pass == 2) {
+										delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varNsAName);
+									}
+
+									delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Fields
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldName + nsBSuffix);
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldName + nsBSuffix);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldNsAName);
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldName + nsBSuffix);
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldNsAName);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldNsAName);
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldNsAName);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 0, fldNsAName);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitDstName(MappedElementKind.FIELD, 1, fldNsAName);
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						delegate.visitElementContent(MappedElementKind.FIELD);
+					}
+
+					if (delegate.visitField(fldNsAName = (fldName = fieldPrefix + fieldNum++) + nsASuffix, fldDesc)) {
+						if (delegate.visitElementContent(MappedElementKind.FIELD)) {
+							delegate.visitComment(MappedElementKind.FIELD, fldName + commentSuffix);
+						}
+					}
+				}
+			}
+
+			// Methods
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthName + nsBSuffix);
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthName + nsBSuffix);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthNsAName);
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthName + nsCSuffix);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthName + nsBSuffix);
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthNsAName);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthNsAName);
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthNsAName);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 0, mthNsAName);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitDstName(MappedElementKind.METHOD, 1, mthNsAName);
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						delegate.visitElementContent(MappedElementKind.METHOD);
+					}
+
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						if (delegate.visitElementContent(MappedElementKind.METHOD)) {
+							delegate.visitComment(MappedElementKind.METHOD, mthName + commentSuffix);;
+						}
+					}
+				}
+			}
+
+			// Method args
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						if (delegate.visitElementContent(MappedElementKind.METHOD)) {
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argName + nsBSuffix);
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argName + nsBSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argNsAName);
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argName + nsBSuffix);
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argNsAName);
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 0, argNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_ARG, 1, argNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								delegate.visitElementContent(MappedElementKind.METHOD_ARG);
+							}
+
+							if (delegate.visitMethodArg(argNum, argNum, argNsAName = (argName = argPrefix + argNum++) + nsASuffix)) {
+								if (delegate.visitElementContent(MappedElementKind.METHOD_ARG)) {
+									delegate.visitComment(MappedElementKind.METHOD_ARG, argName + commentSuffix);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Method vars
+			if (delegate.visitClass(clsNsAName = (clsName = clsPrefix + clsNum++) + nsASuffix)) {
+				if (delegate.visitElementContent(MappedElementKind.CLASS)) {
+					if (delegate.visitMethod(mthNsAName = (mthName = methodPrefix + methodNum++) + nsASuffix, mthDesc)) {
+						if (delegate.visitElementContent(MappedElementKind.METHOD)) {
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varName + nsBSuffix);
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varName + nsBSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varNsAName);
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varName + nsCSuffix);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varName + nsBSuffix);
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varNsAName);
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 0, varNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitDstName(MappedElementKind.METHOD_VAR, 1, varNsAName);
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								delegate.visitElementContent(MappedElementKind.METHOD_VAR);
+							}
+
+							if (delegate.visitMethodVar(varNum, varNum, varNum, varNum + 1, varNsAName = (varName = varPrefix + varNum++) + nsASuffix)) {
+								if (delegate.visitElementContent(MappedElementKind.METHOD_VAR)) {
+									delegate.visitComment(MappedElementKind.METHOD_VAR, varName + commentSuffix);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!delegate.visitEnd()) {
+			generateEmptyElementFiltering(delegate);
+		}
+
+		return target;
+	}
+
+	private static VisitOrderVerifier visitOrderVerifierWrapped(MappingVisitor target) {
+		return target instanceof VisitOrderVerifier ? (VisitOrderVerifier) target : new VisitOrderVerifier(target);
+	}
+
 	private static MappingDir register(MappingDir dir) {
 		dirs.add(dir);
 		dirsByPath.put(dir.path, dir);
@@ -436,13 +894,44 @@ public class TestMappings {
 		});
 		public static final MappingDir PROPAGATED = register(new MappingDir(BASE_DIR.resolve("propagated/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateOuterClassNamePropagation(new OuterClassNamePropagator(target));
+				generateOuterClassNamePropagation(new OuterClassNamePropagator(visitOrderVerifierWrapped(target)));
 				return target;
 			};
 		});
 		public static final MappingDir PROPAGATED_EXCEPT_REMAPPED_DST = register(new MappingDir(BASE_DIR.resolve("propagated-except-remapped-dst/")) {
 			public <T extends MappingVisitor> T generate(T target) throws IOException {
-				generateOuterClassNamePropagation(new OuterClassNamePropagator(target, null, false));
+				generateOuterClassNamePropagation(
+						new OuterClassNamePropagator(
+								visitOrderVerifierWrapped(target),
+								null,
+								false));
+				return target;
+			};
+		});
+	}
+
+	public static class FILTERING {
+		public static final Path BASE_DIR = TestUtil.getResource("/filtering/");
+
+		public static final MappingDir UNFILTERED = register(new MappingDir(BASE_DIR.resolve("unfiltered/")) {
+			public <T extends MappingVisitor> T generate(T target) throws IOException {
+				return generateEmptyElementFiltering(target);
+			};
+		});
+
+		public static final MappingDir FILTERED = register(new MappingDir(BASE_DIR.resolve("filtered/")) {
+			public <T extends MappingVisitor> T generate(T target) throws IOException {
+				generateEmptyElementFiltering(new EmptyElementFilter(visitOrderVerifierWrapped(target)));
+				return target;
+			};
+		});
+
+		public static final MappingDir FILTERED_EXCEPT_SRC_ON_DST = register(new MappingDir(BASE_DIR.resolve("filtered-except-src-on-dst/")) {
+			public <T extends MappingVisitor> T generate(T target) throws IOException {
+				generateEmptyElementFiltering(
+						new EmptyElementFilter(
+								visitOrderVerifierWrapped(target),
+								false));
 				return target;
 			};
 		});
@@ -452,6 +941,7 @@ public class TestMappings {
 		// Force-load classes to ensure all MappingDirs are registered
 		READING.BASE_DIR.toString();
 		PROPAGATION.BASE_DIR.toString();
+		FILTERING.BASE_DIR.toString();
 	}
 
 	public abstract static class MappingDir {

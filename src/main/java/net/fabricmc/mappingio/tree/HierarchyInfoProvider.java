@@ -24,18 +24,27 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 
+/**
+ * <b>Experimental feature</b>, may be removed or changed without further notice.
+ */
 @ApiStatus.Experimental
 public interface HierarchyInfoProvider<T> {
 	String getNamespace();
 
 	/**
-	 * @return The internal name of the owner class highest up in the hierarchy.
+	 * Resolves the field according to JVMS 5.4.3.2 and returns the internal name of the owner class
+	 * of the resolved field, or {@code null} if the field couldn't be resolved.
+	 *
+	 * <p>If no descriptor is provided, the behavior is implementation-specific.
 	 */
 	@Nullable
 	String resolveField(String owner, String name, @Nullable String desc);
 
 	/**
-	 * @return The internal name of the owner class highest up in the hierarchy.
+	 * Resolves the method according to JVMS 5.4.3.3 and returns the internal name of the owner class
+	 * of the resolved method, or {@code null} if the method couldn't be resolved.
+	 *
+	 * <p>If no descriptor is provided, the behavior is implementation-specific.
 	 */
 	@Nullable
 	String resolveMethod(String owner, String name, @Nullable String desc);
@@ -59,12 +68,12 @@ public interface HierarchyInfoProvider<T> {
 		}
 	}
 
-	int getHierarchySize(T hierarchy);
+	int getHierarchySize(@Nullable T hierarchy);
 
-	Collection<? extends MethodMappingView> getHierarchyMethods(T hierarchy, MappingTreeView tree);
+	Collection<? extends MethodMappingView> getHierarchyMethods(@Nullable T hierarchy, MappingTreeView tree);
 
 	@SuppressWarnings("unchecked")
-	default Collection<? extends MethodMapping> getHierarchyMethods(T hierarchy, MappingTree tree) {
+	default Collection<? extends MethodMapping> getHierarchyMethods(@Nullable T hierarchy, MappingTree tree) {
 		return (Collection<? extends MethodMapping>) getHierarchyMethods(hierarchy, (MappingTreeView) tree);
 	}
 }

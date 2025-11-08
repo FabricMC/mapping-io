@@ -1,0 +1,12 @@
+CLASS cls18NsAName
+	FIELD fld2NsAName fld2NsBName I
+	FIELD fld3NsAName fld3NsBName I
+	FIELD fld4NsAName I
+	FIELD fld5NsAName fld5NsAName I
+	FIELD fld6NsAName fld6NsBName I
+	FIELD fld7NsAName fld7NsAName I
+	FIELD fld8NsAName fld8NsAName I
+	FIELD fld9NsAName I
+	FIELD fld10NsAName I
+	FIELD fld11NsAName I
+		COMMENT fld11Comment

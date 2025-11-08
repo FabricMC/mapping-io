@@ -16,6 +16,7 @@
 
 package net.fabricmc.mappingio.test.tests;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -32,12 +33,12 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.FlatAsRegularMappingVisitor;
+import net.fabricmc.mappingio.adapter.NopMappingVisitor;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
-import net.fabricmc.mappingio.test.visitors.NopMappingVisitor;
-import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
+import net.fabricmc.mappingio.test.visitors.SubsetAsserter;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
@@ -127,16 +128,20 @@ public class OuterClassNamePropagationTest {
 	}
 
 	private void checkDiskEquivalence(VisitableMappingTree tree, boolean processRemappedDstNames) throws IOException {
+		MappingDir dir = processRemappedDstNames
+				? TestMappings.PROPAGATION.PROPAGATED
+				: TestMappings.PROPAGATION.PROPAGATED_EXCEPT_REMAPPED_DST;
+
 		for (MappingFormat format : MappingFormat.values()) {
-			MappingDir dir = processRemappedDstNames
-					? TestMappings.PROPAGATION.PROPAGATED
-					: TestMappings.PROPAGATION.PROPAGATED_EXCEPT_REMAPPED_DST;
-
-			VisitableMappingTree diskTree = dir.read(format, new MemoryMappingTree());
-
-			tree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(diskTree, format, null)));
-			diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(tree, null, format)));
+			assertDoesNotThrow(() -> checkDiskEquivalence(dir, format, tree), "Failed for " + dir + " with " + format);
 		}
+	}
+
+	private void checkDiskEquivalence(MappingDir dir, MappingFormat format, VisitableMappingTree tree) throws IOException {
+		VisitableMappingTree diskTree = dir.read(format, new MemoryMappingTree());
+
+		tree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(diskTree, format, null)));
+		diskTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(tree, null, format)));
 	}
 
 	private static class OuterClassNameChecker extends NopMappingVisitor {

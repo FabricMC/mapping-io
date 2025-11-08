@@ -37,7 +37,7 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.test.TestMappings;
 import net.fabricmc.mappingio.test.TestMappings.MappingDir;
 import net.fabricmc.mappingio.test.TestUtil;
-import net.fabricmc.mappingio.test.visitors.SubsetAssertingVisitor;
+import net.fabricmc.mappingio.test.visitors.SubsetAsserter;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
@@ -88,8 +88,8 @@ public class WriteTest {
 		VisitableMappingTree writtenTree = new MemoryMappingTree();
 		MappingReader.read(outputPath, outputFormat, writtenTree);
 
-		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(origTree, null, outputFormat)));
-		origTree.accept(new FlatAsRegularMappingVisitor(new SubsetAssertingVisitor(writtenTree, outputFormat, null)));
+		writtenTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(origTree, null, outputFormat)));
+		origTree.accept(new FlatAsRegularMappingVisitor(new SubsetAsserter(writtenTree, outputFormat, null)));
 	}
 
 	private void readWithLorenz(Path path, MappingFormat format) throws Exception {
