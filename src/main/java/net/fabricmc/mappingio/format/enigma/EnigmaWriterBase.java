@@ -49,7 +49,12 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) { }
+	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) throws IOException { }
+
+	@Override
+	public boolean visitPackage(String srcName) throws IOException {
+		return false; // not supported, skip
+	}
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
@@ -97,7 +102,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	}
 
 	@Override
-	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) {
+	public boolean visitMethodVar(int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName) throws IOException {
 		return false;
 	}
 
