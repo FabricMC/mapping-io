@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Fixed `EnigmaWriterBase` not writing missing destination namespace nest members when nest depth differs between source and destination names
 
 ## [0.8.0] - 2025-11-02
 - Added `EmptyElementFilter`, an adapter which filters out elements that effectively don't contain any data
