@@ -35,7 +35,6 @@ public class EnigmaInnerClassesRoundtripTest {
 	@Test
 	public void missingNestHost() throws Exception {
 		String mappingContents = "CLASS innerclass outerclass$1\n";
-
 		MemoryMappingTree tree = new MemoryMappingTree();
 
 		assertDoesNotThrow(() -> EnigmaFileReader.read(new StringReader(mappingContents), tree), "Couldn't read mapping:\n" + mappingContents);
@@ -52,6 +51,7 @@ public class EnigmaInnerClassesRoundtripTest {
 		assertEquals("outerclass$1", mappingBySrc.getDstName(tree.getMaxNamespaceId() - 1));
 
 		StringWriter sw = new StringWriter();
+
 		try (EnigmaFileWriter writer = new EnigmaFileWriter(sw)) {
 			tree.accept(writer);
 		}
