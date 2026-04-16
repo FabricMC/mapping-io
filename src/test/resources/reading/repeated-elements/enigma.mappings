@@ -1,18 +1,13 @@
-CLASS class_1 class1Ns0Rename0
 CLASS class_1 class1Ns0Rename
 	FIELD field_1 field1Ns0Rename0 I
 	FIELD field_1 field1Ns0Rename I
+		MDCOMMENT This is a comment
 	METHOD method_1 method1Ns0Rename0 ()I
 	METHOD method_1 method1Ns0Rename ()I
 		ARG 1 param1Ns0Rename0
 		ARG 1 param1Ns0Rename
-	CLASS class_2 class2Ns0Rename0
-	CLASS class_2 class2Ns0Rename1
-		COMMENT This is a comment.
-	CLASS class_2 class2Ns0Rename2
 	CLASS class_2 class2Ns0Rename
 		COMMENT This is a comment
 		FIELD field_2 field2Ns0Rename0 Lcls;
 		FIELD field_2 field2Ns0Rename Lcls;
-CLASS class_3 package_3/class3Ns0Rename0
 CLASS class_3 package_3/class3Ns0Rename

@@ -106,6 +106,10 @@ class NameGen {
 		target.visitComment(lastKind, comment, CommentStyle.HTML);
 	}
 
+	void visitMarkdownComment(MappingVisitor target) throws IOException {
+		target.visitComment(lastKind, comment, CommentStyle.MARKDOWN);
+	}
+
 	private String src(MappedElementKind kind) {
 		nsNum = 0;
 		lastKind = kind;

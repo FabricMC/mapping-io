@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import net.neoforged.srgutils.IMappingFile;
 import net.neoforged.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.Test;
@@ -105,16 +107,23 @@ public class WriteTest {
 		// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/7 is fixed
 		if (format == MappingFormat.PROGUARD_FILE) return;
 
-		// SrgUtils can't handle empty dst names
+		// SrgUtils can't handle empty dst names or markdown comments
 		VisitableMappingTree dstNsCompTree = new MemoryMappingTree();
 		tree.accept(
 				// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/9 is fixed
 				new MappingNsCompleter(
-						// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/8 is fixed
 						new ForwardingMappingVisitor(dstNsCompTree) {
+							// TODO: Remove once https://github.com/neoforged/SRGUtils/issues/8 is fixed
 							@Override
 							public boolean visitElementContent(MappedElementKind targetKind) throws IOException {
 								return !(format == MappingFormat.TINY_2_FILE && targetKind == MappedElementKind.METHOD_VAR);
+							}
+
+							@Override
+							public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+								if (style == CommentStyle.HTML) {
+									super.visitComment(targetKind, comment);
+								}
 							}
 						}));
 

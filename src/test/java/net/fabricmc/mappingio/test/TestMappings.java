@@ -68,7 +68,9 @@ public class TestMappings {
 			NameGen nameGen = new NameGen();
 
 			if (nameGen.visitClass(delegate, dstNs)) {
-				nameGen.visitField(delegate, dstNs);
+				if (nameGen.visitField(delegate, dstNs)) {
+					nameGen.visitMarkdownComment(delegate);
+				}
 
 				if (nameGen.visitMethod(delegate, dstNs)) {
 					nameGen.visitMethodArg(delegate, dstNs);
