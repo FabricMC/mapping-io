@@ -957,6 +957,15 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		void setCommentInternal(String comment, CommentStyle style) {
+			if (style == null) {
+				if (comment == null) {
+					// Fall back to default
+					style = CommentStyle.HTML;
+				} else {
+					throw new NullPointerException("Comment style cannot be null for nonnull comment");
+				}
+			}
+
 			this.comment = comment;
 			this.commentStyle = style;
 		}
