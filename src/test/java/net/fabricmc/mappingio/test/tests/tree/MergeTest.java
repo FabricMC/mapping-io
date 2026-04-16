@@ -26,11 +26,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingVisitor;

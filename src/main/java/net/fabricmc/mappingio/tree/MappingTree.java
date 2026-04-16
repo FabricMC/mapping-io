@@ -21,10 +21,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;

@@ -26,11 +26,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.FlatMappingVisitor;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.FeatureSet;

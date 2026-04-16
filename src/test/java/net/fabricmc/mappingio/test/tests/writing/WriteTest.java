@@ -21,13 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import net.neoforged.srgutils.IMappingFile;
 import net.neoforged.srgutils.INamedMappingFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingVisitor;

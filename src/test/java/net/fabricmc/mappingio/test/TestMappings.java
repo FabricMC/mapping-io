@@ -28,10 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;

@@ -20,10 +20,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import net.fabricmc.mappingio.CommentStyle;
-
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
