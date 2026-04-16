@@ -996,7 +996,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				return false;
 			}
 
-			if (comment != null) visitor.visitComment(kind, comment);
+			if (comment != null) visitor.visitComment(kind, comment, commentStyle);
 
 			return true;
 		}
