@@ -23,6 +23,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -179,8 +181,13 @@ public final class Tiny2FileWriter implements MappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		visitComment(targetKind, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
 		writeTabs(targetKind.level);
-		write("\tc\t");
+		write(style == CommentStyle.HTML ? "\tc\t" : "\tmd\t");
 		writeEscaped(comment);
 		writeLn();
 	}
