@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.FlatMappingVisitor;
@@ -32,7 +34,7 @@ import net.fabricmc.mappingio.MappingVisitor;
  * A mapping visitor that forwards all relevant data to a {@link FlatMappingVisitor}.
  *
  * <p>Element data is relayed upon {@link #visitElementContent(MappedElementKind)}
- * or {@link #visitComment(MappedElementKind, String)} invocation.
+ * or {@link #visitComment(MappedElementKind, String, CommentStyle)} invocation.
  * If no data was collected for the current element, the corresponding {@link FlatMappingVisitor}'s visit method is not called.
  */
 public final class FlatAsRegularMappingVisitor implements MappingVisitor {
@@ -192,25 +194,30 @@ public final class FlatAsRegularMappingVisitor implements MappingVisitor {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		visitComment(targetKind, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
 		switch (targetKind) {
 		case CLASS:
-			next.visitClassComment(srcClsName, dstClassNames, comment);
+			next.visitClassComment(srcClsName, dstClassNames, comment, style);
 			break;
 		case FIELD:
 			next.visitFieldComment(srcClsName, srcMemberName, srcMemberDesc,
-					dstClassNames, dstMemberNames, dstMemberDescs, comment);
+					dstClassNames, dstMemberNames, dstMemberDescs, comment, style);
 			break;
 		case METHOD:
 			next.visitMethodComment(srcClsName, srcMemberName, srcMemberDesc,
-					dstClassNames, dstMemberNames, dstMemberDescs, comment);
+					dstClassNames, dstMemberNames, dstMemberDescs, comment, style);
 			break;
 		case METHOD_ARG:
 			next.visitMethodArgComment(srcClsName, srcMemberName, srcMemberDesc, argIdx, lvIndex, srcMemberSubName,
-					dstClassNames, dstMemberNames, dstMemberDescs, dstNames, comment);
+					dstClassNames, dstMemberNames, dstMemberDescs, dstNames, comment, style);
 			break;
 		case METHOD_VAR:
 			next.visitMethodVarComment(srcClsName, srcMemberName, srcMemberDesc, argIdx, lvIndex, startOpIdx, endOpIdx, srcMemberSubName,
-					dstClassNames, dstMemberNames, dstMemberDescs, dstNames, comment);
+					dstClassNames, dstMemberNames, dstMemberDescs, dstNames, comment, style);
 			break;
 		}
 	}

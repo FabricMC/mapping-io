@@ -63,39 +63,85 @@ public interface FlatMappingVisitor {
 	}
 
 	boolean visitClass(String srcName, @Nullable String[] dstNames) throws IOException;
+	/**
+	 * @deprecated Use {@link #visitClassComment(String, String[], String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	void visitClassComment(String srcName, @Nullable String[] dstNames, String comment) throws IOException;
+	default void visitClassComment(String srcName, @Nullable String[] dstNames, String comment, CommentStyle style) throws IOException {
+		visitClassComment(srcName, dstNames, comment);
+	}
 
 	boolean visitField(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs) throws IOException;
+	/**
+	 * @deprecated Use {@link #visitFieldComment(String, String, String, String[], String[], String[], String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
 			String comment) throws IOException;
+	default void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
+			String comment, CommentStyle style) throws IOException {
+		visitFieldComment(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, comment);
+	}
 
 	boolean visitMethod(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs) throws IOException;
+	/**
+	 * @deprecated Use {@link #visitMethodComment(String, String, String, String[], String[], String[], String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
 			String comment) throws IOException;
+	default void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs,
+			String comment, CommentStyle style) throws IOException {
+		visitMethodComment(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, comment);
+	}
 
 	boolean visitMethodArg(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int argPosition, int lvIndex, @Nullable String srcName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
 			@Nullable String[] dstMethodDescs, String[] dstNames) throws IOException;
+	/**
+	 * @deprecated Use {@link #visitMethodArgComment(String, String, String, int, int, String, String[], String[], String[], String[], String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int argPosition, int lvIndex, @Nullable String srcName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
 			@Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
 			String comment) throws IOException;
+	default void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
+			String comment, CommentStyle style) throws IOException {
+		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcName, dstClsNames, dstMethodNames, dstMethodDescs, dstNames, comment);
+	}
 
 	boolean visitMethodVar(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
 			@Nullable String[] dstMethodDescs, String[] dstNames) throws IOException;
+	/**
+	 * @deprecated Use {@link #visitMethodVarComment(String, String, String, int, int, int, int, String, String[], String[], String[], String[], String, CommentStyle)} instead.
+	 */
 	void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
 			@Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
 			String comment) throws IOException;
+	default void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames,
+			@Nullable String[] dstMethodDescs, @Nullable String[] dstNames,
+			String comment, CommentStyle style) throws IOException {
+		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName, dstClsNames, dstMethodNames, dstMethodDescs, dstNames, comment);
+	}
 
 	/**
 	 * Finish the visitation pass.
@@ -154,12 +200,28 @@ public interface FlatMappingVisitor {
 		return visitClass(srcName, toArray(dstName));
 	}
 
+	/**
+	 * @deprecated Use {@link #visitClassComment(String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitClassComment(String srcName, String comment) throws IOException {
-		visitClassComment(srcName, (String) null, comment);
+		visitClassComment(srcName, comment, CommentStyle.HTML);
 	}
 
+	/**
+	 * @deprecated Use {@link #visitClassComment(String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitClassComment(String srcName, @Nullable String dstName, String comment) throws IOException {
-		visitClassComment(srcName, toArray(dstName), comment);
+		visitClassComment(srcName, dstName, comment, CommentStyle.HTML);
+	}
+
+	default void visitClassComment(String srcName, String comment, CommentStyle style) throws IOException {
+		visitClassComment(srcName, (String) null, comment, style);
+	}
+
+	default void visitClassComment(String srcName, @Nullable String dstName, String comment, CommentStyle style) throws IOException {
+		visitClassComment(srcName, toArray(dstName), comment, style);
 	}
 
 	default boolean visitField(String srcClsName, String srcName, @Nullable String srcDesc,
@@ -174,19 +236,38 @@ public interface FlatMappingVisitor {
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc));
 	}
 
+	/**
+	 * @deprecated Use {@link #visitFieldComment(String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			String comment) throws IOException {
+		visitFieldComment(srcClsName, srcName, srcDesc, comment, CommentStyle.HTML);
+	}
+
+	/**
+	 * @deprecated Use {@link #visitFieldComment(String, String, String, String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
+	default void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
+			String comment) throws IOException {
+		visitFieldComment(srcClsName, srcName, srcDesc, dstClsName, dstName, dstDesc, comment, CommentStyle.HTML);
+	}
+
+	default void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			String comment, CommentStyle style) throws IOException {
 		visitFieldComment(srcClsName, srcName, srcDesc,
 				(String) null, null, null,
-				comment);
+				comment, style);
 	}
 
 	default void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
-			String comment) throws IOException {
+			String comment, CommentStyle style) throws IOException {
 		visitFieldComment(srcClsName, srcName, srcDesc,
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc),
-				comment);
+				comment, style);
 	}
 
 	default boolean visitMethod(String srcClsName, String srcName, @Nullable String srcDesc,
@@ -201,19 +282,38 @@ public interface FlatMappingVisitor {
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc));
 	}
 
+	/**
+	 * @deprecated Use {@link #visitMethodComment(String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			String comment) throws IOException {
+		visitMethodComment(srcClsName, srcName, srcDesc, comment, CommentStyle.HTML);
+	}
+
+	/**
+	 * @deprecated Use {@link #visitMethodComment(String, String, String, String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
+	default void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
+			String comment) throws IOException {
+		visitMethodComment(srcClsName, srcName, srcDesc, dstClsName, dstName, dstDesc, comment, CommentStyle.HTML);
+	}
+
+	default void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			String comment, CommentStyle style) throws IOException {
 		visitMethodComment(srcClsName, srcName, srcDesc,
 				(String) null, null, null,
-				comment);
+				comment, style);
 	}
 
 	default void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String dstClsName, @Nullable String dstName, @Nullable String dstDesc,
-			String comment) throws IOException {
+			String comment, CommentStyle style) throws IOException {
 		visitMethodComment(srcClsName, srcName, srcDesc,
 				toArray(dstClsName), toArray(dstName), toArray(dstDesc),
-				comment);
+				comment, style);
 	}
 
 	default boolean visitMethodArg(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
@@ -232,22 +332,43 @@ public interface FlatMappingVisitor {
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstName));
 	}
 
+	/**
+	 * @deprecated Use {@link #visitMethodArgComment(String, String, String, int, int, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int argPosition, int lvIndex, @Nullable String srcName, String comment) throws IOException {
+		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcName, comment, CommentStyle.HTML);
+	}
+
+	/**
+	 * @deprecated Use {@link #visitMethodArgComment(String, String, String, int, int, String, String, String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
+	default void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcName,
+			@Nullable String dstClsName, @Nullable String dstMethodName,
+			@Nullable String dstMethodDesc, @Nullable String dstName,
+			String comment) throws IOException {
+		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcName, dstClsName, dstMethodName, dstMethodDesc, dstName, comment, CommentStyle.HTML);
+	}
+
+	default void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int argPosition, int lvIndex, @Nullable String srcName, String comment, CommentStyle style) throws IOException {
 		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc,
 				argPosition, lvIndex, srcName,
 				(String) null, null, null, null,
-				comment);
+				comment, style);
 	}
 
 	default void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int argPosition, int lvIndex, @Nullable String srcName,
 			@Nullable String dstClsName, @Nullable String dstMethodName,
 			@Nullable String dstMethodDesc, @Nullable String dstName,
-			String comment) throws IOException {
+			String comment, CommentStyle style) throws IOException {
 		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstName),
-				comment);
+				comment, style);
 	}
 
 	default boolean visitMethodVar(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
@@ -267,22 +388,48 @@ public interface FlatMappingVisitor {
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstName));
 	}
 
+	/**
+	 * @deprecated Use {@link #visitMethodVarComment(String, String, String, int, int, int, int, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
 			String comment) throws IOException {
 		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
 				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName,
-				(String) null, null, null, null,
-				comment);
+				comment, CommentStyle.HTML);
 	}
 
+	/**
+	 * @deprecated Use {@link #visitMethodVarComment(String, String, String, int, int, int, int, String, String, String, String, String, String, CommentStyle)} instead.
+	 */
+	@Deprecated
 	default void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
 			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
 			@Nullable String dstClsName, @Nullable String dstMethodName, @Nullable String dstMethodDesc,
 			@Nullable String dstName, String comment) throws IOException {
 		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
 				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName,
+				dstClsName, dstMethodName, dstMethodDesc, dstName,
+				comment, CommentStyle.HTML);
+	}
+
+	default void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
+			String comment, CommentStyle style) throws IOException {
+		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName,
+				(String) null, null, null, null,
+				comment, style);
+	}
+
+	default void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc,
+			int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcName,
+			@Nullable String dstClsName, @Nullable String dstMethodName, @Nullable String dstMethodDesc,
+			@Nullable String dstName, String comment, CommentStyle style) throws IOException {
+		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc,
+				lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcName,
 				toArray(dstClsName), toArray(dstMethodName), toArray(dstMethodDesc), toArray(dstName),
-				comment);
+				comment, style);
 	}
 }

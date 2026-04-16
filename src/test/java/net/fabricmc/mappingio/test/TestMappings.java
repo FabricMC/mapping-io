@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -173,6 +175,15 @@ public class TestMappings {
 				}
 
 				super.visitComment(targetKind, comment);
+			}
+
+			@Override
+			public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+				if (repeatComments) {
+					super.visitComment(targetKind, comment + ".", style);
+				}
+
+				super.visitComment(targetKind, comment, style);
 			}
 		});
 

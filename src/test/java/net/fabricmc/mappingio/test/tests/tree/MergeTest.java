@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +75,7 @@ public class MergeTest {
 		delegate.visitElementContent(MappedElementKind.CLASS);
 		delegate.visitField(fld1Ns1Name, null);
 		delegate.visitElementContent(MappedElementKind.FIELD);
-		delegate.visitComment(MappedElementKind.FIELD, fld1Comment);
+		delegate.visitComment(MappedElementKind.FIELD, fld1Comment, CommentStyle.HTML);
 		delegate.visitEnd();
 
 		ClassMapping cls = tree.getClass(cls1Ns1Name);
@@ -91,7 +93,7 @@ public class MergeTest {
 		delegate.visitElementContent(MappedElementKind.CLASS);
 		delegate.visitField(fld1Ns1Name, fld1Ns1Desc);
 		delegate.visitElementContent(MappedElementKind.FIELD);
-		delegate.visitComment(MappedElementKind.FIELD, fld1Comment);
+		delegate.visitComment(MappedElementKind.FIELD, fld1Comment, CommentStyle.HTML);
 		delegate.visitEnd();
 
 		ClassMapping cls = tree.getClass(cls1Ns1Name);
