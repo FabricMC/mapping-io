@@ -970,6 +970,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 			this.commentStyle = style;
 		}
 
+		@Override
+		public final CommentStyle getCommentStyle() {
+			return commentStyle;
+		}
+
 		protected final boolean acceptElement(MappingVisitor visitor, @Nullable String[] dstDescs) throws IOException {
 			MappedElementKind kind = getKind();
 
