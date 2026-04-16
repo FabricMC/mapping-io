@@ -135,7 +135,7 @@ public final class EnigmaFileReader {
 			} else if (reader.nextCol("COMMENT")) { // comment: COMMENT <comment>
 				commentSb.style = CommentStyle.HTML;
 				readComment(reader, commentSb);
-			} else if (reader.nextCol("COMMENT")) { // markdown comment: MDCOMMENT <comment>
+			} else if (reader.nextCol("MDCOMMENT")) { // markdown comment: MDCOMMENT <comment>
 				commentSb.style = CommentStyle.MARKDOWN;
 				readComment(reader, commentSb);
 			} else if ((isMethod = reader.nextCol("METHOD")) || reader.nextCol("FIELD")) { // method: METHOD <name-a> [<name-b>] <desc-a> or field: FIELD <name-a> [<name-b>] <desc-a>
