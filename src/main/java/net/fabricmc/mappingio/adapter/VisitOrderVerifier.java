@@ -25,6 +25,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
@@ -293,6 +294,14 @@ public class VisitOrderVerifier extends ForwardingMappingVisitor {
 		assertLastElementContentVisited();
 
 		super.visitComment(targetKind, comment);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+		assertElementVisited(targetKind);
+		assertLastElementContentVisited();
+
+		super.visitComment(targetKind, comment, style);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 
@@ -102,7 +103,11 @@ class NameGen {
 	}
 
 	void visitComment(MappingVisitor target) throws IOException {
-		target.visitComment(lastKind, comment);
+		target.visitComment(lastKind, comment, CommentStyle.HTML);
+	}
+
+	void visitMarkdownComment(MappingVisitor target) throws IOException {
+		target.visitComment(lastKind, comment, CommentStyle.MARKDOWN);
 	}
 
 	private String src(MappedElementKind kind) {

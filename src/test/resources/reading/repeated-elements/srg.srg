@@ -1,5 +1,5 @@
 CL: class_1 class1Ns0Rename0
-CL: class_1 class1Ns0Rename1
+CL: class_1 class1Ns0Rename
 FD: class_1/field_1 class1Ns0Rename/field1Ns0Rename0
 FD: class_1/field_1 class1Ns0Rename/field1Ns0Rename
 MD: class_1/method_1 ()I class1Ns0Rename/method1Ns0Rename0 ()I

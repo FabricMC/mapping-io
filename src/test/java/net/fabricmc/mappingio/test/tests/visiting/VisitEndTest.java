@@ -29,6 +29,7 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
@@ -188,6 +189,12 @@ public class VisitEndTest {
 		public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 			check();
 			tree.visitComment(targetKind, comment);
+		}
+
+		@Override
+		public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+			check();
+			tree.visitComment(targetKind, comment, style);
 		}
 
 		@Override

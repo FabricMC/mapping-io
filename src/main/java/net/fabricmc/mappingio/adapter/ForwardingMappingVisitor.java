@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
@@ -117,6 +118,11 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		next.visitComment(targetKind, comment);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+		next.visitComment(targetKind, comment, style);
 	}
 
 	protected final MappingVisitor next;

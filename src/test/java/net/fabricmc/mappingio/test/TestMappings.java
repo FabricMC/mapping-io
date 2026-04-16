@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
@@ -66,7 +67,9 @@ public class TestMappings {
 			NameGen nameGen = new NameGen();
 
 			if (nameGen.visitClass(delegate, dstNs)) {
-				nameGen.visitField(delegate, dstNs);
+				if (nameGen.visitField(delegate, dstNs)) {
+					nameGen.visitMarkdownComment(delegate);
+				}
 
 				if (nameGen.visitMethod(delegate, dstNs)) {
 					nameGen.visitMethodArg(delegate, dstNs);
@@ -173,6 +176,15 @@ public class TestMappings {
 				}
 
 				super.visitComment(targetKind, comment);
+			}
+
+			@Override
+			public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+				if (repeatComments) {
+					super.visitComment(targetKind, comment + ".", style);
+				}
+
+				super.visitComment(targetKind, comment, style);
 			}
 		});
 

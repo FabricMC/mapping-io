@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappingVisitor;
 
 /**
@@ -245,6 +246,10 @@ public interface MappingTreeView {
 
 		@Nullable
 		String getComment();
+
+		default CommentStyle getCommentStyle() {
+			return CommentStyle.HTML;
+		}
 	}
 
 	interface ClassMappingView extends ElementMappingView {

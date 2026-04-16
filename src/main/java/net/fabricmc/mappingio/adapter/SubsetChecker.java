@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.FlatMappingVisitor;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.FeatureSet;
@@ -196,11 +197,17 @@ public class SubsetChecker implements FlatMappingVisitor {
 
 	@Override
 	public void visitClassComment(String srcName, @Nullable String[] dstNames, String comment) throws IOException {
+		visitClassComment(srcName, dstNames, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitClassComment(String srcName, @Nullable String[] dstNames, String comment, CommentStyle style) throws IOException {
 		if (!supFeatures.supportsClasses() || supFeatures.elementComments() == ElementCommentSupport.NONE) return;
 
 		ClassMappingView supCls = requireNonNull(supTree.getClass(srcName), "Incoming class comment's parent class not contained in supTree: " + srcName);
 
 		assertEquals(supCls.getComment(), comment, "Incoming class comment not contained in supTree: " + srcName);
+		assertEquals(supCls.getCommentStyle(), style, "Incoming class comment style differs from supTree: " + srcName);
 	}
 
 	@Override
@@ -301,6 +308,12 @@ public class SubsetChecker implements FlatMappingVisitor {
 	@Override
 	public void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs, String comment) throws IOException {
+		visitFieldComment(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitFieldComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs, String comment, CommentStyle style) throws IOException {
 		if (!supFeatures.supportsFields() || supFeatures.elementComments() == ElementCommentSupport.NONE) return;
 
 		String subFldId = srcClsName + "#" + srcName + ":" + srcDesc;
@@ -308,6 +321,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 		FieldMappingView supFld = requireNonNull(supCls.getField(srcName, srcDesc), "Incoming field comment's parent field not contained in supTree: " + subFldId);
 
 		assertEquals(supFld.getComment(), comment, "Incoming comment differs from supTree");
+		assertEquals(supFld.getCommentStyle(), style, "Incoming comment style differs from supTree: " + srcName);
 	}
 
 	@Override
@@ -410,6 +424,12 @@ public class SubsetChecker implements FlatMappingVisitor {
 	@Override
 	public void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
 			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs, String comment) throws IOException {
+		visitMethodComment(srcClsName, srcName, srcDesc, dstClsNames, dstNames, dstDescs, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitMethodComment(String srcClsName, String srcName, @Nullable String srcDesc,
+			@Nullable String[] dstClsNames, @Nullable String[] dstNames, @Nullable String[] dstDescs, String comment, CommentStyle style) throws IOException {
 		if (!supFeatures.supportsMethods() || supFeatures.elementComments() == ElementCommentSupport.NONE) return;
 
 		String subMthId = srcClsName + "#" + srcName + srcDesc;
@@ -417,6 +437,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 		MethodMappingView supMth = requireNonNull(supCls.getMethod(srcName, srcDesc), "Incoming method comment's parent method not contained in supTree: " + subMthId);
 
 		assertEquals(supMth.getComment(), comment, "Incoming comment differs from supTree");
+		assertEquals(supMth.getCommentStyle(), style, "Incoming comment style differs from supTree");
 	}
 
 	@Override
@@ -485,6 +506,13 @@ public class SubsetChecker implements FlatMappingVisitor {
 	@Override
 	public void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc, int argPosition, int lvIndex, @Nullable String srcArgName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs, @Nullable String[] dstNames, String comment) throws IOException {
+		visitMethodArgComment(srcClsName, srcMethodName, srcMethodDesc, argPosition, lvIndex, srcArgName,
+				dstClsNames, dstMethodNames, dstMethodDescs, dstNames, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitMethodArgComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc, int argPosition, int lvIndex, @Nullable String srcArgName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs, @Nullable String[] dstNames, String comment, CommentStyle style) throws IOException {
 		if (!supFeatures.supportsArgs() || supFeatures.elementComments() == ElementCommentSupport.NONE) return;
 
 		String subArgId = srcClsName + "#" + srcMethodName + srcMethodDesc + ":" + argPosition + ":" + lvIndex + ":" + srcArgName;
@@ -494,6 +522,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 		MethodArgMappingView supArg = requireNonNull(supMth.getArg(argPosition, lvIndex, srcArgName), "Incoming arg comment's parent arg not contained in supTree: " + subArgId);
 
 		assertEquals(supArg.getComment(), comment, "Incoming comment differs from supTree");
+		assertEquals(supArg.getCommentStyle(), style, "Incoming comment style differs from supTree");
 	}
 
 	@Override
@@ -573,6 +602,13 @@ public class SubsetChecker implements FlatMappingVisitor {
 	@Override
 	public void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
 			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs, @Nullable String[] dstNames, String comment) throws IOException {
+		visitMethodVarComment(srcClsName, srcMethodName, srcMethodDesc, lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName,
+				dstClsNames, dstMethodNames, dstMethodDescs, dstNames, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitMethodVarComment(String srcClsName, String srcMethodName, @Nullable String srcMethodDesc, int lvtRowIndex, int lvIndex, int startOpIdx, int endOpIdx, @Nullable String srcVarName,
+			@Nullable String[] dstClsNames, @Nullable String[] dstMethodNames, @Nullable String[] dstMethodDescs, @Nullable String[] dstNames, String comment, CommentStyle style) throws IOException {
 		if (!supFeatures.supportsVars() || supFeatures.elementComments() == ElementCommentSupport.NONE) return;
 
 		String subVarId = srcClsName + "#" + srcMethodName + srcMethodDesc + ":" + lvtRowIndex + ":" + lvIndex + ":" + startOpIdx + ":" + endOpIdx + ":" + srcVarName;
@@ -582,6 +618,7 @@ public class SubsetChecker implements FlatMappingVisitor {
 		MethodVarMappingView supVar = requireNonNull(supMth.getVar(lvtRowIndex, lvIndex, startOpIdx, endOpIdx, srcVarName), "Incoming var comment's parent var not contained in supTree: " + subVarId);
 
 		assertEquals(supVar.getComment(), comment, "Incoming comment differs from supTree");
+		assertEquals(supVar.getCommentStyle(), style, "Incoming comment style differs from supTree");
 	}
 
 	protected void assertTrue(boolean condition, String message) {

@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.adapter.OuterClassNamePropagator;
@@ -225,7 +226,21 @@ public interface MappingTree extends MappingTreeView {
 		MappingTree getTree();
 
 		void setDstName(String name, int namespace);
+
+		/**
+		 * Sets the HTML-style comment of this mapping.
+		 * @param comment The comment.
+		 */
 		void setComment(String comment);
+
+		/**
+		 * Sets the comment of this mapping.
+		 * @param comment The comment.
+		 * @param style   The comment style.
+		 */
+		default void setComment(String comment, CommentStyle style) {
+			setComment(comment);
+		}
 	}
 
 	interface ClassMapping extends ElementMapping, ClassMappingView {

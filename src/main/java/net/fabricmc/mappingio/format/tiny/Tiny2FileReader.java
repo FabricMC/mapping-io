@@ -21,6 +21,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.fabricmc.mappingio.CommentStyle;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingVisitor;
@@ -168,7 +169,9 @@ public final class Tiny2FileReader {
 					readMethod(reader, dstNsCount, escapeNames, visitor);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.CLASS, visitor);
+				readComment(reader, MappedElementKind.CLASS, CommentStyle.HTML, visitor);
+			} else if (reader.nextCol("md")) { // markdown comment: md <comment>
+				readComment(reader, MappedElementKind.CLASS, CommentStyle.MARKDOWN, visitor);
 			}
 		}
 	}
@@ -202,7 +205,9 @@ public final class Tiny2FileReader {
 					readElement(reader, MappedElementKind.METHOD_VAR, dstNsCount, escapeNames, visitor);
 				}
 			} else if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, MappedElementKind.METHOD, visitor);
+				readComment(reader, MappedElementKind.METHOD, CommentStyle.HTML, visitor);
+			} else if (reader.nextCol("md")) { // markdown comment: md <comment>
+				readComment(reader, MappedElementKind.METHOD, CommentStyle.MARKDOWN, visitor);
 			}
 		}
 	}
@@ -213,16 +218,18 @@ public final class Tiny2FileReader {
 
 		while (reader.nextLine(kind.level + 1)) {
 			if (reader.nextCol("c")) { // comment: c <comment>
-				readComment(reader, kind, visitor);
+				readComment(reader, kind, CommentStyle.HTML, visitor);
+			} else if (reader.nextCol("md")) { // markdown comment: md <comment>
+				readComment(reader, kind, CommentStyle.MARKDOWN, visitor);
 			}
 		}
 	}
 
-	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, MappingVisitor visitor) throws IOException {
+	private static void readComment(ColumnFileReader reader, MappedElementKind subjectKind, CommentStyle style, MappingVisitor visitor) throws IOException {
 		String comment = reader.nextCol(true);
 		if (comment == null) throw new IOException("missing comment in line "+reader.getLineNumber());
 
-		visitor.visitComment(subjectKind, comment);
+		visitor.visitComment(subjectKind, comment, style);
 	}
 
 	private static void readDstNames(ColumnFileReader reader, MappedElementKind subjectKind, int dstNsCount, boolean escapeNames, MappingVisitor visitor) throws IOException {
