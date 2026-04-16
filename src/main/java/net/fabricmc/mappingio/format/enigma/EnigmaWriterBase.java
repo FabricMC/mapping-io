@@ -22,6 +22,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -143,6 +145,11 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
+		visitComment(targetKind, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
 		int start = 0;
 		int pos;
 
@@ -152,7 +159,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 			int end = pos >= 0 ? pos : comment.length();
 
 			writeIndent(targetKind.level);
-			writer.write("COMMENT");
+			writer.write(style == CommentStyle.MARKDOWN ? "MDCOMMENT" : "COMMENT");
 
 			if (end > start) {
 				writer.write(' ');

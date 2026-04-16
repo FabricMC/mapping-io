@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.mappingio.MappedElementKind;
@@ -117,6 +119,11 @@ public abstract class ForwardingMappingVisitor implements MappingVisitor {
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) throws IOException {
 		next.visitComment(targetKind, comment);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+		next.visitComment(targetKind, comment, style);
 	}
 
 	protected final MappingVisitor next;

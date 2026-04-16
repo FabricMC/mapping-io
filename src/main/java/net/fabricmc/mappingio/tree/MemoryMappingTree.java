@@ -33,6 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.fabricmc.mappingio.CommentStyle;
+
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -809,6 +811,11 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 	@Override
 	public void visitComment(MappedElementKind targetKind, String comment) {
+		visitComment(targetKind, comment, CommentStyle.HTML);
+	}
+
+	@Override
+	public void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) {
 		Entry<?> entry;
 
 		switch (targetKind) {
@@ -823,7 +830,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		}
 
 		if (entry == null) throw new UnsupportedOperationException("Tried to visit comment before owning target");
-		entry.setCommentInternal(comment);
+		entry.setCommentInternal(comment, style);
 	}
 
 	private static boolean isValidDescriptor(String descriptor, boolean possiblyMethod) {
@@ -862,7 +869,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 				}
 			}
 
-			setCommentInternal(src.getComment());
+			setCommentInternal(src.getComment(), src.getCommentStyle());
 		}
 
 		public abstract MappedElementKind getKind();
@@ -940,12 +947,18 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 
 		@Override
 		public final void setComment(String comment) {
-			tree.assertNotInVisitPass();
-			setCommentInternal(comment);
+			setComment(comment, CommentStyle.HTML);
 		}
 
-		void setCommentInternal(String comment) {
+		@Override
+		public final void setComment(String comment, CommentStyle style) {
+			tree.assertNotInVisitPass();
+			setCommentInternal(comment, style);
+		}
+
+		void setCommentInternal(String comment, CommentStyle style) {
 			this.comment = comment;
+			this.commentStyle = style;
 		}
 
 		protected final boolean acceptElement(MappingVisitor visitor, @Nullable String[] dstDescs) throws IOException {
@@ -991,6 +1004,7 @@ public final class MemoryMappingTree implements VisitableMappingTree {
 		private String srcName;
 		protected String[] dstNames;
 		protected String comment;
+		protected CommentStyle commentStyle = CommentStyle.HTML;
 	}
 
 	static final class ClassEntry extends Entry<ClassEntry> implements ClassMapping {

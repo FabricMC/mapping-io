@@ -168,6 +168,18 @@ public interface MappingVisitor {
 	 * Comment for the specified element (last content-visited or any parent).
 	 *
 	 * @param comment Comment as a potentially multi-line string.
+	 * @deprecated Use {@link #visitComment(MappedElementKind, String, CommentStyle)} instead.
 	 */
+	@Deprecated
 	void visitComment(MappedElementKind targetKind, String comment) throws IOException;
+
+	/**
+	 * Comment for the specified element (last content-visited or any parent).
+	 *
+	 * @param comment Comment as a potentially multi-line string.
+	 * @param style   The comment style.
+	 */
+	default void visitComment(MappedElementKind targetKind, String comment, CommentStyle style) throws IOException {
+		visitComment(targetKind, comment);
+	}
 }
