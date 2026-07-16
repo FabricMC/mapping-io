@@ -110,6 +110,7 @@ public final class MappingReader {
 		case "tsr": // tsrg2 <nsA> <nsB> ..<nsN>
 			return MappingFormat.TSRG_2_FILE;
 		case "CLA":
+		case "MET":
 			return MappingFormat.ENIGMA_FILE;
 		case "PK:":
 		case "CL:":

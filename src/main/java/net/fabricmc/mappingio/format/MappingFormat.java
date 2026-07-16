@@ -88,6 +88,7 @@ public enum MappingFormat {
 	 * @implNote Access modifiers are currently not supported.
 	 */
 	ENIGMA_FILE("Enigma file", "mapping", true, FeatureSetBuilder.create()
+			.withFileMetadata(MetadataSupport.ARBITRARY)
 			.withElementMetadata(MetadataSupport.FIXED) // access modifiers
 			.withClasses(c -> c
 					.withSrcNames(FeaturePresence.REQUIRED)

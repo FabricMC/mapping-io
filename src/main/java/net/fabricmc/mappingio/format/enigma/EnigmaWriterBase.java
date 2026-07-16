@@ -45,11 +45,27 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 	@Override
 	public boolean visitHeader() throws IOException {
-		return false;
+		return supportsMetadata();
 	}
+
+	protected abstract boolean supportsMetadata();
 
 	@Override
 	public void visitNamespaces(String srcNamespace, List<String> dstNamespaces) { }
+
+	@Override
+	public void visitMetadata(String key, @Nullable String value) throws IOException {
+		if (!supportsMetadata()) return;
+		writer.write("METADATA ");
+		writer.write(key);
+
+		if (value != null) {
+			writer.write(' ');
+			writer.write(value);
+		}
+
+		writer.write('\n');
+	}
 
 	@Override
 	public boolean visitClass(String srcName) throws IOException {
@@ -232,7 +248,14 @@ abstract class EnigmaWriterBase implements MappingWriter {
 		}
 	}
 
-	protected static final Set<MappingFlag> flags = EnumSet.of(MappingFlag.NEEDS_ELEMENT_UNIQUENESS, MappingFlag.NEEDS_SRC_FIELD_DESC, MappingFlag.NEEDS_SRC_METHOD_DESC);
+	protected static final Set<MappingFlag> flags = EnumSet.of(
+			MappingFlag.NEEDS_ELEMENT_UNIQUENESS,
+			MappingFlag.NEEDS_SRC_FIELD_DESC,
+			MappingFlag.NEEDS_SRC_METHOD_DESC,
+			// We can skip the metadata for EnigmaDirWriter by ignoring the header altogether.
+			// This also puts the metadata at the start of the file, which we want.
+			MappingFlag.NEEDS_HEADER_METADATA
+	);
 	protected static final String toEscape = "\\\n\r\0\t";
 	protected static final String escaped = "\\nr0t";
 

@@ -21,6 +21,8 @@ import java.io.Reader;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingUtil;
@@ -53,7 +55,7 @@ public final class EnigmaFileReader {
 		MappingVisitor parentVisitor = null;
 		boolean readerMarked = false;
 
-		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS)) {
+		if (flags.contains(MappingFlag.NEEDS_ELEMENT_UNIQUENESS) || flags.contains(MappingFlag.NEEDS_HEADER_METADATA)) {
 			parentVisitor = visitor;
 			visitor = new MemoryMappingTree();
 		} else if (flags.contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {
@@ -72,6 +74,8 @@ public final class EnigmaFileReader {
 				do {
 					if (reader.nextCol("CLASS")) { // class: CLASS <name-a> [<name-b>]
 						readClass(reader, 0, null, null, commentSb, visitor);
+					} else if (reader.nextCol("METADATA")) { // METADATA <key> [<value>]
+						readMetadata(reader, visitor);
 					}
 				} while (reader.nextLine(0));
 			}
@@ -248,5 +252,13 @@ public final class EnigmaFileReader {
 
 		visitor.visitComment(kind, commentSb.toString());
 		commentSb.setLength(0);
+	}
+
+	private static void readMetadata(ColumnFileReader reader, MappingVisitor visitor) throws IOException {
+		String key = reader.nextCol();
+		if (key == null || key.isEmpty()) throw new IOException("missing metadata key in line " + reader.getLineNumber());
+
+		@Nullable String value = reader.nextCol();
+		visitor.visitMetadata(key, value);
 	}
 }
