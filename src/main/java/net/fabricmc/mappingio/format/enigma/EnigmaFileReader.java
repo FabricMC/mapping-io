@@ -258,7 +258,7 @@ public final class EnigmaFileReader {
 		String key = reader.nextCol();
 		if (key == null || key.isEmpty()) throw new IOException("missing metadata key in line " + reader.getLineNumber());
 
-		@Nullable String value = reader.nextCol();
+		@Nullable String value = reader.nextCols(true);
 		visitor.visitMetadata(key, value);
 	}
 }

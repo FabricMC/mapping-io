@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingFlag;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.format.tiny.Tiny2Util;
 
 abstract class EnigmaWriterBase implements MappingWriter {
 	EnigmaWriterBase(Writer writer) throws IOException {
@@ -61,7 +62,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 		if (value != null) {
 			writer.write(' ');
-			writer.write(value);
+			Tiny2Util.writeEscaped(value, writer);
 		}
 
 		writer.write('\n');
@@ -172,7 +173,6 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 			if (end > start) {
 				writer.write(' ');
-
 				for (int i = start; i < end; i++) {
 					char c = comment.charAt(i);
 					int idx = toEscape.indexOf(c);

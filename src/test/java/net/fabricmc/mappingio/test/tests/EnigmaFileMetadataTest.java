@@ -87,14 +87,15 @@ public class EnigmaFileMetadataTest {
 		return map;
 	}
 
-	private static final String METADATA_ONLY_FILE = "METADATA key-only\nMETADATA key-and-value something\nMETADATA key-and-empty-value \n";
-	private static final String METADATA_AND_CLASS_FILE = "CLASS Foo Foo2\nMETADATA key-only\nCLASS Bar Bar2\nMETADATA key-and-value something\nMETADATA key-and-empty-value \n";
-	private static final String METADATA_AND_CLASS_FILE_SORTED = "METADATA key-only\nMETADATA key-and-value something\nMETADATA key-and-empty-value \nCLASS Foo Foo2\nCLASS Bar Bar2\n";
+	private static final String METADATA_ONLY_FILE = "METADATA key-only\nMETADATA key-and-value something\nMETADATA key-and-empty-value \nMETADATA key-and-value-with-special-chars Hello, world!\\nAnother line\n";
+	private static final String METADATA_AND_CLASS_FILE = "CLASS Foo Foo2\nMETADATA key-only\nCLASS Bar Bar2\nMETADATA key-and-value something\nMETADATA key-and-empty-value \nMETADATA key-and-value-with-special-chars Hello, world!\\nAnother line\n";
+	private static final String METADATA_AND_CLASS_FILE_SORTED = "METADATA key-only\nMETADATA key-and-value something\nMETADATA key-and-empty-value \nMETADATA key-and-value-with-special-chars Hello, world!\\nAnother line\nCLASS Foo Foo2\nCLASS Bar Bar2\n";
 	private static final Map<String, String> EXAMPLE_METADATA = new LinkedHashMap<>();
 
 	static {
 		EXAMPLE_METADATA.put("key-only", null);
 		EXAMPLE_METADATA.put("key-and-value", "something");
 		EXAMPLE_METADATA.put("key-and-empty-value", "");
+		EXAMPLE_METADATA.put("key-and-value-with-special-chars", "Hello, world!\nAnother line");
 	}
 }
