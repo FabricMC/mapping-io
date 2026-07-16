@@ -173,6 +173,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 			if (end > start) {
 				writer.write(' ');
+
 				for (int i = start; i < end; i++) {
 					char c = comment.charAt(i);
 					int idx = toEscape.indexOf(c);
