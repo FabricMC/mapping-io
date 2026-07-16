@@ -17,7 +17,9 @@
 package net.fabricmc.mappingio.test.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -75,6 +77,12 @@ public class EnigmaFileMetadataTest {
 		MemoryMappingTree tree = new MemoryMappingTree();
 		MappingReader.read(new StringReader(METADATA_AND_CLASS_FILE), MappingFormat.ENIGMA_FILE, tree);
 		assertEquals(EXAMPLE_METADATA, getMetadataMap(tree));
+	}
+
+	@Test
+	void readMetadataWithoutKey() {
+		MemoryMappingTree tree = new MemoryMappingTree();
+		assertThrows(IOException.class, () -> MappingReader.read(new StringReader("METADATA"), MappingFormat.ENIGMA_FILE, tree));
 	}
 
 	private static Map<String, @Nullable String> getMetadataMap(MappingTreeView tree) {
