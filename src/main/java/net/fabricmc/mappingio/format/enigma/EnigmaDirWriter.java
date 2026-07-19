@@ -70,6 +70,11 @@ public final class EnigmaDirWriter extends EnigmaWriterBase {
 	}
 
 	@Override
+	protected boolean supportsMetadata() {
+		return false;
+	}
+
+	@Override
 	public void close() throws IOException {
 		if (writer != null) {
 			writer.close();

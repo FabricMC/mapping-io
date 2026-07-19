@@ -30,6 +30,11 @@ public final class EnigmaFileWriter extends EnigmaWriterBase {
 	}
 
 	@Override
+	protected boolean supportsMetadata() {
+		return true;
+	}
+
+	@Override
 	void visitClassContent() throws IOException {
 		writeMismatchedOrMissingClasses();
 	}
