@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -314,7 +313,7 @@ public final class VisitOrder {
 		return methodVarsFirst;
 	}
 
-	private static final AlphanumericComparator ALPHANUM = new AlphanumericComparator(Locale.ROOT);
+	private static final AlphanumericComparator ALPHANUM = new AlphanumericComparator();
 	private Comparator<ClassMappingView> classComparator;
 	private Comparator<FieldMappingView> fieldComparator;
 	private Comparator<MethodMappingView> methodComparator;
