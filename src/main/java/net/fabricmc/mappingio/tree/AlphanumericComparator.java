@@ -19,41 +19,11 @@
 package net.fabricmc.mappingio.tree;
 
 import static java.nio.CharBuffer.wrap;
-import static java.util.Objects.requireNonNull;
 
 import java.nio.CharBuffer;
-import java.text.Collator;
 import java.util.Comparator;
-import java.util.Locale;
 
 class AlphanumericComparator implements Comparator<CharSequence> {
-	private final Collator collator;
-
-	/**
-	 * Creates a comparator that will use lexicographical sorting of the non-numerical parts of the compared strings.
-	*/
-	AlphanumericComparator() {
-		collator = null;
-	}
-
-	/**
-	 * Creates a comparator that will use locale-sensitive sorting of the non-numerical parts of the compared strings.
-	*
-	* @param locale The locale to use.
-	*/
-	AlphanumericComparator(Locale locale) {
-		this(Collator.getInstance(requireNonNull(locale)));
-	}
-
-	/**
-	 * Creates a comparator that will use the given collator to sort the non-numerical parts of the compared strings.
-	*
-	* @param collator The collator to use.
-	*/
-	AlphanumericComparator(Collator collator) {
-		this.collator = requireNonNull(collator);
-	}
-
 	@Override
 	public int compare(CharSequence s1, CharSequence s2) {
 		CharBuffer b1 = wrap(s1);
@@ -104,11 +74,6 @@ class AlphanumericComparator implements Comparator<CharSequence> {
 	}
 
 	private boolean isDigit(char c) {
-		if (collator == null) {
-			int intValue = (int) c;
-			return intValue >= 48 && intValue <= 57;
-		}
-
 		return Character.isDigit(c);
 	}
 
@@ -135,10 +100,6 @@ class AlphanumericComparator implements Comparator<CharSequence> {
 	}
 
 	private int compareAsStrings(CharBuffer b1, CharBuffer b2) {
-		if (collator != null) {
-			return collator.compare(b1.toString(), b2.toString());
-		}
-
 		return b1.toString().compareTo(b2.toString());
 	}
 
