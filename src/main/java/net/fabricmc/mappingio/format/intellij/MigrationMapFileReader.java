@@ -49,20 +49,16 @@ public final class MigrationMapFileReader {
 	}
 
 	public static void read(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
-		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+		Reader r = reader.markSupported() ? reader : new BufferedReader(reader);
 
-		read(br, sourceNs, targetNs, visitor);
-	}
-
-	private static void read(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException {
 		try {
-			read0(reader, sourceNs, targetNs, visitor);
+			read0(r, sourceNs, targetNs, visitor);
 		} catch (XMLStreamException e) {
 			throw new IOException(e);
 		}
 	}
 
-	private static void read0(BufferedReader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException, XMLStreamException {
+	private static void read0(Reader reader, String sourceNs, String targetNs, MappingVisitor visitor) throws IOException, XMLStreamException {
 		CharArrayReader parentReader = null;
 
 		if (visitor.getFlags().contains(MappingFlag.NEEDS_MULTIPLE_PASSES)) {

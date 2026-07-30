@@ -90,16 +90,16 @@ public final class MappingReader {
 		int len;
 
 		// Be careful not to close the reader, that's up to the caller.
-		BufferedReader br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+		Reader mr = reader.markSupported() ? reader : new BufferedReader(reader);
 
-		br.mark(DETECT_HEADER_LEN);
+		mr.mark(DETECT_HEADER_LEN);
 
 		while (pos < buffer.length
-				&& (len = br.read(buffer, pos, buffer.length - pos)) >= 0) {
+				&& (len = mr.read(buffer, pos, buffer.length - pos)) >= 0) {
 			pos += len;
 		}
 
-		br.reset();
+		mr.reset();
 		if (pos < 3) return null;
 
 		switch (String.valueOf(buffer, 0, 3)) {
@@ -116,6 +116,7 @@ public final class MappingReader {
 		case "CL:":
 		case "FD:":
 		case "MD:":
+			BufferedReader br = mr instanceof BufferedReader ? (BufferedReader) mr : new BufferedReader(mr);
 			return detectSrgOrXsrg(br, fileExt);
 		case "CL ":
 		case "FD ":
