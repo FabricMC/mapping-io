@@ -1,0 +1,47 @@
+tipo¶original¶nuevo¶def¶pos¶desc
+Class¶class_1¶class_1¶nil¶nil¶
+Class¶package_2.class_2¶package_2.class_2¶nil¶nil¶
+Class¶class_3¶package_3.class3Ns0Rename¶nil¶nil¶
+Class¶package_4.class_4¶package_4.class_4¶nil¶nil¶
+Class¶class_5¶class_5¶nil¶nil¶This is a comment
+Class¶package_6.class_6¶package_7.class6Ns0Rename¶nil¶nil¶This is a comment
+Class¶class_7¶class_7¶nil¶nil¶This is a comment
+Class¶package_8.class_8¶package_8.class_8¶nil¶nil¶
+Class¶class_9¶class_9¶nil¶nil¶
+Class¶class_9$class_10¶class_9$class10Ns0Rename¶nil¶nil¶
+Class¶class_11$class_12¶class_11$class_12¶nil¶nil¶
+Class¶class_13$class_14¶class_13$class_14¶nil¶nil¶This is a comment
+Class¶class_15$class_16¶class_15$class16Ns0Rename¶nil¶nil¶This is a comment
+Class¶class_17$class_18¶class_17$class_18¶nil¶nil¶This is a comment
+Class¶class_19¶class_19¶nil¶nil¶
+Class¶package_20.class_20¶package_20.class_20¶nil¶nil¶
+Class¶package_20.class_20$class_21$class_22¶package_20.class_20$class_21$class22Ns0Rename¶nil¶nil¶
+Class¶class_23$class_24$class_25¶class_23$class_24$class_25¶nil¶nil¶
+Class¶package_26.class_26$class_27$class_28¶package_26.class_26$class_27$class_28¶nil¶nil¶This is a comment
+Class¶class_29$class_30$class_31¶class_29$class_30$class31Ns0Rename¶nil¶nil¶This is a comment
+Class¶package_32.class_32$class_33$class_34¶package_32.class_32$class_33$class_34¶nil¶nil¶This is a comment
+Class¶class_35¶class_35¶nil¶nil¶
+Var¶class_35.field_1:I¶field_1¶nil¶nil¶
+Var¶class_35.field_2:Lcls;¶field2Ns0Rename¶nil¶nil¶
+Var¶class_35.field_3:Lpkg/cls;¶field_3¶nil¶nil¶
+Var¶class_35.field_4:[I¶field_4¶nil¶nil¶This is a comment
+Var¶class_35.field_6:I¶field_6¶nil¶nil¶This is a comment
+Def¶class_35.method_1()I¶method_1¶nil¶nil¶
+Def¶class_35.method_2(I)V¶method2Ns0Rename¶nil¶nil¶
+Def¶class_35.method_3(Lcls;)Lcls;¶method_3¶nil¶nil¶
+Def¶class_35.method_4(ILcls;)Lpkg/cls;¶method_4¶nil¶nil¶This is a comment
+Def¶class_35.method_5(Lcls;[I)[[B¶method5Ns0Rename¶nil¶nil¶This is a comment
+Def¶class_35.method_7()I¶method_7¶nil¶nil¶
+Param¶param_1¶param_1¶class_35.method_7()I¶1¶
+Param¶param_2¶param_2¶class_35.method_7()I¶3¶
+Param¶param_3¶param3Ns0Rename¶class_35.method_7()I¶5¶
+Param¶param_4¶param_4¶class_35.method_7()I¶7¶This is a comment
+Param¶param_5¶param5Ns0Rename¶class_35.method_7()I¶9¶This is a comment
+Param¶param_6¶param_6¶class_35.method_7()I¶11¶This is a comment
+Def¶class_35.method_8(I)V¶method_8¶nil¶nil¶
+Param¶var_1¶var_1¶class_35.method_8(I)V¶2¶
+Param¶var_2¶var_2¶class_35.method_8(I)V¶3¶
+Param¶var_3¶var3Ns0Rename¶class_35.method_8(I)V¶4¶
+Param¶var_4¶var_4¶class_35.method_8(I)V¶5¶This is a comment
+Param¶var_5¶var5Ns0Rename¶class_35.method_8(I)V¶6¶This is a comment
+Param¶var_6¶var_6¶class_35.method_8(I)V¶7¶This is a comment

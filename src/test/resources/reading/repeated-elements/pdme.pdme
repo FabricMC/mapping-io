@@ -1,0 +1,17 @@
+tipo¶original¶nuevo¶def¶pos¶desc
+Class¶class_1¶class1Ns0Rename0¶nil¶nil¶
+Class¶class_1¶class1Ns0Rename¶nil¶nil¶
+Var¶class_1.field_1:I¶field1Ns0Rename0¶nil¶nil¶
+Var¶class_1.field_1:I¶field1Ns0Rename¶nil¶nil¶
+Def¶class_1.method_1()I¶method1Ns0Rename0¶nil¶nil¶
+Def¶class_1.method_1()I¶method1Ns0Rename¶nil¶nil¶
+Param¶param_1¶param1Ns0Rename0¶class_1.method_1()I¶1¶
+Param¶param_1¶param1Ns0Rename¶class_1.method_1()I¶1¶
+Param¶var_1¶var1Ns0Rename0¶class_1.method_1()I¶1¶
+Param¶var_1¶var1Ns0Rename¶class_1.method_1()I¶2¶
+Class¶class_1$class_2¶class1Ns0Rename$class2Ns0Rename0¶nil¶nil¶
+Class¶class_1$class_2¶class1Ns0Rename$class2Ns0Rename¶nil¶nil¶This is a comment
+Var¶class_1$class_2.field_2:Lcls;¶field2Ns0Rename0¶nil¶nil¶
+Var¶class_1$class_2.field_2:Lcls;¶field2Ns0Rename¶nil¶nil¶
+Class¶class_3¶package_3.class3Ns0Rename0¶nil¶nil¶
+Class¶class_3¶package_3.class3Ns0Rename¶nil¶nil¶

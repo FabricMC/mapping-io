@@ -29,6 +29,7 @@ import net.fabricmc.mappingio.format.enigma.EnigmaDirWriter;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileWriter;
 import net.fabricmc.mappingio.format.intellij.MigrationMapFileWriter;
 import net.fabricmc.mappingio.format.jobf.JobfFileWriter;
+import net.fabricmc.mappingio.format.pdme.PDMEFileWriter;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileWriter;
 import net.fabricmc.mappingio.format.simple.RecafSimpleFileWriter;
 import net.fabricmc.mappingio.format.srg.CsrgFileWriter;
@@ -68,6 +69,7 @@ public interface MappingWriter extends Closeable, MappingVisitor {
 		case PROGUARD_FILE: return new ProGuardFileWriter(writer);
 		case INTELLIJ_MIGRATION_MAP_FILE: return new MigrationMapFileWriter(writer);
 		case RECAF_SIMPLE_FILE: return new RecafSimpleFileWriter(writer);
+		case PDME_FILE: return new PDMEFileWriter(writer);
 		case JOBF_FILE: return new JobfFileWriter(writer);
 		default: return null;
 		}

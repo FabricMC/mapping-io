@@ -82,6 +82,8 @@ public final class TestUtil {
 			return "migration-map.xml";
 		case RECAF_SIMPLE_FILE:
 			return "recaf-simple.txt";
+		case PDME_FILE:
+			return "pdme.pdme";
 		case JOBF_FILE:
 			return "jobf.jobf";
 		default:
@@ -111,6 +113,7 @@ public final class TestUtil {
 		case PROGUARD_FILE:
 		case INTELLIJ_MIGRATION_MAP_FILE:
 		case RECAF_SIMPLE_FILE:
+		case PDME_FILE:
 		case JOBF_FILE:
 			return null;
 		default:
@@ -142,6 +145,7 @@ public final class TestUtil {
 		case JAM_FILE:
 		case INTELLIJ_MIGRATION_MAP_FILE:
 		case RECAF_SIMPLE_FILE:
+		case PDME_FILE:
 		case JOBF_FILE:
 			return null;
 		default:

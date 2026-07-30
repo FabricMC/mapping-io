@@ -1,0 +1,7 @@
+tipo¶original¶nuevo¶def¶pos¶desc
+Class¶class_1¶class1Ns0Rename¶nil¶nil¶
+Var¶class_1.field_1:Lclass_1;¶field_1¶nil¶nil¶
+Class¶class_1$class_2¶class_1$class_2¶nil¶nil¶
+Var¶class_1$class_2.field_2:Lclass_1$class_2;¶field_2¶nil¶nil¶
+Class¶class_1$class_2$class_3¶class_1$class_2$class_3¶nil¶nil¶
+Var¶class_1$class_2$class_3.field_2:Lclass_1$class_2$class_3;¶field_2¶nil¶nil¶
