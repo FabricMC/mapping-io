@@ -29,6 +29,7 @@ import net.fabricmc.mappingio.adapter.VisitOrderVerifier;
 import net.fabricmc.mappingio.format.enigma.EnigmaFileReader;
 import net.fabricmc.mappingio.format.intellij.MigrationMapFileReader;
 import net.fabricmc.mappingio.format.jobf.JobfFileReader;
+import net.fabricmc.mappingio.format.pdme.PDMEFileReader;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.simple.RecafSimpleFileReader;
 import net.fabricmc.mappingio.format.srg.JamFileReader;
@@ -136,6 +137,11 @@ public class EmptyContentReadTest {
 	@Test
 	public void emptyRecafSimpleFile() throws Exception {
 		RecafSimpleFileReader.read(new StringReader(""), target);
+	}
+
+	@Test
+	public void emptyPDMEFile() throws Exception {
+		PDMEFileReader.read(new StringReader("tipo¶original¶nuevo¶def¶pos¶desc"), target);
 	}
 
 	@Test

@@ -255,6 +255,38 @@ public enum MappingFormat {
 			.withFileComments(true)),
 
 	/**
+	 * The {@code Paragraph Delimited Mapping Extended} mapping format, as specified <a href="https://pagure.io/FeatureCreep/MappingExFormat">here</a>.
+	 * @implNote This implementation does not support the Include/Incluir or AccessFlag/BanderaDeAcceso types.
+	 */
+	PDME_FILE("Paragraph Delimited Mapping Extended", "pdme", true,
+			FeatureSetBuilder.create()
+					.withNamespaces(false)
+					.withElementMetadata(MetadataSupport.ARBITRARY)
+					.withClasses(c -> c
+							.withSrcNames(FeaturePresence.REQUIRED)
+							.withDstNames(FeaturePresence.REQUIRED)
+							.withRepackaging(true))
+					.withFields(f -> f
+							.withSrcNames(FeaturePresence.REQUIRED)
+							.withSrcDescs(FeaturePresence.REQUIRED)
+							.withDstNames(FeaturePresence.REQUIRED))
+					.withMethods(m -> m
+							.withSrcNames(FeaturePresence.REQUIRED)
+							.withDstNames(FeaturePresence.REQUIRED)
+							.withSrcDescs(FeaturePresence.REQUIRED))
+					.withArgs(a -> a
+							.withLvIndices(FeaturePresence.REQUIRED)
+							.withSrcNames(FeaturePresence.OPTIONAL)
+							.withDstNames(FeaturePresence.REQUIRED))
+					.withVars(v -> v
+							.withLvIndices(FeaturePresence.OPTIONAL)
+							.withLvtRowIndices(FeaturePresence.OPTIONAL)
+							.withStartOpIndices(FeaturePresence.OPTIONAL)
+							.withSrcNames(FeaturePresence.OPTIONAL)
+							.withDstNames(FeaturePresence.REQUIRED))
+					.withFileComments(true)),
+
+	/**
 	 * The {@code JOBF} mapping format, as implemented <a href="https://github.com/skylot/jadx/blob/2d5c0fda4a0c5d16207a5f48edb72e6efa7d5bbd/jadx-core/src/main/java/jadx/core/deobf/DeobfPresets.java">here</a>.
 	 *
 	 * @implNote Package mappings are currently not supported.
