@@ -198,6 +198,8 @@ abstract class EnigmaWriterBase implements MappingWriter {
 	protected void writeMismatchedOrMissingClasses() throws IOException {
 		indent = 0;
 		int srcStart = 0;
+		int lastDstEnd = -1;
+		boolean entryWritten = false;
 
 		do {
 			int srcEnd = getNextOuterEnd(srcClassName, srcStart);
@@ -206,6 +208,12 @@ abstract class EnigmaWriterBase implements MappingWriter {
 
 			if (!lastWrittenClass.regionMatches(srcStart, srcClassName, srcStart, srcLen) // writtenPart.startsWith(srcPart)
 					|| srcEnd < lastWrittenClass.length() && lastWrittenClass.charAt(srcEnd) != '$') { // no trailing characters in writtenPart -> startsWith = equals
+				if (entryWritten) {
+					writer.write('\n');
+				} else {
+					entryWritten = true;
+				}
+
 				writeIndent(0);
 				writer.write("CLASS ");
 				writer.write(srcClassName, srcStart, srcLen);
@@ -220,7 +228,7 @@ abstract class EnigmaWriterBase implements MappingWriter {
 					}
 
 					if (dstStart >= 0) {
-						int dstEnd = getNextOuterEnd(dstName, dstStart);
+						int dstEnd = lastDstEnd = getNextOuterEnd(dstName, dstStart);
 						if (dstEnd < 0) dstEnd = dstName.length();
 						int dstLen = dstEnd - dstStart;
 
@@ -231,13 +239,20 @@ abstract class EnigmaWriterBase implements MappingWriter {
 						}
 					}
 				}
-
-				writer.write('\n');
 			}
 
 			indent++;
 			srcStart = srcEnd + 1;
 		} while (srcStart < srcClassName.length());
+
+		if (entryWritten) {
+			if (lastDstEnd >= 0) {
+				// Nest depth mismatch between source and destination names - write missing nest members
+				writer.write(dstName, lastDstEnd, dstName.length() - lastDstEnd);
+			}
+
+			writer.write('\n');
+		}
 
 		lastWrittenClass = srcClassName;
 		dstName = null;
